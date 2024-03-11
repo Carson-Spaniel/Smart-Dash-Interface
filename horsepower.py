@@ -28,15 +28,18 @@ font_large = pygame.font.Font(None, 120)
 font_medium = pygame.font.Font(None, 48)
 font_small = pygame.font.Font(None, 36)
 
+ports = obd.scan_serial()
+print("Available ports:", ports)
+
 # Connect to the OBD-II adapter
 connection = obd.OBD()
 
 # Print a message indicating connection
-# if connection.is_connected():
-#     print("Connected to OBD-II adapter. Ready to log data.")
-# else:
-#     print("Could not connect to OBD-II adapter. Exiting...")
-#     exit()
+if connection.is_connected():
+    print("Connected to OBD-II adapter. Ready to log data.")
+else:
+    print("Could not connect to OBD-II adapter. Exiting...")
+    exit()
 
 # Function to save max horsepower data to a file
 def save_max_horsepower(max_horsepower, max_horsepower_rpm):
@@ -135,18 +138,18 @@ def main():
                     else:  # Click on the left half of the screen
                         current_page = (current_page - 1) % len(pages)
 
-        # # Query for RPM and Torque
-        # cmd_rpm = obd.commands.RPM
-        # cmd_torque = obd.commands.ENGINE_LOAD  # Torque can be estimated from ENGINE_LOAD
-        # response_rpm = connection.query(cmd_rpm)
-        # response_torque = connection.query(cmd_torque)
+        # Query for RPM and Torque
+        cmd_rpm = obd.commands.RPM
+        cmd_torque = obd.commands.ENGINE_LOAD  # Torque can be estimated from ENGINE_LOAD
+        response_rpm = connection.query(cmd_rpm)
+        response_torque = connection.query(cmd_torque)
 
-        # if not response_rpm.is_null() and not response_torque.is_null():
-        #     rpm = response_rpm.value.magnitude
-        #     torque = response_torque.value.magnitude
+        if not response_rpm.is_null() and not response_torque.is_null():
+            rpm = response_rpm.value.magnitude
+            torque = response_torque.value.magnitude
 
-        rpm = random.randint(max(0,rpm-200), min(rpm+270,RPM_MAX))
-        torque = random.randint(200, 250)
+        # rpm = random.randint(max(0,rpm-200), min(rpm+270,RPM_MAX))
+        # torque = random.randint(200, 250)
 
         horsepower = calculate_horsepower(torque, rpm)
 
