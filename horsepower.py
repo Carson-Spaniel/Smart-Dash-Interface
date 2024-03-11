@@ -28,17 +28,23 @@ font_large = pygame.font.Font(None, 120)
 font_medium = pygame.font.Font(None, 48)
 font_small = pygame.font.Font(None, 36)
 
-ports = obd.scan_serial()
-print("Available ports:", ports)
+connect = False
 
-# Connect to the OBD-II adapter
-connection = obd.OBD()
+for i in range(3):
+    print('Attempting to connect...')
 
-# Print a message indicating connection
-if connection.is_connected():
-    print("Connected to OBD-II adapter. Ready to log data.")
-else:
-    print("Could not connect to OBD-II adapter. Exiting...")
+    # Connect to the OBD-II adapter
+    connection = obd.OBD(portstr='COM5')
+
+    # Print a message indicating connection
+    if connection.is_connected():
+        print("Connected to OBD-II adapter. Ready to log data.")
+        connect = True
+        break
+    else:
+        print("Could not connect to OBD-II adapter. Exiting...")
+
+if not connect:
     exit()
 
 # Function to save max horsepower data to a file
@@ -261,7 +267,7 @@ def main():
         pygame.display.flip()
         clock.tick(FPS)
 
-        time.sleep(.1)  # Wait for 0.1 second before next iteration
+        time.sleep(.05)  # Wait for 0.1 second before next iteration
 
     print("Logging stopped.")
 
