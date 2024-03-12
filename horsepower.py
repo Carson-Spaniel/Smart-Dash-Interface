@@ -214,9 +214,9 @@ def main():
                                 save_rpm(RPM_MAX,SHIFT)
 
         if DEV:
-            rpm = random.randint(max(0,rpm-200), min(rpm+270,RPM_MAX))
-            speed = random.randint(max(0,speed-5), min(speed+5,80))
-            maf = random.randint(max(1,maf-5), min(maf+5,80))
+            rpm = random.randint(max(0,rpm-20), min(rpm+27,RPM_MAX))
+            speed = random.randint(max(0,speed-1), min(speed+1,80))
+            maf = random.randint(max(1,maf-1), min(maf+1,80))
             mpg = calculate_mpg(speed, maf)
             if fuel_level<=0:
                 fuel_level=100
@@ -265,7 +265,7 @@ def main():
         rpm_percentage = min(1.0, rpm / RPM_MAX)  # Ensure it's between 0 and 1
         
         # Calculate the height of the filled portion based on percentage
-        filled_height = math.floor((SCREEN_HEIGHT*.8) * rpm_percentage)
+        filled_height = math.floor((SCREEN_HEIGHT*.88) * rpm_percentage)
 
         # Draw the filled portion
         color = GREEN if rpm<SHIFT else RED
@@ -273,13 +273,17 @@ def main():
         
         # Draw the shift line
         shiftLineColor = RED if rpm<SHIFT else BLACK
-        shift_line_y = SCREEN_HEIGHT - (SHIFT / RPM_MAX) * SCREEN_HEIGHT*.8
+        shift_line_y = SCREEN_HEIGHT - (SHIFT / RPM_MAX) * SCREEN_HEIGHT*.88
         pygame.draw.line(screen, shiftLineColor, (SCREEN_WIDTH * 0.8, shift_line_y), (SCREEN_WIDTH, shift_line_y), 5)
-        pygame.draw.line(screen, WHITE, (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT*.2), (SCREEN_WIDTH, SCREEN_HEIGHT*.2), 2)
-        pygame.draw.line(screen, WHITE, (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT*.2), (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT), 2)
+
+        pygame.draw.line(screen, BLACK, (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT*.12+2), (SCREEN_WIDTH, SCREEN_HEIGHT*.12+2), 4)
+        pygame.draw.line(screen, BLACK, (SCREEN_WIDTH * 0.8+2, SCREEN_HEIGHT*.12), (SCREEN_WIDTH * 0.8+2, SCREEN_HEIGHT), 4)
+
+        pygame.draw.line(screen, WHITE, (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT*.12), (SCREEN_WIDTH, SCREEN_HEIGHT*.12), 2)
+        pygame.draw.line(screen, WHITE, (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT*.12), (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT), 2)
 
         # Calculate the height of the filled portion based on percentage
-        fuel_height = math.floor((SCREEN_HEIGHT*.7) * fuel_level/100)
+        fuel_height = math.floor((SCREEN_HEIGHT*.8) * fuel_level/100)
 
         # Draw the filled portion
         if fuel_level > 75:
@@ -291,12 +295,14 @@ def main():
         else:
             fuel_color = RED
         
-        draw_text(screen, f"{round(fuel_level,1)}%", font_medium, WHITE, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.25)
+        draw_text(screen, f"{round(fuel_level,1)}%", font_medium, WHITE, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.15)
         pygame.draw.rect(screen, fuel_color, (0, SCREEN_HEIGHT - fuel_height, SCREEN_WIDTH * 0.2, fuel_height))
 
-        pygame.draw.line(screen, WHITE, (0, SCREEN_HEIGHT*.3), (SCREEN_WIDTH*.2, SCREEN_HEIGHT*.3), 2)
-        pygame.draw.line(screen, WHITE, (SCREEN_WIDTH * 0.2, SCREEN_HEIGHT*.3), (SCREEN_WIDTH * 0.2, SCREEN_HEIGHT), 2)
+        pygame.draw.line(screen, BLACK, (0, SCREEN_HEIGHT*.2+2), (SCREEN_WIDTH*.2, SCREEN_HEIGHT*.2+2), 4)
+        pygame.draw.line(screen, BLACK, (SCREEN_WIDTH * 0.2-2, SCREEN_HEIGHT*.2), (SCREEN_WIDTH * 0.2-2, SCREEN_HEIGHT), 4)
 
+        pygame.draw.line(screen, WHITE, (0, SCREEN_HEIGHT*.2), (SCREEN_WIDTH*.2, SCREEN_HEIGHT*.2), 2)
+        pygame.draw.line(screen, WHITE, (SCREEN_WIDTH * 0.2, SCREEN_HEIGHT*.2), (SCREEN_WIDTH * 0.2, SCREEN_HEIGHT), 2)
 
         for i, page in enumerate(pages):
             if page != 'Off':
