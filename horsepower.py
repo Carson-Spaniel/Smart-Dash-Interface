@@ -308,9 +308,9 @@ def main():
 
         # Draw page indicators (circles)
         circle_radius = 22
-        circle_spacing = 6
+        circle_spacing = 5
 
-        total_circle_width = 8 * (2 * circle_radius + 2 * circle_spacing)
+        total_circle_width = 12 * (2 * circle_radius + 2 * circle_spacing)
 
         # Calculate starting position to center horizontally
         start_x = (SCREEN_WIDTH - total_circle_width) // 2
@@ -318,15 +318,15 @@ def main():
         circle_y = circle_radius + circle_spacing
 
         # Colors for each light
-        light_colors = [YELLOW, YELLOW, ORANGE, ORANGE, RED, RED, PURPLE, PURPLE]
+        light_colors = [GREEN, GREEN, GREEN, GREEN, RED, RED, RED, RED, PURPLE, PURPLE, PURPLE, PURPLE]
 
-        for i in range(8):
+        for i in range(12):
             color = light_colors[i]
 
-            pygame.draw.circle(screen, WHITE, (circle_x, circle_y), circle_radius + 4)
-            pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius + 2)
+            pygame.draw.circle(screen, WHITE, (circle_x, circle_y), circle_radius )
+            pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius -1)
             
-            if rpm > SHIFT - ((8 - i) * 200):
+            if rpm > SHIFT - ((12 - i) * 200):
                 pygame.draw.circle(screen, color, (circle_x, circle_y), circle_radius)
                 
             circle_x += 2 * (circle_radius + circle_spacing)
