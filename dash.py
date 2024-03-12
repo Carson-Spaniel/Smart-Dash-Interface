@@ -250,7 +250,7 @@ def main():
         draw_text(screen, ">", font_medium, WHITE, SCREEN_WIDTH -SCREEN_WIDTH*.05, SCREEN_HEIGHT * .05)
 
         # Draw page indicators (circles)
-        circle_radius = 5
+        circle_radius = 8
         circle_spacing = 10
 
         # Calculate total width occupied by circles
