@@ -52,17 +52,6 @@ if not DEV:
         print('Failed. Exiting...')
         exit()
 
-# Function to calculate MPG
-def calculate_mpg(speed, maf):
-    if speed == 0:
-        return 0
-    gph = (maf / 14.7) * 0.746  # grams per hour to gallons per hour
-    if DEV:
-        mpg = speed / gph
-    else:
-        speed.to('mile/hour') / gph
-    return round(mpg,1)
-
 # Function to save max horsepower data to a file
 def save_rpm(RPM_MAX, SHIFT):
     with open("RPM.txt", "w") as file:
@@ -83,6 +72,14 @@ def load_rpm():
     return max, shift
 
 RPM_MAX,SHIFT = load_rpm()
+
+# Function to calculate MPG
+def calculate_mpg(speed, maf):
+    if speed == 0:
+        return 0
+    gph = (maf / 14.7) * 0.746  # grams per hour to gallons per hour
+    mpg = speed / gph
+    return round(mpg, 1)
 
 # Function to calculate horsepower
 def calculate_horsepower(torque, rpm):
@@ -134,7 +131,7 @@ def main():
     pygame.display.set_caption("Smart Dash")
     clock = pygame.time.Clock()
 
-    pages = ["RPM", "MPG", "Both"] #, "Off"
+    pages = ["RPM" , "Both"] #,"MPG", "Off"
     current_page = 0
 
     # Load the last visited page
@@ -155,8 +152,9 @@ def main():
     if DEV:
         rpm = 650
         fuel_level = random.randint(0,100)
-        speed = 10
+        speed = 20
         maf = 6
+        voltage = 14.5
     while logging:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -215,22 +213,24 @@ def main():
 
         if DEV:
             rpm = random.randint(max(0,rpm-20), min(rpm+27,RPM_MAX))
-            speed = random.randint(max(0,speed-1), min(speed+1,80))
+            speed = random.uniform(max(0,speed-10), min(speed+100,80))* 0.621371
             maf = random.randint(max(1,maf-1), min(maf+1,80))
             mpg = calculate_mpg(speed, maf)
             if fuel_level<=0:
                 fuel_level=100
             fuel_level -= .1
+            voltage = random.uniform(max(14,voltage-.1), min(voltage+.1,15))
         else:
             # Query for RPM and Torque
             response_rpm = connection.query(obd.commands.RPM)
             response_fuel_level = connection.query(obd.commands.FUEL_LEVEL)
-            speed_response = connection.query(obd.commands.SPEED)  # Vehicle speed
-            maf_response = connection.query(obd.commands.MAF)      # Mass Air Flow
+            response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
+            response_maf = connection.query(obd.commands.MAF)      # Mass Air Flow
+            response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
 
-            if not speed_response.is_null() and not maf_response.is_null():
-                speed = speed_response.value.to('mile/hour')
-                maf = maf_response.value.to('gram/second')
+            if not response_speed.is_null() and not response_maf.is_null():
+                speed = response_speed.value.to('mile/hour')
+                maf = response_maf.value.to('gram/second')
                 mpg = calculate_mpg(speed.magnitude, maf.magnitude)
 
             if not response_rpm.is_null():
@@ -238,6 +238,9 @@ def main():
 
             if not response_fuel_level.is_null():
                 fuel_level = response_fuel_level.value.magnitude
+
+            if not response_voltage.is_null():
+                voltage = response_voltage.value.magnitude
 
         # Clear the screen
         screen.fill(BLACK)
@@ -332,7 +335,7 @@ def main():
             pygame.draw.circle(screen, WHITE, (circle_x, circle_y), circle_radius )
             pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius -1)
             
-            if rpm > SHIFT - ((12 - i) * 200):
+            if rpm > SHIFT - ((12 - i) * 100):
                 pygame.draw.circle(screen, color, (circle_x, circle_y), circle_radius)
                 
             circle_x += 2 * (circle_radius + circle_spacing)
@@ -365,6 +368,13 @@ def main():
             draw_text(screen, str(round(mpg, 2)), font_large, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2+20)
 
         elif pages[current_page] == "Both":
+            # Draw voltage and speed
+            draw_text(screen, f"{round(voltage,1)}", font_medium, WHITE, SCREEN_WIDTH*.28, SCREEN_HEIGHT - SCREEN_HEIGHT*.1)
+            draw_text(screen, f"{int(round(speed,0))}", font_medium, WHITE, SCREEN_WIDTH*.72, SCREEN_HEIGHT - SCREEN_HEIGHT*.1)
+
+            draw_text(screen, "Volts", font_small, WHITE, SCREEN_WIDTH*.28, SCREEN_HEIGHT - SCREEN_HEIGHT*.2)
+            draw_text(screen, "MPH", font_small, WHITE, SCREEN_WIDTH*.72, SCREEN_HEIGHT - SCREEN_HEIGHT*.2)
+
             # Draw RPM and Horsepower on separate lines
             draw_text(screen, "RPM", font_medium, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4)
             draw_text(screen, "Instant MPG", font_medium, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 40)
@@ -383,7 +393,7 @@ def main():
 
         sleep = .05
         if DEV:
-            sleep = .1
+            sleep = .2
         
         time.sleep(sleep)
 
