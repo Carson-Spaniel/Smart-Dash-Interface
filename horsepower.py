@@ -42,7 +42,7 @@ if not DEV:
 
         # Print a message indicating connection
         if connection.is_connected():
-            print("Connected to OBD-II adapter. Ready to log data.")
+            print("Connected to OBD-II adapter. Turning on display.")
             connect = True
             break
         else:
@@ -228,7 +228,7 @@ def main():
             speed_response = connection.query(obd.commands.SPEED)  # Vehicle speed
             maf_response = connection.query(obd.commands.MAF)      # Mass Air Flow
 
-            if speed_response.success and maf_response.success:
+            if not speed_response.is_null() and not maf_response.is_null():
                 speed = speed_response.value.to('mile/hour')
                 maf = maf_response.value.to('gram/second')
                 mpg = calculate_mpg(speed.magnitude, maf.magnitude)
