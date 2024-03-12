@@ -148,9 +148,9 @@ def main():
 
     logging = True
 
-    # Display Chevrolet logo for 5 seconds
-
-    display_logo(screen)
+    if not DEV:
+        # Display Chevrolet logo for 5 seconds
+        display_logo(screen)
 
     if DEV:
         rpm = 650
@@ -241,6 +241,9 @@ def main():
 
         # Clear the screen
         screen.fill(BLACK)
+
+        # if rpm > SHIFT - (200):
+        #     screen.fill(PURPLE)
 
         # Draw page buttons
         draw_text(screen, "<", font_medium, WHITE, SCREEN_WIDTH*.05, SCREEN_HEIGHT * .05)
@@ -372,12 +375,17 @@ def main():
         pygame.display.flip()
         clock.tick(FPS)
 
-        time.sleep(.05)  # Wait for 0.05 second before next iteration
+        sleep = .05
+        if DEV:
+            sleep = .1
+        
+        time.sleep(sleep)
 
     print("Logging stopped.")
 
-    # Close the connection
-    connection.close()
+    if not DEV:
+        # Close the connection
+        connection.close()
 
 if __name__ == "__main__":
     main()
