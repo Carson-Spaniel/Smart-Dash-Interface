@@ -131,7 +131,7 @@ def main():
     global RPM_MAX
     global SHIFT
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Horsepower and RPM Display")
+    pygame.display.set_caption("Smart Dash")
     clock = pygame.time.Clock()
 
     pages = ["RPM", "MPG", "Both"] #, "Off"
