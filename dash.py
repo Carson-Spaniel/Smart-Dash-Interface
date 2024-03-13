@@ -37,8 +37,11 @@ if not DEV:
     for i in range(3):
         print('\nAttempting to connect...')
 
-        # Connect to the OBD-II adapter
-        connection = obd.OBD() # portstr='COM5'
+        # The Bluetooth port for RFCOMM on Raspberry Pi
+        port = "/dev/rfcomm0"
+
+        # Create OBD connection
+        connection = obd.OBD(portstr=port)
 
         # Print a message indicating connection
         if connection.is_connected():
