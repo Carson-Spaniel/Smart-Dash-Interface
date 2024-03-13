@@ -32,15 +32,19 @@ font_medium = pygame.font.Font("./digital-7.ttf", 48)
 font_small = pygame.font.Font("./digital-7.ttf", 36)
 
 connect = False
+PI = True
 
 if not DEV:
     for i in range(3):
         print('\nAttempting to connect...')
 
-        # The Bluetooth port for RFCOMM on Raspberry Pi
-        port = "/dev/rfcomm0"
-
-        # Create OBD connection
+        if PI:
+            # The Bluetooth port for RFCOMM on Raspberry Pi
+            port = "/dev/rfcomm0"
+        else:
+            port =  "COM5"
+            
+        # Connect to the OBD-II adapter
         connection = obd.OBD(portstr=port)
 
         # Print a message indicating connection
@@ -245,7 +249,7 @@ def main():
                 mpg = calculate_mpg(speed, maf)
 
             if not response_rpm.is_null():
-                rpm = round(response_rpm.value.magnitude,0)
+                rpm = int(round(response_rpm.value.magnitude,0))
 
             if not response_fuel_level.is_null():
                 fuel_level = response_fuel_level.value.magnitude
