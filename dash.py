@@ -4,7 +4,7 @@ import time
 import random
 import math
 
-DEV = True
+DEV = False
 
 # # Print out the commands
 # for command_name in obd.commands.__dict__.values():
@@ -237,9 +237,9 @@ def main():
             response_air_temp = connection.query(obd.commands.AMBIANT_AIR_TEMP)
 
             if not response_speed.is_null() and not response_maf.is_null():
-                speed = response_speed.value.to('mile/hour')
-                maf = response_maf.value.to('gram/second')
-                mpg = calculate_mpg(speed.magnitude, maf.magnitude)
+                speed = response_speed.value.to('mile/hour').magnitude
+                maf = response_maf.value.to('gram/second').magnitude
+                mpg = calculate_mpg(speed, maf)
 
             if not response_rpm.is_null():
                 rpm = round(response_rpm.value.magnitude,0)
