@@ -35,28 +35,31 @@ connect = False
 PI = True
 
 if not DEV:
-    for i in range(3):
-        print('\nAttempting to connect...')
+    try: 
+        for i in range(3):
+            print('\nAttempting to connect...\n')
 
-        if PI:
-            # The Bluetooth port for RFCOMM on Raspberry Pi
-            port = "/dev/rfcomm0"
-        else:
-            port =  "COM5"
-            
-        # Connect to the OBD-II adapter
-        connection = obd.OBD(portstr=port)
+            if PI:
+                # The Bluetooth port for RFCOMM on Raspberry Pi
+                port = "/dev/rfcomm0"
+            else:
+                port =  "COM5"
+                
+            # Connect to the OBD-II adapter
+            connection = obd.OBD(portstr=port)
 
-        # Print a message indicating connection
-        if connection.is_connected():
-            print("Connected to OBD-II adapter. Turning on display.")
-            connect = True
-            break
-        else:
-            print("Could not connect to OBD-II adapter.")
+            # Print a message indicating connection
+            if connection.is_connected():
+                print("Connected to OBD-II adapter. Turning on display.")
+                connect = True
+                break
+            else:
+                print("Could not connect to OBD-II adapter.")
+    except Exception:
+        print('An error occurred.')
 
     if not connect:
-        print('Failed. Exiting...')
+        print('\nExiting...')
         exit()
 
 # Function to save max horsepower data to a file
