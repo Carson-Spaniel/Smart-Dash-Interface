@@ -134,6 +134,11 @@ def main():
     pages = ["RPM" , "Both"] #,"MPG", "Off"
     current_page = 0
 
+    # Initialize variables
+    mpg_history = []
+    last_mile_mpg = 0.0
+    last_mile_distance = 0.0
+
     # Load the last visited page
     try:
         with open("last_visited_page.txt", "r") as file:
@@ -152,7 +157,7 @@ def main():
     if DEV:
         rpm = 650
         fuel_level = random.randint(0,100)
-        speed = 20
+        speed = 0
         maf = 6
         voltage = 14.5
     while logging:
@@ -220,6 +225,7 @@ def main():
                 fuel_level=100
             fuel_level -= .1
             voltage = random.uniform(max(14,voltage-.1), min(voltage+.1,15))
+            air_temp = random.randint(0,50)
         else:
             # Query for RPM and Torque
             response_rpm = connection.query(obd.commands.RPM)
@@ -227,6 +233,7 @@ def main():
             response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
             response_maf = connection.query(obd.commands.MAF)      # Mass Air Flow
             response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
+            response_air_temp = connection.query(obd.commands.AMBIANT_AIR_TEMP)
 
             if not response_speed.is_null() and not response_maf.is_null():
                 speed = response_speed.value.to('mile/hour')
@@ -242,11 +249,27 @@ def main():
             if not response_voltage.is_null():
                 voltage = response_voltage.value.magnitude
 
+            if not response_air_temp.is_null():
+                air_temp = response_air_temp.value.magnitude
+
+        if speed > 0:
+            last_mile_distance += speed / 3600  # speed in miles per second, convert to hours
+            mpg_history.append(mpg)
+        else:
+            last_mile_distance = 0
+
+        # If the last mile is completed
+        if last_mile_distance >= 1.0:
+
+            # Calculate average MPG for the last mile
+            last_mile_mpg = sum(mpg_history) / len(mpg_history)
+
+            # Reset for the next mile
+            last_mile_distance = 0.0
+            mpg_history = []
+
         # Clear the screen
         screen.fill(BLACK)
-
-        # if rpm > SHIFT - (200):
-        #     screen.fill(PURPLE)
 
         # Draw page buttons
         draw_text(screen, "<", font_medium, WHITE, SCREEN_WIDTH*.05, SCREEN_HEIGHT * .05)
@@ -375,11 +398,18 @@ def main():
             draw_text(screen, "Volts", font_small, WHITE, SCREEN_WIDTH*.28, SCREEN_HEIGHT - SCREEN_HEIGHT*.2)
             draw_text(screen, "MPH", font_small, WHITE, SCREEN_WIDTH*.72, SCREEN_HEIGHT - SCREEN_HEIGHT*.2)
 
+            draw_text(screen, f"{round(last_mile_mpg,1)}", font_medium, WHITE, SCREEN_WIDTH*.28, SCREEN_HEIGHT*.2)
+            draw_text(screen, "MPG", font_small, WHITE, SCREEN_WIDTH*.28, SCREEN_HEIGHT*.3)
+            draw_text(screen, f"{round(last_mile_distance*100,2)}%", font_small, WHITE, SCREEN_WIDTH*.28, SCREEN_HEIGHT*.4)
+
+            draw_text(screen, f"{round((air_temp*(9/5))+32,1)}F", font_medium, WHITE, SCREEN_WIDTH*.72, SCREEN_HEIGHT*.2)
+            # draw_text(screen, "Temp", font_small, WHITE, SCREEN_WIDTH*.72, SCREEN_HEIGHT*.3)
+
             # Draw RPM and MPG on separate lines
             draw_text(screen, "RPM", font_medium, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4)
             draw_text(screen, "Instant MPG", font_medium, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 40)
-            draw_text(screen, f"{rpm}", font_large, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4 + 60)
-            draw_text(screen, str(round(mpg, 2)), font_large, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 100)
+            draw_text(screen, f"{rpm}", font_large, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4 + 70)
+            draw_text(screen, str(round(mpg, 2)), font_large, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 110)
 
         elif pages[current_page] == "Off":
             screen.fill(BLACK)
