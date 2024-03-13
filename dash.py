@@ -125,6 +125,7 @@ def display_logo(screen):
 
 # Main function for the Pygame interface
 def main():
+    internal_clock = 2.8000000000000003
     global RPM_MAX
     global SHIFT
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -217,7 +218,7 @@ def main():
                                 save_rpm(RPM_MAX,SHIFT)
 
         if DEV:
-            rpm = random.randint(max(0,rpm-20), min(rpm+27,RPM_MAX))
+            rpm = random.randint(max(0,rpm-50), min(rpm+150,RPM_MAX))
             speed = random.uniform(max(0,speed-10), min(speed+100,80))* 0.621371
             maf = random.randint(max(1,maf-1), min(maf+1,80))
             mpg = calculate_mpg(speed, maf)
@@ -350,16 +351,24 @@ def main():
         circle_y = circle_radius + circle_spacing
 
         # Colors for each light
-        light_colors = [GREEN, GREEN, GREEN, GREEN, RED, RED, RED, RED, PURPLE, PURPLE, PURPLE, PURPLE]
+        light_colors = [GREEN, GREEN, GREEN, GREEN, YELLOW, YELLOW, YELLOW, YELLOW, RED, RED, RED, RED]
 
-        for i in range(12):
+        for i in range(len(light_colors)):
             color = light_colors[i]
 
             pygame.draw.circle(screen, WHITE, (circle_x, circle_y), circle_radius )
             pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius -1)
+            blink_pattern = internal_clock % .4 > .2
             
-            if rpm > SHIFT - ((12 - i) * 100):
-                pygame.draw.circle(screen, color, (circle_x, circle_y), circle_radius)
+            if rpm > SHIFT - (((len(light_colors)+2) - i) * 100):
+                if rpm > SHIFT and blink_pattern:
+                    pygame.draw.circle(screen, PURPLE, (circle_x, circle_y), circle_radius)
+                elif rpm > SHIFT and not blink_pattern:
+                    pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius)
+                elif rpm < SHIFT and rpm > SHIFT - 200:
+                    pygame.draw.circle(screen, PURPLE, (circle_x, circle_y), circle_radius)
+                else:
+                    pygame.draw.circle(screen, color, (circle_x, circle_y), circle_radius)
                 
             circle_x += 2 * (circle_radius + circle_spacing)
 
@@ -423,7 +432,10 @@ def main():
 
         sleep = .05
         if DEV:
-            sleep = .2
+            sleep = .1
+            internal_clock += .20
+        else:
+            internal_clock += .10
         
         time.sleep(sleep)
 
