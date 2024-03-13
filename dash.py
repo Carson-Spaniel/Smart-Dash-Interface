@@ -38,7 +38,7 @@ if not DEV:
         print('\nAttempting to connect...')
 
         # Connect to the OBD-II adapter
-        connection = obd.OBD(portstr='COM5')
+        connection = obd.OBD() # portstr='COM5'
 
         # Print a message indicating connection
         if connection.is_connected():
