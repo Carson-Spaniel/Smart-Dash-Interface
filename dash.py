@@ -13,7 +13,7 @@ DEV = True
 # Initialize Pygame
 pygame.init()
 
-# Screen dimensions for a landscape 3.5-inch display
+# Screen dimensions for a landscape 4.3-inch display
 SCREEN_WIDTH, SCREEN_HEIGHT = 800, 480
 FPS = 30
 
