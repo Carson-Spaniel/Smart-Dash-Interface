@@ -449,7 +449,7 @@ def main():
         
         time.sleep(sleep)
 
-    print("Logging stopped.")
+    print("Exiting...")
 
     if not DEV:
         # Close the connection
