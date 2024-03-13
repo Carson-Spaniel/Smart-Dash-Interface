@@ -363,7 +363,7 @@ def main():
 
 
         elif pages[current_page] == "MPG":
-            # Draw Horsepower section
+            # Draw MPG section
             draw_text(screen, "Instant MPG", font_medium, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4 + 20)
             draw_text(screen, str(round(mpg, 2)), font_large, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2+20)
 
@@ -375,7 +375,7 @@ def main():
             draw_text(screen, "Volts", font_small, WHITE, SCREEN_WIDTH*.28, SCREEN_HEIGHT - SCREEN_HEIGHT*.2)
             draw_text(screen, "MPH", font_small, WHITE, SCREEN_WIDTH*.72, SCREEN_HEIGHT - SCREEN_HEIGHT*.2)
 
-            # Draw RPM and Horsepower on separate lines
+            # Draw RPM and MPG on separate lines
             draw_text(screen, "RPM", font_medium, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4)
             draw_text(screen, "Instant MPG", font_medium, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 40)
             draw_text(screen, f"{rpm}", font_large, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4 + 60)
