@@ -442,10 +442,9 @@ def main():
         if DEV:
             sleep = .1
             internal_clock += .20
+            time.sleep(sleep)
         else:
             internal_clock += .10
-        
-        time.sleep(sleep)
 
     print("Exiting...")
 
