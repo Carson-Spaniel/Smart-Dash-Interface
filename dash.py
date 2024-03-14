@@ -3,7 +3,6 @@ import obd
 import time
 import random
 import math
-import subprocess
 
 DEV = True
 
@@ -65,7 +64,7 @@ if not DEV:
 
 # Path to the brightness file
 brightness_file = "/sys/class/backlight/10-0045/brightness"
-BRIGHTNESS = 0
+BRIGHTNESS = -1
 
 # Function to adjust brightness
 def adjust_brightness(value):
@@ -176,7 +175,7 @@ def main():
     global RPM_MAX
     global SHIFT
     FLIP = False
-    if DEV:
+    if not PI:
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     else:
         screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
@@ -201,10 +200,9 @@ def main():
         current_page = 0
 
     logging = True
-
-    if not DEV:
-        # Display Chevrolet logo for 5 seconds
-        display_logo(screen)
+    
+    # Display Chevrolet logo for 5 seconds
+    display_logo(screen)
 
     if DEV:
         rpm = 650
@@ -520,12 +518,7 @@ def main():
         else:
             internal_clock += .10
 
-    # Keep the script running
-    try:
-        while True:
-            pass
-    except KeyboardInterrupt:
-        print("Exiting...")
+    print("Exiting...")
 
     if not DEV:
         # Close the connection
