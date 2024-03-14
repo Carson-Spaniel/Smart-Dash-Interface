@@ -4,11 +4,7 @@ import time
 import random
 import math
 
-DEV = True
-
-# # Print out the commands
-# for command_name in obd.commands.__dict__.values():
-#     print(command_name)
+DEV = False
 
 # Initialize Pygame
 pygame.init()
