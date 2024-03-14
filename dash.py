@@ -4,7 +4,7 @@ import time
 import random
 import math
 
-DEV = True
+DEV = False
 PI = True
 
 # Initialize Pygame
@@ -469,21 +469,6 @@ def main():
             draw_text(screen, "+", font_medium, BLACK, SCREEN_WIDTH * 0.7-25+SCREEN_WIDTH*.05, SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.05)
             draw_text(screen, "-", font_medium, BLACK, SCREEN_WIDTH * 0.7-25+SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.05)
 
-        elif pages[current_page] == "Settings":
-            pygame.draw.rect(screen, PURPLE, (SCREEN_WIDTH // 2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
-            draw_text(screen, "FLIP", font_small, BLACK, SCREEN_WIDTH // 2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
-        
-            pygame.draw.rect(screen, RED, (SCREEN_WIDTH * 0.35, SCREEN_HEIGHT*.12, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
-            pygame.draw.rect(screen, GREEN, (SCREEN_WIDTH * 0.55, SCREEN_HEIGHT*.12, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
-
-            draw_text(screen, "-", font_medium, BLACK, SCREEN_WIDTH * 0.35+SCREEN_WIDTH*.05, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
-            draw_text(screen, "+", font_medium, BLACK, SCREEN_WIDTH * 0.55+SCREEN_WIDTH*.05, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
-            draw_text(screen, f"{int(round((BRIGHTNESS/255)*100,0))}%", font_small, WHITE, SCREEN_WIDTH//2, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
-            draw_text(screen, "Brightness", font_small, WHITE, SCREEN_WIDTH//2, SCREEN_HEIGHT*.25)
-            
-            pygame.draw.rect(screen, RED, (SCREEN_WIDTH*.3 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
-            draw_text(screen, "Exit", font_small, BLACK, SCREEN_WIDTH*.3, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
-        
         elif pages[current_page] == "Both":
             # Draw voltage and speed
             draw_text(screen, f"{round(voltage,1)}", font_medium, WHITE, SCREEN_WIDTH*.28, SCREEN_HEIGHT - SCREEN_HEIGHT*.1)
@@ -505,6 +490,21 @@ def main():
             draw_text(screen, f"{rpm}", font_large, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4 + 70)
             draw_text(screen, str(round(mpg, 2)), font_large, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 110)
 
+        elif pages[current_page] == "Settings":
+            pygame.draw.rect(screen, PURPLE, (SCREEN_WIDTH // 2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
+            draw_text(screen, "FLIP", font_small, BLACK, SCREEN_WIDTH // 2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
+        
+            pygame.draw.rect(screen, RED, (SCREEN_WIDTH * 0.35, SCREEN_HEIGHT*.12, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
+            pygame.draw.rect(screen, GREEN, (SCREEN_WIDTH * 0.55, SCREEN_HEIGHT*.12, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
+
+            draw_text(screen, "-", font_medium, BLACK, SCREEN_WIDTH * 0.35+SCREEN_WIDTH*.05, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
+            draw_text(screen, "+", font_medium, BLACK, SCREEN_WIDTH * 0.55+SCREEN_WIDTH*.05, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
+            draw_text(screen, f"{int(round((BRIGHTNESS/255)*100,0))}%", font_small, WHITE, SCREEN_WIDTH//2, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
+            draw_text(screen, "Brightness", font_small, WHITE, SCREEN_WIDTH//2, SCREEN_HEIGHT*.25)
+            
+            pygame.draw.rect(screen, RED, (SCREEN_WIDTH*.3 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
+            draw_text(screen, "Exit", font_small, BLACK, SCREEN_WIDTH*.3, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
+        
         elif pages[current_page] == "Off":
             screen.fill(BLACK)
 
