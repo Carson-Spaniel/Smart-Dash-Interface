@@ -3,8 +3,9 @@ import obd
 import time
 import random
 import math
+import subprocess
 
-DEV = False
+DEV = True
 
 # # Print out the commands
 # for command_name in obd.commands.__dict__.values():
@@ -61,6 +62,22 @@ if not DEV:
     if not connect:
         print('\nExiting...')
         exit()
+
+# Function to adjust brightness
+def adjust_brightness(value):
+    subprocess.run(f"echo {value} > /sys/class/backlight/rpi_backlight/brightness", shell=True)
+
+# Function to decrease brightness
+def decrease_brightness():
+    current_brightness = int(subprocess.check_output("cat /sys/class/backlight/rpi_backlight/brightness", shell=True))
+    new_brightness = max(current_brightness - 10, 10)  # Ensure brightness doesn't go below 10
+    adjust_brightness(new_brightness)
+
+# Function to increase brightness
+def increase_brightness():
+    current_brightness = int(subprocess.check_output("cat /sys/class/backlight/rpi_backlight/brightness", shell=True))
+    new_brightness = min(current_brightness + 10, 255)  # Ensure brightness doesn't exceed 255
+    adjust_brightness(new_brightness)
 
 # Function to save max horsepower data to a file
 def save_rpm(RPM_MAX, SHIFT):
@@ -235,15 +252,24 @@ def main():
                                 # Save the new max horsepower data
                                 save_rpm(RPM_MAX,SHIFT)
 
-                                pygame.draw.rect(screen, PURPLE, (SCREEN_WIDTH // 2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
-
-                            # Check for collision with decrease rectangle
+                            # Check for collision with flip rectangle
                             elif mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.05 and mouseX > SCREEN_WIDTH // 2 - SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.2:
                                 if FLIP:
                                     FLIP = False
                                 else:
                                     FLIP = True
 
+                                pygame.draw.rect(screen, RED, (SCREEN_WIDTH * 0.25, SCREEN_HEIGHT*.12, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
+                                pygame.draw.rect(screen, GREEN, (SCREEN_WIDTH * 0.65, SCREEN_HEIGHT*.12, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
+
+                            # Check for collision with decrease rectangle
+                            elif mouseX < SCREEN_WIDTH * 0.25 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.25 and mouseY < SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.12:
+                                decrease_brightness()                            
+                            
+                            # Check for collision with increase rectangle
+                            elif mouseX < SCREEN_WIDTH * 0.65 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.65 and mouseY < SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.12:
+                                increase_brightness()
+                                
         if DEV:
             rpm = random.randint(max(0,rpm-50), min(rpm+150,RPM_MAX))
             speed = random.uniform(max(0,speed-10), min(speed+100,80))* 0.621371
@@ -420,6 +446,15 @@ def main():
 
             pygame.draw.rect(screen, PURPLE, (SCREEN_WIDTH // 2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
             draw_text(screen, "FLIP", font_small, BLACK, SCREEN_WIDTH // 2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
+        
+            pygame.draw.rect(screen, RED, (SCREEN_WIDTH * 0.25, SCREEN_HEIGHT*.12, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
+            pygame.draw.rect(screen, GREEN, (SCREEN_WIDTH * 0.65, SCREEN_HEIGHT*.12, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
+
+            draw_text(screen, "-", font_medium, BLACK, SCREEN_WIDTH * 0.25+SCREEN_WIDTH*.05, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
+            draw_text(screen, "+", font_medium, BLACK, SCREEN_WIDTH * 0.65+SCREEN_WIDTH*.05, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
+            draw_text(screen, "Brightness", font_small, WHITE, SCREEN_WIDTH//2, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
+
+
         elif pages[current_page] == "MPG":
             # Draw MPG section
             draw_text(screen, "Instant MPG", font_medium, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4 + 20)
@@ -468,7 +503,12 @@ def main():
         else:
             internal_clock += .10
 
-    print("Exiting...")
+    # Keep the script running
+    try:
+        while True:
+            pass
+    except KeyboardInterrupt:
+        print("Exiting...")
 
     if not DEV:
         # Close the connection
