@@ -22,6 +22,9 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+BLUE = (0, 150, 255)
+
+FONT_COLOR = WHITE
 
 # Fonts
 font_large = pygame.font.Font("./digital-7.ttf", 120)
@@ -205,6 +208,8 @@ def main():
     except Exception:
         current_page = 0
 
+    display = 0
+
     logging = True
     
     # Display Chevrolet logo for 5 seconds
@@ -349,8 +354,8 @@ def main():
         screen.fill(BLACK)
 
         # Draw page buttons
-        draw_text(screen, "<", font_medium, WHITE, SCREEN_WIDTH*.05, SCREEN_HEIGHT * .05)
-        draw_text(screen, ">", font_medium, WHITE, SCREEN_WIDTH -SCREEN_WIDTH*.05, SCREEN_HEIGHT * .05)
+        draw_text(screen, "<", font_medium, FONT_COLOR, SCREEN_WIDTH*.05, SCREEN_HEIGHT * .05)
+        draw_text(screen, ">", font_medium, FONT_COLOR, SCREEN_WIDTH -SCREEN_WIDTH*.05, SCREEN_HEIGHT * .05)
 
         # Draw page indicators (circles)
         circle_radius = 8
@@ -382,8 +387,8 @@ def main():
         pygame.draw.line(screen, BLACK, (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT*.12+2), (SCREEN_WIDTH, SCREEN_HEIGHT*.12+2), 4)
         pygame.draw.line(screen, BLACK, (SCREEN_WIDTH * 0.8+2, SCREEN_HEIGHT*.12), (SCREEN_WIDTH * 0.8+2, SCREEN_HEIGHT), 4)
 
-        pygame.draw.line(screen, WHITE, (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT*.12), (SCREEN_WIDTH, SCREEN_HEIGHT*.12), 2)
-        pygame.draw.line(screen, WHITE, (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT*.12), (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT), 2)
+        pygame.draw.line(screen, FONT_COLOR, (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT*.12), (SCREEN_WIDTH, SCREEN_HEIGHT*.12), 2)
+        pygame.draw.line(screen, FONT_COLOR, (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT*.12), (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT), 2)
 
         # Calculate the height of the filled portion based on percentage
         fuel_height = math.floor((SCREEN_HEIGHT*.8) * fuel_level/100)
@@ -398,19 +403,19 @@ def main():
         else:
             fuel_color = RED
         
-        draw_text(screen, f"{round(fuel_level,1)}%", font_medium, WHITE, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.15)
+        draw_text(screen, f"{round(fuel_level,1)}%", font_medium, FONT_COLOR, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.15)
         pygame.draw.rect(screen, fuel_color, (0, SCREEN_HEIGHT - fuel_height, SCREEN_WIDTH * 0.2, fuel_height))
 
         pygame.draw.line(screen, BLACK, (0, SCREEN_HEIGHT*.2+2), (SCREEN_WIDTH*.2, SCREEN_HEIGHT*.2+2), 4)
         pygame.draw.line(screen, BLACK, (SCREEN_WIDTH * 0.2-2, SCREEN_HEIGHT*.2), (SCREEN_WIDTH * 0.2-2, SCREEN_HEIGHT), 4)
 
-        pygame.draw.line(screen, WHITE, (0, SCREEN_HEIGHT*.2), (SCREEN_WIDTH*.2, SCREEN_HEIGHT*.2), 2)
-        pygame.draw.line(screen, WHITE, (SCREEN_WIDTH * 0.2, SCREEN_HEIGHT*.2), (SCREEN_WIDTH * 0.2, SCREEN_HEIGHT), 2)
+        pygame.draw.line(screen, FONT_COLOR, (0, SCREEN_HEIGHT*.2), (SCREEN_WIDTH*.2, SCREEN_HEIGHT*.2), 2)
+        pygame.draw.line(screen, FONT_COLOR, (SCREEN_WIDTH * 0.2, SCREEN_HEIGHT*.2), (SCREEN_WIDTH * 0.2, SCREEN_HEIGHT), 2)
 
         for i, page in enumerate(pages):
             if page != 'Off':
-                color = WHITE if i == current_page else BLACK
-                pygame.draw.circle(screen, WHITE, (circle_x, circle_y), circle_radius + 4)
+                color = FONT_COLOR if i == current_page else BLACK
+                pygame.draw.circle(screen, FONT_COLOR, (circle_x, circle_y), circle_radius + 4)
                 pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius + 2)
                 pygame.draw.circle(screen, color, (circle_x, circle_y), circle_radius)
                 circle_x += 2 * (circle_radius + circle_spacing)
@@ -432,7 +437,7 @@ def main():
         for i in range(len(light_colors)):
             color = light_colors[i]
 
-            pygame.draw.circle(screen, WHITE, (circle_x, circle_y), circle_radius )
+            pygame.draw.circle(screen, FONT_COLOR, (circle_x, circle_y), circle_radius )
             pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius -1)
             blink_pattern = internal_clock % .4 > .2
             
@@ -450,12 +455,12 @@ def main():
 
         if pages[current_page] == "RPM":
             # Draw RPM section
-            draw_text(screen, "RPM", font_medium, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4 + 20)
-            draw_text(screen, str(rpm), font_large, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 +20)
-            draw_text(screen, "Max", font_small, WHITE, SCREEN_WIDTH*.28, SCREEN_HEIGHT // 2)
-            draw_text(screen, str(RPM_MAX), font_medium, WHITE, SCREEN_WIDTH*.28, SCREEN_HEIGHT // 2 +40)
-            draw_text(screen, "Shift", font_small, WHITE, SCREEN_WIDTH*.72, SCREEN_HEIGHT // 2)
-            draw_text(screen, str(SHIFT), font_medium, WHITE, SCREEN_WIDTH*.72, SCREEN_HEIGHT // 2 +40)
+            draw_text(screen, "RPM", font_medium, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4 + 20)
+            draw_text(screen, str(rpm), font_large, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 +20)
+            draw_text(screen, "Max", font_small, FONT_COLOR, SCREEN_WIDTH*.28, SCREEN_HEIGHT // 2)
+            draw_text(screen, str(RPM_MAX), font_medium, FONT_COLOR, SCREEN_WIDTH*.28, SCREEN_HEIGHT // 2 +40)
+            draw_text(screen, "Shift", font_small, FONT_COLOR, SCREEN_WIDTH*.72, SCREEN_HEIGHT // 2)
+            draw_text(screen, str(SHIFT), font_medium, FONT_COLOR, SCREEN_WIDTH*.72, SCREEN_HEIGHT // 2 +40)
 
             pygame.draw.rect(screen, GREEN, (SCREEN_WIDTH * 0.2+25, SCREEN_HEIGHT*.3, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
             pygame.draw.rect(screen, RED, (SCREEN_WIDTH * 0.2+25, SCREEN_HEIGHT-SCREEN_HEIGHT*.3, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
@@ -470,25 +475,26 @@ def main():
             draw_text(screen, "-", font_medium, BLACK, SCREEN_WIDTH * 0.7-25+SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.05)
 
         elif pages[current_page] == "Both":
-            # Draw voltage and speed
-            draw_text(screen, f"{round(voltage,1)}", font_medium, WHITE, SCREEN_WIDTH*.28, SCREEN_HEIGHT - SCREEN_HEIGHT*.1)
-            draw_text(screen, f"{int(round(speed,0))}", font_medium, WHITE, SCREEN_WIDTH*.72, SCREEN_HEIGHT - SCREEN_HEIGHT*.1)
+            if display == 0:
+                # Draw voltage and speed
+                draw_text(screen, f"{round(voltage,1)}", font_medium, FONT_COLOR, SCREEN_WIDTH*.28, SCREEN_HEIGHT - SCREEN_HEIGHT*.1)
+                draw_text(screen, f"{int(round(speed,0))}", font_medium, FONT_COLOR, SCREEN_WIDTH*.72, SCREEN_HEIGHT - SCREEN_HEIGHT*.1)
 
-            draw_text(screen, "Volts", font_small, WHITE, SCREEN_WIDTH*.28, SCREEN_HEIGHT - SCREEN_HEIGHT*.2)
-            draw_text(screen, "MPH", font_small, WHITE, SCREEN_WIDTH*.72, SCREEN_HEIGHT - SCREEN_HEIGHT*.2)
+                draw_text(screen, "Volts", font_small, FONT_COLOR, SCREEN_WIDTH*.28, SCREEN_HEIGHT - SCREEN_HEIGHT*.2)
+                draw_text(screen, "MPH", font_small, FONT_COLOR, SCREEN_WIDTH*.72, SCREEN_HEIGHT - SCREEN_HEIGHT*.2)
 
-            draw_text(screen, f"{round(last_mile_mpg,1)}", font_medium, WHITE, SCREEN_WIDTH*.28, SCREEN_HEIGHT*.2)
-            draw_text(screen, "MPG", font_small, WHITE, SCREEN_WIDTH*.28, SCREEN_HEIGHT*.3)
-            draw_text(screen, f"{round(last_mile_distance*100,2)}%", font_small, WHITE, SCREEN_WIDTH*.28, SCREEN_HEIGHT*.4)
+                draw_text(screen, f"{round(last_mile_mpg,1)}", font_medium, FONT_COLOR, SCREEN_WIDTH*.28, SCREEN_HEIGHT*.2)
+                draw_text(screen, "MPG", font_small, FONT_COLOR, SCREEN_WIDTH*.28, SCREEN_HEIGHT*.3)
+                draw_text(screen, f"{round(last_mile_distance*100,2)}%", font_small, FONT_COLOR, SCREEN_WIDTH*.28, SCREEN_HEIGHT*.4)
 
-            draw_text(screen, f"{round((air_temp*(9/5))+32,1)}F", font_medium, WHITE, SCREEN_WIDTH*.72, SCREEN_HEIGHT*.2)
-            # draw_text(screen, "Temp", font_small, WHITE, SCREEN_WIDTH*.72, SCREEN_HEIGHT*.3)
+                draw_text(screen, f"{round((air_temp*(9/5))+32,1)}F", font_medium, FONT_COLOR, SCREEN_WIDTH*.72, SCREEN_HEIGHT*.2)
+                # draw_text(screen, "Temp", font_small, FONT_COLOR, SCREEN_WIDTH*.72, SCREEN_HEIGHT*.3)
 
-            # Draw RPM and MPG on separate lines
-            draw_text(screen, "RPM", font_medium, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4)
-            draw_text(screen, "Instant MPG", font_medium, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 40)
-            draw_text(screen, f"{rpm}", font_large, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4 + 70)
-            draw_text(screen, str(round(mpg, 2)), font_large, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 110)
+                # Draw RPM and MPG on separate lines
+                draw_text(screen, "RPM", font_medium, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4)
+                draw_text(screen, "Instant MPG", font_medium, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 40)
+                draw_text(screen, f"{rpm}", font_large, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4 + 70)
+                draw_text(screen, str(round(mpg, 2)), font_large, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 110)
 
         elif pages[current_page] == "Settings":
             pygame.draw.rect(screen, PURPLE, (SCREEN_WIDTH // 2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
@@ -499,8 +505,8 @@ def main():
 
             draw_text(screen, "-", font_medium, BLACK, SCREEN_WIDTH * 0.35+SCREEN_WIDTH*.05, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
             draw_text(screen, "+", font_medium, BLACK, SCREEN_WIDTH * 0.55+SCREEN_WIDTH*.05, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
-            draw_text(screen, f"{int(round((BRIGHTNESS/255)*100,0))}%", font_small, WHITE, SCREEN_WIDTH//2, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
-            draw_text(screen, "Brightness", font_small, WHITE, SCREEN_WIDTH//2, SCREEN_HEIGHT*.25)
+            draw_text(screen, f"{int(round((BRIGHTNESS/255)*100,0))}%", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
+            draw_text(screen, "Brightness", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.25)
             
             pygame.draw.rect(screen, RED, (SCREEN_WIDTH*.3 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
             draw_text(screen, "Exit", font_small, BLACK, SCREEN_WIDTH*.3, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
