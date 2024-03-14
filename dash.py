@@ -89,7 +89,7 @@ def decrease_brightness():
     try:
         with open(brightness_file, "r") as file:
             current_brightness = int(file.read().strip())
-        new_brightness = max(current_brightness - 10, 1)  # Ensure brightness doesn't go below 10
+        new_brightness = max(current_brightness - 15, 0)  # Ensure brightness doesn't go below 10
         adjust_brightness(new_brightness)
     except Exception as e:
         print(f"Error decreasing brightness: {e}")
@@ -99,7 +99,7 @@ def increase_brightness():
     try:
         with open(brightness_file, "r") as file:
             current_brightness = int(file.read().strip())
-        new_brightness = min(current_brightness + 20, 255)  # Adjust 20 to your desired increment
+        new_brightness = min(current_brightness + 15, 255)  # Adjust 20 to your desired increment
         adjust_brightness(new_brightness)
     except Exception as e:
         print(f"Error increasing brightness: {e}")
