@@ -156,7 +156,7 @@ def main():
             current_page = int(file.read())
             if current_page < 0 or current_page >= len(pages):
                 current_page = 0
-    except FileNotFoundError:
+    except Exception:
         current_page = 0
 
     logging = True
