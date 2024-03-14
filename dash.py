@@ -65,13 +65,17 @@ if not DEV:
 
 # Path to the brightness file
 brightness_file = "/sys/class/backlight/10-0045/brightness"
+BRIGHTNESS = 0
 
 # Function to adjust brightness
 def adjust_brightness(value):
+    global BRIGHTNESS
+    BRIGHTNESS = value
     try:
         with open(brightness_file, "w") as file:
             file.write(str(value))
         print(f"Brightness adjusted to {value}")
+        
     except Exception as e:
         print(f"Error adjusting brightness: {e}")
 
@@ -275,15 +279,12 @@ def main():
                                 else:
                                     FLIP = True
 
-                                pygame.draw.rect(screen, RED, (SCREEN_WIDTH * 0.25, SCREEN_HEIGHT*.12, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
-                                pygame.draw.rect(screen, GREEN, (SCREEN_WIDTH * 0.65, SCREEN_HEIGHT*.12, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
-
                             # Check for collision with decrease rectangle
-                            elif mouseX < SCREEN_WIDTH * 0.25 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.25 and mouseY < SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.12:
+                            elif mouseX < SCREEN_WIDTH * 0.35 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.35 and mouseY < SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.12:
                                 decrease_brightness()                            
                             
                             # Check for collision with increase rectangle
-                            elif mouseX < SCREEN_WIDTH * 0.65 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.65 and mouseY < SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.12:
+                            elif mouseX < SCREEN_WIDTH * 0.55 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.55 and mouseY < SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.12:
                                 increase_brightness()
                                 
         if DEV:
@@ -463,12 +464,12 @@ def main():
             pygame.draw.rect(screen, PURPLE, (SCREEN_WIDTH // 2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
             draw_text(screen, "FLIP", font_small, BLACK, SCREEN_WIDTH // 2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
         
-            pygame.draw.rect(screen, RED, (SCREEN_WIDTH * 0.25, SCREEN_HEIGHT*.12, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
-            pygame.draw.rect(screen, GREEN, (SCREEN_WIDTH * 0.65, SCREEN_HEIGHT*.12, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
+            pygame.draw.rect(screen, RED, (SCREEN_WIDTH * 0.35, SCREEN_HEIGHT*.12, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
+            pygame.draw.rect(screen, GREEN, (SCREEN_WIDTH * 0.55, SCREEN_HEIGHT*.12, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
 
-            draw_text(screen, "-", font_medium, BLACK, SCREEN_WIDTH * 0.25+SCREEN_WIDTH*.05, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
-            draw_text(screen, "+", font_medium, BLACK, SCREEN_WIDTH * 0.65+SCREEN_WIDTH*.05, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
-            draw_text(screen, "Brightness", font_small, WHITE, SCREEN_WIDTH//2, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
+            draw_text(screen, "-", font_medium, BLACK, SCREEN_WIDTH * 0.35+SCREEN_WIDTH*.05, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
+            draw_text(screen, "+", font_medium, BLACK, SCREEN_WIDTH * 0.55+SCREEN_WIDTH*.05, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
+            draw_text(screen, f"{int(round((BRIGHTNESS/255)*100,0))}%", font_small, WHITE, SCREEN_WIDTH//2, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
 
 
         elif pages[current_page] == "MPG":
