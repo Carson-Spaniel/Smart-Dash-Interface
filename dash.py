@@ -63,21 +63,37 @@ if not DEV:
         print('\nExiting...')
         exit()
 
+# Path to the brightness file
+brightness_file = "/sys/class/backlight/10-0045/brightness"
+
 # Function to adjust brightness
 def adjust_brightness(value):
-    subprocess.run(f"echo {value} > /sys/class/backlight/rpi_backlight/brightness", shell=True)
+    try:
+        with open(brightness_file, "w") as file:
+            file.write(str(value))
+        print(f"Brightness adjusted to {value}")
+    except Exception as e:
+        print(f"Error adjusting brightness: {e}")
 
 # Function to decrease brightness
 def decrease_brightness():
-    current_brightness = int(subprocess.check_output("cat /sys/class/backlight/rpi_backlight/brightness", shell=True))
-    new_brightness = max(current_brightness - 10, 10)  # Ensure brightness doesn't go below 10
-    adjust_brightness(new_brightness)
+    try:
+        with open(brightness_file, "r") as file:
+            current_brightness = int(file.read().strip())
+        new_brightness = max(current_brightness - 10, 10)  # Ensure brightness doesn't go below 10
+        adjust_brightness(new_brightness)
+    except Exception as e:
+        print(f"Error decreasing brightness: {e}")
 
 # Function to increase brightness
 def increase_brightness():
-    current_brightness = int(subprocess.check_output("cat /sys/class/backlight/rpi_backlight/brightness", shell=True))
-    new_brightness = min(current_brightness + 10, 255)  # Ensure brightness doesn't exceed 255
-    adjust_brightness(new_brightness)
+    try:
+        with open(brightness_file, "r") as file:
+            current_brightness = int(file.read().strip())
+        new_brightness = min(current_brightness + 20, 255)  # Adjust 20 to your desired increment
+        adjust_brightness(new_brightness)
+    except Exception as e:
+        print(f"Error increasing brightness: {e}")
 
 # Function to save max horsepower data to a file
 def save_rpm(RPM_MAX, SHIFT):
