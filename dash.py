@@ -138,7 +138,7 @@ def main():
     internal_clock = 2.8000000000000003
     global RPM_MAX
     global SHIFT
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
     pygame.display.set_caption("Smart Dash")
     clock = pygame.time.Clock()
 
@@ -266,8 +266,6 @@ def main():
         if speed > 0:
             last_mile_distance += speed / 3600  # speed in miles per second, convert to hours
             mpg_history.append(mpg)
-        else:
-            last_mile_distance = 0
 
         # If the last mile is completed
         if last_mile_distance >= 1.0:
