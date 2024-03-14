@@ -138,7 +138,11 @@ def main():
     internal_clock = 2.8000000000000003
     global RPM_MAX
     global SHIFT
-    screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
+    FLIP = False
+    if DEV:
+        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    else:
+        screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
     pygame.display.set_caption("Smart Dash")
     clock = pygame.time.Clock()
 
@@ -176,17 +180,21 @@ def main():
             if event.type == pygame.QUIT:
                 logging = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouseX, mouseY = event.pos[0], event.pos[1]
+                if FLIP:
+                    # mouseX = SCREEN_WIDTH - mouseX
+                    mouseY = SCREEN_HEIGHT - mouseY
                 if event.button == 1:  # Left mouse button
                     # Check top left corner for page change
-                    if event.pos[0] < SCREEN_WIDTH // 10 and event.pos[1] < SCREEN_HEIGHT // 10:
+                    if mouseX < SCREEN_WIDTH // 10 and mouseY < SCREEN_HEIGHT // 10:
                         current_page = (current_page - 1) % len(pages)
                     # Check top right corner for page change
-                    elif event.pos[0] > SCREEN_WIDTH - SCREEN_WIDTH // 10 and event.pos[1] < SCREEN_HEIGHT // 10:
+                    elif mouseX > SCREEN_WIDTH - SCREEN_WIDTH // 10 and mouseY < SCREEN_HEIGHT // 10:
                         current_page = (current_page + 1) % len(pages)
                     else:
                         if pages[current_page] == "RPM":
                             # Check for collision with increase rectangle
-                            if event.pos[0] < SCREEN_WIDTH * 0.2+25+SCREEN_WIDTH*.1 and event.pos[0] > SCREEN_WIDTH * 0.2+25 and event.pos[1] < SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.1 and event.pos[1] > SCREEN_HEIGHT*.3:
+                            if mouseX < SCREEN_WIDTH * 0.2+25+SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.2+25 and mouseY < SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.3:
                                 RPM_MAX += 100  # Increase RPM_MAX by 100
 
                                 if RPM_MAX > 50000:
@@ -196,7 +204,7 @@ def main():
                                 save_rpm(RPM_MAX,SHIFT)
 
                             # Check for collision with decrease rectangle
-                            elif event.pos[0] < SCREEN_WIDTH * 0.2+25+SCREEN_WIDTH*.1 and event.pos[0] > SCREEN_WIDTH * 0.2+25 and event.pos[1] < SCREEN_HEIGHT-SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.1 and event.pos[1] > SCREEN_HEIGHT-SCREEN_HEIGHT*.3:
+                            elif mouseX < SCREEN_WIDTH * 0.2+25+SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.2+25 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.3:
                                 RPM_MAX -= 100  # Decrease RPM_MAX by 100
                                 if RPM_MAX == 0:
                                     RPM_MAX = 100
@@ -208,7 +216,7 @@ def main():
                                 save_rpm(RPM_MAX,SHIFT)
 
                             # Check for collision with increase rectangle
-                            elif event.pos[0] < SCREEN_WIDTH * 0.7-25+SCREEN_WIDTH*.1 and event.pos[0] > SCREEN_WIDTH * 0.7-25 and event.pos[1] < SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.1 and event.pos[1] > SCREEN_HEIGHT*.3:
+                            elif mouseX < SCREEN_WIDTH * 0.7-25+SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7-25 and mouseY < SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.3:
                                 SHIFT += 100  # Increase SHIFT by 100
 
                                 if SHIFT > RPM_MAX:
@@ -218,7 +226,7 @@ def main():
                                 save_rpm(RPM_MAX,SHIFT)
 
                             # Check for collision with decrease rectangle
-                            elif event.pos[0] < SCREEN_WIDTH * 0.7-25+SCREEN_WIDTH*.1 and event.pos[0] > SCREEN_WIDTH * 0.7-25 and event.pos[1] < SCREEN_HEIGHT-SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.1 and event.pos[1] > SCREEN_HEIGHT-SCREEN_HEIGHT*.3:
+                            elif mouseX < SCREEN_WIDTH * 0.7-25+SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7-25 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.3:
                                 SHIFT -= 100  # Decrease SHIFT by 100
 
                                 if SHIFT == 0:
@@ -226,6 +234,15 @@ def main():
 
                                 # Save the new max horsepower data
                                 save_rpm(RPM_MAX,SHIFT)
+
+                                pygame.draw.rect(screen, PURPLE, (SCREEN_WIDTH // 2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
+
+                            # Check for collision with decrease rectangle
+                            elif mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.05 and mouseX > SCREEN_WIDTH // 2 - SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.2:
+                                if FLIP:
+                                    FLIP = False
+                                else:
+                                    FLIP = True
 
         if DEV:
             rpm = random.randint(max(0,rpm-50), min(rpm+150,RPM_MAX))
@@ -401,7 +418,8 @@ def main():
             draw_text(screen, "+", font_medium, BLACK, SCREEN_WIDTH * 0.7-25+SCREEN_WIDTH*.05, SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.05)
             draw_text(screen, "-", font_medium, BLACK, SCREEN_WIDTH * 0.7-25+SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.05)
 
-
+            pygame.draw.rect(screen, PURPLE, (SCREEN_WIDTH // 2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
+            draw_text(screen, "FLIP", font_small, BLACK, SCREEN_WIDTH // 2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
         elif pages[current_page] == "MPG":
             # Draw MPG section
             draw_text(screen, "Instant MPG", font_medium, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4 + 20)
@@ -433,6 +451,10 @@ def main():
 
         with open("last_visited_page.txt", "w") as file:
             file.write(str(current_page))
+
+        if FLIP:
+            flipped_screen = pygame.transform.flip(screen, False, True)
+            screen.blit(flipped_screen, (0, 0))
 
         # Update the display
         pygame.display.flip()
