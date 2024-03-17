@@ -208,12 +208,13 @@ def main():
     except Exception:
         current_page = 0
 
-    display = 0
+    display = 1
 
     logging = True
     
-    # Display Chevrolet logo for 5 seconds
-    display_logo(screen)
+    if not DEV:
+        # Display Chevrolet logo for 5 seconds
+        display_logo(screen)
 
     if DEV:
         rpm = 650
@@ -352,6 +353,8 @@ def main():
 
         # Clear the screen
         screen.fill(BLACK)
+        if display == 1:
+            screen.fill(BLUE)
 
         # Draw page buttons
         draw_text(screen, "<", font_medium, FONT_COLOR, SCREEN_WIDTH*.05, SCREEN_HEIGHT * .05)
@@ -369,48 +372,49 @@ def main():
         circle_x = start_x + circle_radius + circle_spacing
         circle_y = SCREEN_HEIGHT - circle_radius - circle_spacing
 
-        # Calculate the percentage of RPM relative to RPM_MAX
-        rpm_percentage = min(1.0, rpm / RPM_MAX)  # Ensure it's between 0 and 1
-        
-        # Calculate the height of the filled portion based on percentage
-        filled_height = math.floor((SCREEN_HEIGHT*.88) * rpm_percentage)
+        if display == 0:
+            # Calculate the percentage of RPM relative to RPM_MAX
+            rpm_percentage = min(1.0, rpm / RPM_MAX)  # Ensure it's between 0 and 1
+            
+            # Calculate the height of the filled portion based on percentage
+            filled_height = math.floor((SCREEN_HEIGHT*.88) * rpm_percentage)
 
-        # Draw the filled portion
-        color = GREEN if rpm<SHIFT else RED
-        pygame.draw.rect(screen, color, (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT - filled_height, SCREEN_WIDTH * 0.2, filled_height))
-        
-        # Draw the shift line
-        shiftLineColor = RED if rpm<SHIFT else BLACK
-        shift_line_y = SCREEN_HEIGHT - (SHIFT / RPM_MAX) * SCREEN_HEIGHT*.88
-        pygame.draw.line(screen, shiftLineColor, (SCREEN_WIDTH * 0.8, shift_line_y), (SCREEN_WIDTH, shift_line_y), 5)
+            # Draw the filled portion
+            color = GREEN if rpm<SHIFT else RED
+            pygame.draw.rect(screen, color, (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT - filled_height, SCREEN_WIDTH * 0.2, filled_height))
+            
+            # Draw the shift line
+            shiftLineColor = RED if rpm<SHIFT else BLACK
+            shift_line_y = SCREEN_HEIGHT - (SHIFT / RPM_MAX) * SCREEN_HEIGHT*.88
+            pygame.draw.line(screen, shiftLineColor, (SCREEN_WIDTH * 0.8, shift_line_y), (SCREEN_WIDTH, shift_line_y), 5)
 
-        pygame.draw.line(screen, BLACK, (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT*.12+2), (SCREEN_WIDTH, SCREEN_HEIGHT*.12+2), 4)
-        pygame.draw.line(screen, BLACK, (SCREEN_WIDTH * 0.8+2, SCREEN_HEIGHT*.12), (SCREEN_WIDTH * 0.8+2, SCREEN_HEIGHT), 4)
+            pygame.draw.line(screen, BLACK, (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT*.12+2), (SCREEN_WIDTH, SCREEN_HEIGHT*.12+2), 4)
+            pygame.draw.line(screen, BLACK, (SCREEN_WIDTH * 0.8+2, SCREEN_HEIGHT*.12), (SCREEN_WIDTH * 0.8+2, SCREEN_HEIGHT), 4)
 
-        pygame.draw.line(screen, FONT_COLOR, (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT*.12), (SCREEN_WIDTH, SCREEN_HEIGHT*.12), 2)
-        pygame.draw.line(screen, FONT_COLOR, (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT*.12), (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT), 2)
+            pygame.draw.line(screen, FONT_COLOR, (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT*.12), (SCREEN_WIDTH, SCREEN_HEIGHT*.12), 2)
+            pygame.draw.line(screen, FONT_COLOR, (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT*.12), (SCREEN_WIDTH * 0.8, SCREEN_HEIGHT), 2)
 
-        # Calculate the height of the filled portion based on percentage
-        fuel_height = math.floor((SCREEN_HEIGHT*.8) * fuel_level/100)
+            # Calculate the height of the filled portion based on percentage
+            fuel_height = math.floor((SCREEN_HEIGHT*.8) * fuel_level/100)
 
-        # Draw the filled portion
-        if fuel_level > 75:
-            fuel_color = GREEN
-        elif fuel_level <=75 and fuel_level > 50:
-            fuel_color = YELLOW
-        elif fuel_level <=50 and fuel_level > 30:
-            fuel_color = ORANGE
-        else:
-            fuel_color = RED
-        
-        draw_text(screen, f"{round(fuel_level,1)}%", font_medium, FONT_COLOR, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.15)
-        pygame.draw.rect(screen, fuel_color, (0, SCREEN_HEIGHT - fuel_height, SCREEN_WIDTH * 0.2, fuel_height))
+            # Draw the filled portion
+            if fuel_level > 75:
+                fuel_color = GREEN
+            elif fuel_level <=75 and fuel_level > 50:
+                fuel_color = YELLOW
+            elif fuel_level <=50 and fuel_level > 30:
+                fuel_color = ORANGE
+            else:
+                fuel_color = RED
+            
+            draw_text(screen, f"{round(fuel_level,1)}%", font_medium, FONT_COLOR, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.15)
+            pygame.draw.rect(screen, fuel_color, (0, SCREEN_HEIGHT - fuel_height, SCREEN_WIDTH * 0.2, fuel_height))
 
-        pygame.draw.line(screen, BLACK, (0, SCREEN_HEIGHT*.2+2), (SCREEN_WIDTH*.2, SCREEN_HEIGHT*.2+2), 4)
-        pygame.draw.line(screen, BLACK, (SCREEN_WIDTH * 0.2-2, SCREEN_HEIGHT*.2), (SCREEN_WIDTH * 0.2-2, SCREEN_HEIGHT), 4)
+            pygame.draw.line(screen, BLACK, (0, SCREEN_HEIGHT*.2+2), (SCREEN_WIDTH*.2, SCREEN_HEIGHT*.2+2), 4)
+            pygame.draw.line(screen, BLACK, (SCREEN_WIDTH * 0.2-2, SCREEN_HEIGHT*.2), (SCREEN_WIDTH * 0.2-2, SCREEN_HEIGHT), 4)
 
-        pygame.draw.line(screen, FONT_COLOR, (0, SCREEN_HEIGHT*.2), (SCREEN_WIDTH*.2, SCREEN_HEIGHT*.2), 2)
-        pygame.draw.line(screen, FONT_COLOR, (SCREEN_WIDTH * 0.2, SCREEN_HEIGHT*.2), (SCREEN_WIDTH * 0.2, SCREEN_HEIGHT), 2)
+            pygame.draw.line(screen, FONT_COLOR, (0, SCREEN_HEIGHT*.2), (SCREEN_WIDTH*.2, SCREEN_HEIGHT*.2), 2)
+            pygame.draw.line(screen, FONT_COLOR, (SCREEN_WIDTH * 0.2, SCREEN_HEIGHT*.2), (SCREEN_WIDTH * 0.2, SCREEN_HEIGHT), 2)
 
         for i, page in enumerate(pages):
             if page != 'Off':
@@ -495,7 +499,8 @@ def main():
                 draw_text(screen, "Instant MPG", font_medium, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 40)
                 draw_text(screen, f"{rpm}", font_large, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4 + 70)
                 draw_text(screen, str(round(mpg, 2)), font_large, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 110)
-
+            elif display == 1:
+                screen.fill(BLUE)
         elif pages[current_page] == "Settings":
             pygame.draw.rect(screen, PURPLE, (SCREEN_WIDTH // 2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
             draw_text(screen, "FLIP", font_small, BLACK, SCREEN_WIDTH // 2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
