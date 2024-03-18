@@ -5,7 +5,7 @@ import random
 import math
 
 DEV = True
-PI = False
+PI = True
 
 # Initialize Pygame
 pygame.init()
