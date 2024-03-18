@@ -27,7 +27,9 @@ BLUE = (0, 150, 255)
 FONT_COLOR = WHITE
 
 # Fonts
+font_xlarge = pygame.font.Font("./digital-7.ttf", 200)
 font_large = pygame.font.Font("./digital-7.ttf", 120)
+font_medlar = pygame.font.Font("./digital-7.ttf", 75)
 font_medium = pygame.font.Font("./digital-7.ttf", 48)
 font_small = pygame.font.Font("./digital-7.ttf", 36)
 
@@ -208,9 +210,10 @@ def main():
     except Exception:
         current_page = 0
 
-    display = 0
-
-    logging = True
+    display = 1
+    curve = pygame.image.load("round2.png").convert_alpha()
+    curveOut = pygame.transform.scale(curve, (curve.get_width() * 1.8, curve.get_height() * 1.6))
+    curveIn = pygame.transform.scale(curve, (curve.get_width() * 1.4, curve.get_height() * 1.1))
     
     if not DEV:
         # Display Chevrolet logo for 5 seconds
@@ -222,6 +225,8 @@ def main():
         speed = 0
         maf = 6
         voltage = 14.5
+    
+    logging = True
     while logging:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -353,12 +358,10 @@ def main():
 
         # Clear the screen
         screen.fill(BLACK)
-        if display == 1:
-            screen.fill(BLUE)
 
         # Draw page buttons
-        draw_text(screen, "<", font_medium, FONT_COLOR, SCREEN_WIDTH*.05, SCREEN_HEIGHT * .05)
-        draw_text(screen, ">", font_medium, FONT_COLOR, SCREEN_WIDTH -SCREEN_WIDTH*.05, SCREEN_HEIGHT * .05)
+        draw_text(screen, "<", font_medium, FONT_COLOR, SCREEN_WIDTH*.02, SCREEN_HEIGHT * .05)
+        draw_text(screen, ">", font_medium, FONT_COLOR, SCREEN_WIDTH -SCREEN_WIDTH*.02, SCREEN_HEIGHT * .05)
 
         # Draw page indicators (circles)
         circle_radius = 8
@@ -424,38 +427,7 @@ def main():
                 pygame.draw.circle(screen, color, (circle_x, circle_y), circle_radius)
                 circle_x += 2 * (circle_radius + circle_spacing)
 
-        # Draw page indicators (circles)
-        circle_radius = 22
-        circle_spacing = 5
 
-        total_circle_width = 12 * (2 * circle_radius + 2 * circle_spacing)
-
-        # Calculate starting position to center horizontally
-        start_x = (SCREEN_WIDTH - total_circle_width) // 2
-        circle_x = start_x + circle_radius + circle_spacing
-        circle_y = circle_radius + circle_spacing
-
-        # Colors for each light
-        light_colors = [GREEN, GREEN, GREEN, GREEN, YELLOW, YELLOW, YELLOW, YELLOW, RED, RED, RED, RED]
-
-        for i in range(len(light_colors)):
-            color = light_colors[i]
-
-            pygame.draw.circle(screen, FONT_COLOR, (circle_x, circle_y), circle_radius )
-            pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius -1)
-            blink_pattern = internal_clock % .4 > .2
-            
-            if rpm > SHIFT - (((len(light_colors)+2) - i) * 100):
-                if rpm > SHIFT and blink_pattern:
-                    pygame.draw.circle(screen, PURPLE, (circle_x, circle_y), circle_radius)
-                elif rpm > SHIFT and not blink_pattern:
-                    pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius)
-                elif rpm < SHIFT and rpm > SHIFT - 200:
-                    pygame.draw.circle(screen, PURPLE, (circle_x, circle_y), circle_radius)
-                else:
-                    pygame.draw.circle(screen, color, (circle_x, circle_y), circle_radius)
-                
-            circle_x += 2 * (circle_radius + circle_spacing)
 
         if pages[current_page] == "RPM":
             # Draw RPM section
@@ -501,6 +473,92 @@ def main():
                 draw_text(screen, str(round(mpg, 2)), font_large, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 110)
             elif display == 1:
                 screen.fill(BLUE)
+
+                 # Calculate the width of the filled portion based on percentage
+                fuel_width = math.floor((SCREEN_WIDTH*.7663) * fuel_level/100)
+
+                # Draw the filled portion
+                if fuel_level > 75:
+                    fuel_color = GREEN
+                elif fuel_level <=75 and fuel_level > 50:
+                    fuel_color = YELLOW
+                elif fuel_level <=50 and fuel_level > 30:
+                    fuel_color = ORANGE
+                else:
+                    fuel_color = RED
+                
+                pygame.draw.rect(screen, fuel_color, (SCREEN_WIDTH*.22, SCREEN_HEIGHT*.75, fuel_width, SCREEN_HEIGHT*.22))
+
+                # Calculate the percentage of RPM relative to RPM_MAX
+                rpm_percentage = min(1.0, rpm / RPM_MAX)  # Ensure it's between 0 and 1
+                
+                # Calculate the height of the filled portion based on percentage
+                rpm_width = math.floor((SCREEN_WIDTH*.98) * rpm_percentage)
+
+                # Draw the filled portion
+                rpm_color = GREEN if rpm<SHIFT else RED
+
+                # Draw the shift line
+                shiftLineColor = RED if rpm<SHIFT else BLACK
+                shift_line_x = SCREEN_WIDTH - (SHIFT / RPM_MAX) * SCREEN_WIDTH*.99
+
+                pygame.draw.rect(screen, rpm_color, (SCREEN_WIDTH * 0.01, 0, rpm_width, SCREEN_HEIGHT*.25))
+                pygame.draw.line(screen, shiftLineColor, (SCREEN_WIDTH-shift_line_x, 0), (SCREEN_WIDTH-shift_line_x, SCREEN_HEIGHT*.25), 5)
+
+                screen.blit(curveOut, ((SCREEN_WIDTH - curveOut.get_width())//2, (SCREEN_HEIGHT - curveOut.get_height())//2))
+                screen.blit(curveIn, ((SCREEN_WIDTH - curveIn.get_width())//2, (SCREEN_HEIGHT - curveIn.get_height())//2))
+                pygame.draw.rect(screen, BLACK, (0, SCREEN_HEIGHT*.25, SCREEN_WIDTH * .22, SCREEN_HEIGHT))
+                pygame.draw.rect(screen, BLACK, (SCREEN_WIDTH-SCREEN_WIDTH*.22, SCREEN_HEIGHT*.25, SCREEN_WIDTH, SCREEN_HEIGHT*.5))
+                pygame.draw.rect(screen, BLACK, (SCREEN_WIDTH*.12, SCREEN_HEIGHT*.15, SCREEN_WIDTH*.75, SCREEN_HEIGHT*.7))
+                draw_text(screen, f"{round(fuel_level,1)}%", font_medium, FONT_COLOR, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.93)
+                
+                draw_text(screen, f"{rpm}", font_xlarge, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT//2)
+                draw_text(screen, "RPM", font_small, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT*.7)
+
+                draw_text(screen,f"{(round(mpg, 2))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.1, SCREEN_HEIGHT // 2)
+                draw_text(screen, "Instant", font_small, FONT_COLOR, SCREEN_WIDTH *.1, SCREEN_HEIGHT // 2+50)
+                draw_text(screen, "MPG", font_small, FONT_COLOR, SCREEN_WIDTH *.1, SCREEN_HEIGHT // 2+80)
+
+                draw_text(screen, f"{int(round(speed,0))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.9, SCREEN_HEIGHT // 2)
+                draw_text(screen, "MPH", font_small, FONT_COLOR, SCREEN_WIDTH *.9, SCREEN_HEIGHT // 2+50)
+
+                # Draw page buttons
+                draw_text(screen, "<", font_medium, FONT_COLOR, SCREEN_WIDTH*.02, SCREEN_HEIGHT * .05)
+                draw_text(screen, ">", font_medium, FONT_COLOR, SCREEN_WIDTH -SCREEN_WIDTH*.02, SCREEN_HEIGHT * .05)
+
+                # Draw shift indicators (circles)
+                circle_radius = 22
+                circle_spacing = 5
+
+                total_circle_width = 12 * (2 * circle_radius + 2 * circle_spacing)
+
+                # Calculate starting position to center horizontally
+                start_x = (SCREEN_WIDTH - total_circle_width) // 2
+                circle_x = start_x + circle_radius + circle_spacing
+                circle_y = circle_radius + circle_spacing+SCREEN_HEIGHT*.15
+
+                # Colors for each light
+                light_colors = [GREEN, GREEN, GREEN, GREEN, YELLOW, YELLOW, YELLOW, YELLOW, RED, RED, RED, RED]
+
+                for i in range(len(light_colors)):
+                    color = light_colors[i]
+
+                    pygame.draw.circle(screen, FONT_COLOR, (circle_x, circle_y), circle_radius )
+                    pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius -1)
+                    blink_pattern = internal_clock % .4 > .2
+                    
+                    if rpm > SHIFT - (((len(light_colors)+2) - i) * 100):
+                        if rpm > SHIFT and blink_pattern:
+                            pygame.draw.circle(screen, PURPLE, (circle_x, circle_y), circle_radius)
+                        elif rpm > SHIFT and not blink_pattern:
+                            pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius)
+                        elif rpm < SHIFT and rpm > SHIFT - 200:
+                            pygame.draw.circle(screen, PURPLE, (circle_x, circle_y), circle_radius)
+                        else:
+                            pygame.draw.circle(screen, color, (circle_x, circle_y), circle_radius)
+                        
+                    circle_x += 2 * (circle_radius + circle_spacing)
+
         elif pages[current_page] == "Settings":
             pygame.draw.rect(screen, PURPLE, (SCREEN_WIDTH // 2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
             draw_text(screen, "FLIP", font_small, BLACK, SCREEN_WIDTH // 2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
