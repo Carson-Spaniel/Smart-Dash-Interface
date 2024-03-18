@@ -29,7 +29,7 @@ FONT_COLOR = WHITE
 # Fonts
 font_xlarge = pygame.font.Font("./digital-7.ttf", 200)
 font_large = pygame.font.Font("./digital-7.ttf", 120)
-font_medlar = pygame.font.Font("./digital-7.ttf", 75)
+font_medlar = pygame.font.Font("./digital-7.ttf", 100)
 font_medium = pygame.font.Font("./digital-7.ttf", 48)
 font_small = pygame.font.Font("./digital-7.ttf", 36)
 
@@ -363,18 +363,6 @@ def main():
         draw_text(screen, "<", font_medium, FONT_COLOR, SCREEN_WIDTH*.02, SCREEN_HEIGHT * .05)
         draw_text(screen, ">", font_medium, FONT_COLOR, SCREEN_WIDTH -SCREEN_WIDTH*.02, SCREEN_HEIGHT * .05)
 
-        # Draw page indicators (circles)
-        circle_radius = 8
-        circle_spacing = 10
-
-        # Calculate total width occupied by circles
-        total_circle_width = (len(pages)) * (2 * circle_radius + circle_spacing) + circle_spacing + (2*circle_radius)
-
-        # Calculate starting position to center horizontally
-        start_x = (SCREEN_WIDTH - total_circle_width) // 2
-        circle_x = start_x + circle_radius + circle_spacing
-        circle_y = SCREEN_HEIGHT - circle_radius - circle_spacing
-
         if display == 0:
             # Calculate the percentage of RPM relative to RPM_MAX
             rpm_percentage = min(1.0, rpm / RPM_MAX)  # Ensure it's between 0 and 1
@@ -419,6 +407,51 @@ def main():
             pygame.draw.line(screen, FONT_COLOR, (0, SCREEN_HEIGHT*.2), (SCREEN_WIDTH*.2, SCREEN_HEIGHT*.2), 2)
             pygame.draw.line(screen, FONT_COLOR, (SCREEN_WIDTH * 0.2, SCREEN_HEIGHT*.2), (SCREEN_WIDTH * 0.2, SCREEN_HEIGHT), 2)
 
+            # Draw shift indicators (circles)
+            circle_radius = 22
+            circle_spacing = 5
+
+            total_circle_width = 12 * (2 * circle_radius + 2 * circle_spacing)
+
+            # Calculate starting position to center horizontally
+            start_x = (SCREEN_WIDTH - total_circle_width) // 2
+            circle_x = start_x + circle_radius + circle_spacing
+            circle_y = circle_radius + circle_spacing
+
+            # Colors for each light
+            light_colors = [GREEN, GREEN, GREEN, GREEN, YELLOW, YELLOW, YELLOW, YELLOW, RED, RED, RED, RED]
+
+            for i in range(len(light_colors)):
+                color = light_colors[i]
+
+                pygame.draw.circle(screen, FONT_COLOR, (circle_x, circle_y), circle_radius )
+                pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius -1)
+                blink_pattern = internal_clock % .4 > .2
+                
+                if rpm > SHIFT - (((len(light_colors)+2) - i) * 100):
+                    if rpm > SHIFT and blink_pattern:
+                        pygame.draw.circle(screen, PURPLE, (circle_x, circle_y), circle_radius)
+                    elif rpm > SHIFT and not blink_pattern:
+                        pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius)
+                    elif rpm < SHIFT and rpm > SHIFT - 200:
+                        pygame.draw.circle(screen, PURPLE, (circle_x, circle_y), circle_radius)
+                    else:
+                        pygame.draw.circle(screen, color, (circle_x, circle_y), circle_radius)
+                    
+                circle_x += 2 * (circle_radius + circle_spacing)
+
+        # Draw page indicators (circles)
+        circle_radius = 8
+        circle_spacing = 10
+
+        # Calculate total width occupied by circles
+        total_circle_width = (len(pages)) * (2 * circle_radius + circle_spacing) + circle_spacing + (2*circle_radius)
+
+        # Calculate starting position to center horizontally
+        start_x = (SCREEN_WIDTH - total_circle_width) // 2
+        circle_x = start_x + circle_radius + circle_spacing
+        circle_y = SCREEN_HEIGHT - circle_radius - circle_spacing
+
         for i, page in enumerate(pages):
             if page != 'Off':
                 color = FONT_COLOR if i == current_page else BLACK
@@ -426,8 +459,6 @@ def main():
                 pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius + 2)
                 pygame.draw.circle(screen, color, (circle_x, circle_y), circle_radius)
                 circle_x += 2 * (circle_radius + circle_spacing)
-
-
 
         if pages[current_page] == "RPM":
             # Draw RPM section
@@ -474,7 +505,7 @@ def main():
             elif display == 1:
                 screen.fill(BLUE)
 
-                 # Calculate the width of the filled portion based on percentage
+                # Calculate the width of the filled portion based on percentage
                 fuel_width = math.floor((SCREEN_WIDTH*.7663) * fuel_level/100)
 
                 # Draw the filled portion
@@ -515,12 +546,14 @@ def main():
                 draw_text(screen, f"{rpm}", font_xlarge, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT//2)
                 draw_text(screen, "RPM", font_small, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT*.7)
 
-                draw_text(screen,f"{(round(mpg, 2))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.1, SCREEN_HEIGHT // 2)
-                draw_text(screen, "Instant", font_small, FONT_COLOR, SCREEN_WIDTH *.1, SCREEN_HEIGHT // 2+50)
-                draw_text(screen, "MPG", font_small, FONT_COLOR, SCREEN_WIDTH *.1, SCREEN_HEIGHT // 2+80)
+                draw_text(screen,f"{(round(mpg, 2))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2)
+                draw_text(screen, "Instant", font_small, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2+50)
+                draw_text(screen, "MPG", font_small, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2+80)
 
-                draw_text(screen, f"{int(round(speed,0))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.9, SCREEN_HEIGHT // 2)
-                draw_text(screen, "MPH", font_small, FONT_COLOR, SCREEN_WIDTH *.9, SCREEN_HEIGHT // 2+50)
+                draw_text(screen, f"{int(round(speed,0))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2)
+                draw_text(screen, "MPH", font_small, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2+50)
+
+                draw_text(screen, f"{round(voltage,1)} v", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT - SCREEN_HEIGHT*.13)
 
                 # Draw page buttons
                 draw_text(screen, "<", font_medium, FONT_COLOR, SCREEN_WIDTH*.02, SCREEN_HEIGHT * .05)
