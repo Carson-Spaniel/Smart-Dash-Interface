@@ -5,7 +5,7 @@ import random
 import math
 
 DEV = True
-PI = True
+PI = False
 
 # Initialize Pygame
 pygame.init()
@@ -553,7 +553,8 @@ def main():
                 draw_text(screen, f"{int(round(speed,0))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2)
                 draw_text(screen, "MPH", font_small, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2+50)
 
-                draw_text(screen, f"{round(voltage,1)} v", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT - SCREEN_HEIGHT*.13)
+                draw_text(screen, f"{round((air_temp*(9/5))+32,1)}F", font_medium, FONT_COLOR, SCREEN_WIDTH*.7, SCREEN_HEIGHT - SCREEN_HEIGHT*.15)
+                draw_text(screen, f"{round(voltage,1)} v", font_medium, FONT_COLOR, SCREEN_WIDTH*.3, SCREEN_HEIGHT - SCREEN_HEIGHT*.15)
 
                 # Draw page buttons
                 draw_text(screen, "<", font_medium, FONT_COLOR, SCREEN_WIDTH*.02, SCREEN_HEIGHT * .05)
