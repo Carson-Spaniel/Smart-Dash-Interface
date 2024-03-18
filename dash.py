@@ -5,7 +5,7 @@ import random
 import math
 
 DEV = True
-PI = True
+PI = False
 
 # Initialize Pygame
 pygame.init()
@@ -182,10 +182,6 @@ def display_logo(screen):
 
 # Main function for the Pygame interface
 def main():
-    internal_clock = 2.8000000000000003
-    global RPM_MAX
-    global SHIFT
-    FLIP = False
     if not PI:
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     else:
@@ -193,13 +189,20 @@ def main():
     pygame.display.set_caption("Smart Dash")
     clock = pygame.time.Clock()
 
+    # Initialize variables
     pages = ["RPM" , "Both", "Settings"] #,"MPG", "Off"
     current_page = 0
-
-    # Initialize variables
     mpg_history = []
     last_mile_mpg = 0.0
     last_mile_distance = 0.0
+    internal_clock = 2.8000000000000003
+    global RPM_MAX
+    global SHIFT
+    FLIP = False
+    display = 1
+    curve = pygame.image.load("round2.png").convert_alpha()
+    curveOut = pygame.transform.scale(curve, (curve.get_width() * 1.8, curve.get_height() * 1.6))
+    curveIn = pygame.transform.scale(curve, (curve.get_width() * 1.4, curve.get_height() * 1.1))
 
     # Load the last visited page
     try:
@@ -210,11 +213,6 @@ def main():
     except Exception:
         current_page = 0
 
-    display = 1
-    curve = pygame.image.load("round2.png").convert_alpha()
-    curveOut = pygame.transform.scale(curve, (curve.get_width() * 1.8, curve.get_height() * 1.6))
-    curveIn = pygame.transform.scale(curve, (curve.get_width() * 1.4, curve.get_height() * 1.1))
-    
     if not DEV:
         # Display Chevrolet logo for 5 seconds
         display_logo(screen)
