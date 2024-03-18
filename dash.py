@@ -545,8 +545,8 @@ def main():
                 draw_text(screen, "RPM", font_small, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT*.7)
 
                 draw_text(screen,f"{(round(mpg, 2))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2)
-                draw_text(screen, "Instant", font_small, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2+50)
-                draw_text(screen, "MPG", font_small, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2+80)
+                draw_text(screen, "MPG", font_small, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2+50)
+                # draw_text(screen, "MPG", font_small, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2+80)
 
                 draw_text(screen, f"{int(round(speed,0))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2)
                 draw_text(screen, "MPH", font_small, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2+50)
