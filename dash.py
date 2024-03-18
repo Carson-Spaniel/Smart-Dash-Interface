@@ -208,7 +208,7 @@ def main():
     except Exception:
         current_page = 0
 
-    display = 1
+    display = 0
 
     logging = True
     
