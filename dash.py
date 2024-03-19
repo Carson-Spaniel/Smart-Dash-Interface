@@ -539,6 +539,7 @@ def main():
                 pygame.draw.rect(screen, BLACK, (0, SCREEN_HEIGHT*.25, SCREEN_WIDTH * .22, SCREEN_HEIGHT))
                 pygame.draw.rect(screen, BLACK, (SCREEN_WIDTH-SCREEN_WIDTH*.22, SCREEN_HEIGHT*.25, SCREEN_WIDTH, SCREEN_HEIGHT*.5))
                 pygame.draw.rect(screen, BLACK, (SCREEN_WIDTH*.12, SCREEN_HEIGHT*.15, SCREEN_WIDTH*.75, SCREEN_HEIGHT*.7))
+                
                 draw_text(screen, f"{round(fuel_level,1)}%", font_medium, FONT_COLOR, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.93)
                 
                 draw_text(screen, f"{rpm}", font_xlarge, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT//2)
@@ -546,7 +547,6 @@ def main():
 
                 draw_text(screen,f"{(round(mpg, 2))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2)
                 draw_text(screen, "MPG", font_small, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2+50)
-                # draw_text(screen, "MPG", font_small, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2+80)
 
                 draw_text(screen, f"{int(round(speed,0))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2)
                 draw_text(screen, "MPH", font_small, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2+50)
@@ -620,11 +620,9 @@ def main():
         pygame.display.flip()
         clock.tick(FPS)
 
-        sleep = .05
         if DEV:
-            sleep = .1
             internal_clock += .20
-            time.sleep(sleep)
+            time.sleep(.1)
         else:
             internal_clock += .10
 
