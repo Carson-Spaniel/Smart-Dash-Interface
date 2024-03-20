@@ -222,7 +222,7 @@ def main():
         fuel_level = random.randint(0,100)
         speed = 0
         maf = 6
-        voltage = 14.5
+        voltage = 15.5
     
     logging = True
     while logging:
