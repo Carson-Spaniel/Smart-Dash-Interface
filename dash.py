@@ -138,10 +138,6 @@ def calculate_mpg(speed, maf):
     mpg = speed / gph
     return round(mpg, 1)
 
-# Function to calculate horsepower
-def calculate_horsepower(torque, rpm):
-    return (torque * rpm) / 5252
-
 # Function to draw text on screen
 def draw_text(screen, text, font, color, x, y):
     text_surface = font.render(text, True, color)
@@ -190,7 +186,7 @@ def main():
     clock = pygame.time.Clock()
 
     # Initialize variables
-    pages = ["RPM" , "Both", "Settings"] #,"MPG", "Off"
+    pages = ["Main" , "RPM", "Settings"] #,"MPG", "Off"
     current_page = 0
     mpg_history = []
     last_mile_mpg = 0.0
@@ -479,7 +475,7 @@ def main():
             draw_text(screen, "+", font_medium, BLACK, SCREEN_WIDTH * 0.7-25+SCREEN_WIDTH*.05, SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.05)
             draw_text(screen, "-", font_medium, BLACK, SCREEN_WIDTH * 0.7-25+SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.05)
 
-        elif pages[current_page] == "Both":
+        elif pages[current_page] == "Main":
             if display == 0:
                 # Draw voltage and speed
                 draw_text(screen, f"{round(voltage,1)}", font_medium, FONT_COLOR, SCREEN_WIDTH*.28, SCREEN_HEIGHT - SCREEN_HEIGHT*.1)
