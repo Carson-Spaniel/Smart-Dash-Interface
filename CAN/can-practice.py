@@ -2,7 +2,7 @@ import can
 
 # Create a CAN bus interface using the python-can library
 # Replace 'can0' with the actual CAN interface name for your system
-bus = can.interface.Bus(bustype='socketcan', channel='can0')
+bus = can.interface.Bus(bustype='serial', channel='/dev/rfcomm0', bitrate=500000)
 
 try:
     print("CAN Bus connected")
@@ -45,8 +45,7 @@ finally:
 #         return None
 
 # # Create a CAN bus interface
-# bus = can.interface.Bus(bustype='socketcan', channel='can0')
-# # bus = can.interface.Bus(bustype='serial', channel='/dev/rfcomm0', bitrate=500000)
+# bus = can.interface.Bus(bustype='serial', channel='/dev/rfcomm0', bitrate=500000)
 
 # try:
 #     print("CAN Bus connected")
