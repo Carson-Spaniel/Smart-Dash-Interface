@@ -44,6 +44,7 @@ if not DEV:
                 # The Bluetooth port for RFCOMM on Raspberry Pi
                 port = "/dev/rfcomm0"
             else:
+                # Port for the Bluetooth connection on my laptop
                 port =  "COM5"
                 
             # Connect to the OBD-II adapter
