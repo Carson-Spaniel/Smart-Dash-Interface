@@ -14,16 +14,10 @@ bus = can.interface.Bus(bustype='serial', channel=channel, bitrate=500000)
 try:
     print("CAN Bus connected")
 
-    # Define a message listener
-    def print_message(msg):
-        print("Received message:", msg)
-
-    # Add the listener to receive messages
-    notifier = can.Notifier(bus, [print_message])
-
-    # Keep the script running
     while True:
-        pass
+        recv_msg = bus.recv(timeout=0.1)
+        if recv_msg:
+            print("\n\n\nMessage received:", recv_msg)
 
 except KeyboardInterrupt:
     # Stop the script when Ctrl+C is pressed
