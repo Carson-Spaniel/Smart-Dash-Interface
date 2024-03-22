@@ -620,7 +620,7 @@ def main():
 
         if DEV:
             internal_clock += .20
-            time.sleep(.1)
+            time.sleep(.25)
         else:
             internal_clock += .10
 
