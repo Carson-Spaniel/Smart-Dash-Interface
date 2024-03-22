@@ -1,15 +1,10 @@
 import can
 
-PI = False
-
 # Create a CAN bus interface using the python-can library
 # Replace 'can0' with the actual CAN interface name for your system
-if PI:
-    channel = '/dev/rfcomm0' # Bluetooth port on pi
-else:
-    channel = 'COM5' # Bluetooth port on Laptop
+channel = 'can0'
 
-bus = can.interface.Bus(bustype='serial', channel=channel, bitrate=500000)
+bus = can.interface.Bus(channel=channel, bustype='socketcan')
 
 try:
     print("CAN Bus connected")
