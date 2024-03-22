@@ -4,7 +4,7 @@ import time
 import random
 import math
 
-DEV = True
+DEV = False
 PI = True
 
 # Initialize Pygame
