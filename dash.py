@@ -4,9 +4,9 @@ import time
 import random
 import math
 
+# Environment Variables
 DEV = True
 PI = False
-# testing
 
 # Initialize Pygame
 pygame.init()
