@@ -8,8 +8,6 @@ import math
 DEV = True
 PI = False
 
-
-
 # Initialize Pygame
 pygame.init()
 
