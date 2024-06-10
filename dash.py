@@ -648,7 +648,7 @@ def main():
         connection.close()
 
     # Shutting down
-    subprocess.run("sudo shutdown", shell=True, capture_output=True, text=True)
+    subprocess.run("sudo shutdown -h now", shell=True, capture_output=True, text=True)
 
 if __name__ == "__main__":
     main()
