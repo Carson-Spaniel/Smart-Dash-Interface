@@ -155,7 +155,7 @@ def calculate_mpg(speed, maf):
     gph = maf_pph / 6.17
     # Calculate MPG
     mpg = speed / gph
-    
+
     return round(mpg*10, 1)
 
 # Function to draw text on screen
@@ -171,8 +171,8 @@ def display_logo(screen):
 
     # Animation variables
     rotation_angle = 0
-    scale = 0.2
-    animation_duration = 5  # 5 seconds
+    scale = 0.6
+    animation_duration = 1
     start_time = time.time()
 
     while time.time() - start_time < animation_duration:
@@ -192,7 +192,7 @@ def display_logo(screen):
 
         pygame.display.flip()
 
-        scale += 0.004
+        scale += 0.01
 
         pygame.time.Clock().tick(FPS)
 
@@ -233,7 +233,7 @@ def main():
         current_page = 0
 
     if not DEV:
-        # Display Chevrolet logo for 5 seconds
+        # Display Chevrolet logo
         display_logo(screen)
 
     if DEV:
