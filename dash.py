@@ -3,6 +3,7 @@ import obd
 import time
 import random
 import math
+import subprocess
 
 # Environment Variables
 DEV = True
@@ -645,6 +646,9 @@ def main():
     if not DEV:
         # Close the connection
         connection.close()
+
+    # Shutting down
+    subprocess.run("sudo shutdown", shell=True, capture_output=True, text=True)
 
 if __name__ == "__main__":
     main()
