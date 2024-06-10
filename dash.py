@@ -7,7 +7,7 @@ import subprocess
 
 # Environment Variables
 DEV = True
-PI = True
+PI = False
 
 # Initialize Pygame
 pygame.init()
