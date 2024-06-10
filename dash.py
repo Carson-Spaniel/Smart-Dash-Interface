@@ -134,9 +134,25 @@ RPM_MAX,SHIFT = load_rpm()
 
 # Function to calculate MPG
 def calculate_mpg(speed, maf):
-    if speed == 0:
+    """
+    Calculate miles per gallon (MPG) based on vehicle speed and mass air flow (MAF).
+    
+    Parameters:
+    speed (float): Vehicle speed in miles per hour.
+    maf (float): Mass air flow in grams per second.
+    
+    Returns:
+    float: Calculated MPG.
+    """
+    if speed == 0 or maf == 0:
         return 0
-    gph = (maf / 14.7) * 0.746  # grams per hour to gallons per hour
+    # Convert MAF from grams per second to grams per hour
+    maf_gph = maf * 3600
+    # Convert grams per hour to pounds per hour (1 pound = 453.592 grams)
+    maf_pph = maf_gph / 453.592
+    # Convert pounds per hour to gallons per hour (1 gallon of gasoline = 6.17 pounds)
+    gph = maf_pph / 6.17
+    # Calculate MPG
     mpg = speed / gph
     return round(mpg, 1)
 
@@ -188,7 +204,7 @@ def main():
     clock = pygame.time.Clock()
 
     # Initialize variables
-    pages = ["Main" , "RPM", "Settings"] #,"MPG", "Off"
+    pages = ["Main" , "RPM", "Settings", "Off"] #,"MPG", "Off"
     current_page = 0
     mpg_history = []
     last_mile_mpg = 0.0
