@@ -7,7 +7,7 @@ import subprocess
 
 # Environment Variables
 DEV = True
-PI = False
+PI = True
 
 # Initialize Pygame
 pygame.init()
@@ -214,6 +214,7 @@ def main():
     global RPM_MAX
     global SHIFT
     FLIP = False
+    SHIFT_LIGHT = True
     display = 1
     curve = pygame.image.load("round2.png").convert_alpha()
     curveOut = pygame.transform.scale(curve, (curve.get_width() * 1.8, curve.get_height() * 1.6))
@@ -221,10 +222,12 @@ def main():
 
     # Load the last visited page
     try:
-        with open("last_visited_page.txt", "r") as file:
-            current_page = int(file.read())
+        with open("info.txt", "r") as file:
+            current_page = int(file.readline())
             if current_page < 0 or current_page >= len(pages):
                 current_page = 0
+
+            SHIFT_LIGHT = int(file.readline())
     except Exception:
         current_page = 0
 
@@ -301,11 +304,15 @@ def main():
                                 save_rpm(RPM_MAX,SHIFT)
                         if pages[current_page] == "Settings":
                             # Check for collision with flip rectangle
-                            if mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.05 and mouseX > SCREEN_WIDTH // 2 - SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.2:
-                                if FLIP:
-                                    FLIP = False
+                            if mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.05 and mouseX > SCREEN_WIDTH // 2 - SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT*.4 and mouseY > SCREEN_HEIGHT*.3:
+                                if SHIFT_LIGHT:
+                                    SHIFT_LIGHT = False
                                 else:
-                                    FLIP = True
+                                    SHIFT_LIGHT = True
+
+                            # Check for collision with flip rectangle
+                            elif mouseX < SCREEN_WIDTH*.3 + SCREEN_WIDTH*.05 and mouseX > SCREEN_WIDTH*.3 - SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.2:
+                                logging = False
 
                             # Check for collision with flip rectangle
                             elif mouseX < SCREEN_WIDTH*.3 + SCREEN_WIDTH*.05 and mouseX > SCREEN_WIDTH*.3 - SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.2:
@@ -573,38 +580,39 @@ def main():
                 draw_text(screen, "<", font_medium, FONT_COLOR, SCREEN_WIDTH*.02, SCREEN_HEIGHT * .05)
                 draw_text(screen, ">", font_medium, FONT_COLOR, SCREEN_WIDTH -SCREEN_WIDTH*.02, SCREEN_HEIGHT * .05)
 
-                # Draw shift indicators (circles)
-                circle_radius = 22
-                circle_spacing = 5
+                if SHIFT_LIGHT:
+                    # Draw shift indicators (circles)
+                    circle_radius = 22
+                    circle_spacing = 5
 
-                total_circle_width = 12 * (2 * circle_radius + 2 * circle_spacing)
+                    total_circle_width = 12 * (2 * circle_radius + 2 * circle_spacing)
 
-                # Calculate starting position to center horizontally
-                start_x = (SCREEN_WIDTH - total_circle_width) // 2
-                circle_x = start_x + circle_radius + circle_spacing
-                circle_y = circle_radius + circle_spacing+SCREEN_HEIGHT*.15
+                    # Calculate starting position to center horizontally
+                    start_x = (SCREEN_WIDTH - total_circle_width) // 2
+                    circle_x = start_x + circle_radius + circle_spacing
+                    circle_y = circle_radius + circle_spacing+SCREEN_HEIGHT*.15
 
-                # Colors for each light
-                light_colors = [GREEN, GREEN, GREEN, GREEN, YELLOW, YELLOW, YELLOW, YELLOW, RED, RED, RED, RED]
+                    # Colors for each light
+                    light_colors = [GREEN, GREEN, GREEN, GREEN, YELLOW, YELLOW, YELLOW, YELLOW, RED, RED, RED, RED]
 
-                for i in range(len(light_colors)):
-                    color = light_colors[i]
+                    for i in range(len(light_colors)):
+                        color = light_colors[i]
 
-                    pygame.draw.circle(screen, FONT_COLOR, (circle_x, circle_y), circle_radius )
-                    pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius -1)
-                    blink_pattern = internal_clock % .4 > .2
-                    
-                    if rpm > SHIFT - (((len(light_colors)+2) - i) * 100):
-                        if rpm > SHIFT and blink_pattern:
-                            pygame.draw.circle(screen, PURPLE, (circle_x, circle_y), circle_radius)
-                        elif rpm > SHIFT and not blink_pattern:
-                            pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius)
-                        elif rpm < SHIFT and rpm > SHIFT - 200:
-                            pygame.draw.circle(screen, PURPLE, (circle_x, circle_y), circle_radius)
-                        else:
-                            pygame.draw.circle(screen, color, (circle_x, circle_y), circle_radius)
+                        pygame.draw.circle(screen, FONT_COLOR, (circle_x, circle_y), circle_radius )
+                        pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius -1)
+                        blink_pattern = internal_clock % .4 > .2
                         
-                    circle_x += 2 * (circle_radius + circle_spacing)
+                        if rpm > SHIFT - (((len(light_colors)+2) - i) * 100):
+                            if rpm > SHIFT and blink_pattern:
+                                pygame.draw.circle(screen, PURPLE, (circle_x, circle_y), circle_radius)
+                            elif rpm > SHIFT and not blink_pattern:
+                                pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius)
+                            elif rpm < SHIFT and rpm > SHIFT - 200:
+                                pygame.draw.circle(screen, PURPLE, (circle_x, circle_y), circle_radius)
+                            else:
+                                pygame.draw.circle(screen, color, (circle_x, circle_y), circle_radius)
+                            
+                        circle_x += 2 * (circle_radius + circle_spacing)
 
         elif pages[current_page] == "Settings":
             pygame.draw.rect(screen, PURPLE, (SCREEN_WIDTH // 2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
@@ -617,15 +625,20 @@ def main():
             draw_text(screen, "+", font_medium, BLACK, SCREEN_WIDTH * 0.55+SCREEN_WIDTH*.05, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
             draw_text(screen, f"{int(round((BRIGHTNESS/255)*100,0))}%", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
             draw_text(screen, "Brightness", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.25)
-            
+
+            pygame.draw.rect(screen, GREEN if SHIFT_LIGHT else RED, (SCREEN_WIDTH // 2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT*.3, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
+            draw_text(screen, "On" if SHIFT_LIGHT else "Off", font_small, BLACK, SCREEN_WIDTH // 2, SCREEN_HEIGHT*.35)
+            draw_text(screen, "Shift lights", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.44)
+
             pygame.draw.rect(screen, RED, (SCREEN_WIDTH*.3 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
             draw_text(screen, "Exit", font_small, BLACK, SCREEN_WIDTH*.3, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
         
         elif pages[current_page] == "Off":
             screen.fill(BLACK)
 
-        with open("last_visited_page.txt", "w") as file:
+        with open("info.txt", "w") as file:
             file.write(str(current_page))
+            file.write(f'\n{str(int(SHIFT_LIGHT))}')
 
         if FLIP:
             flipped_screen = pygame.transform.flip(screen, False, True)
@@ -647,8 +660,8 @@ def main():
         # Close the connection
         connection.close()
 
-    # Shutting down
-    subprocess.run("sudo shutdown -h now", shell=True, capture_output=True, text=True)
+        # Shutting down
+        subprocess.run("sudo shutdown -h now", shell=True, capture_output=True, text=True)
 
 if __name__ == "__main__":
     main()
