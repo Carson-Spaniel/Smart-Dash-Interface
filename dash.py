@@ -6,8 +6,8 @@ import math
 import subprocess
 
 # Environment Variables
-DEV = True
-PI = False
+DEV = False
+PI = True
 
 # Initialize Pygame
 pygame.init()
@@ -155,7 +155,8 @@ def calculate_mpg(speed, maf):
     gph = maf_pph / 6.17
     # Calculate MPG
     mpg = speed / gph
-    return round(mpg, 1)
+    
+    return round(mpg*10, 1)
 
 # Function to draw text on screen
 def draw_text(screen, text, font, color, x, y):
