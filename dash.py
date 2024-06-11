@@ -6,8 +6,8 @@ import math
 import subprocess
 
 # Environment Variables
-DEV = False
-PI = True
+DEV = True
+PI = False
 
 # Initialize Pygame
 pygame.init()
@@ -206,7 +206,7 @@ def main():
     clock = pygame.time.Clock()
 
     # Initialize variables
-    pages = ["Main" , "RPM", "Settings", "Off"] #,"MPG", "Off"
+    pages = ["Main" , "Settings", "RPM", "Off"] #,"MPG", "Off"
     current_page = 0
     mpg_history = []
     last_mile_mpg = 0.0
@@ -338,7 +338,7 @@ def main():
             voltage = random.uniform(max(14,voltage-.1), min(voltage+.1,15))
             air_temp = random.randint(0,50)
         else:
-            # Query for RPM and Torque
+            # Queries
             response_rpm = connection.query(obd.commands.RPM)
             response_fuel_level = connection.query(obd.commands.FUEL_LEVEL)
             response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
@@ -474,12 +474,12 @@ def main():
         circle_y = SCREEN_HEIGHT - circle_radius - circle_spacing
 
         for i, page in enumerate(pages):
-            if page != 'Off':
-                color = FONT_COLOR if i == current_page else BLACK
-                pygame.draw.circle(screen, FONT_COLOR, (circle_x, circle_y), circle_radius + 4)
-                pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius + 2)
-                pygame.draw.circle(screen, color, (circle_x, circle_y), circle_radius)
-                circle_x += 2 * (circle_radius + circle_spacing)
+            # if page != 'Off':
+            color = FONT_COLOR if i == current_page else BLACK
+            pygame.draw.circle(screen, FONT_COLOR, (circle_x, circle_y), circle_radius + 4)
+            pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius + 2)
+            pygame.draw.circle(screen, color, (circle_x, circle_y), circle_radius)
+            circle_x += 2 * (circle_radius + circle_spacing)
 
         if pages[current_page] == "RPM":
             # Draw RPM section
