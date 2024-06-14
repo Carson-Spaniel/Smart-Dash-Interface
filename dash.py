@@ -210,7 +210,7 @@ def main():
     current_page = 0
     # mpg_history = []
     # last_mile_mpg = 0.0
-    last_mile_distance = 0.0
+    # last_mile_distance = 0.0
     internal_clock = 2.8000000000000003
     global RPM_MAX
     global SHIFT
@@ -325,7 +325,8 @@ def main():
                             
                             # Check for collision with increase rectangle
                             elif mouseX < SCREEN_WIDTH * 0.55 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.55 and mouseY < SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.12:
-                                increase_brightness()         
+                                increase_brightness()
+          
         if DEV:
             rpm = random.randint(max(0,rpm-50), min(rpm+150,RPM_MAX))
             speed = random.uniform(max(0,speed-10), min(speed+100,80))* 0.621371
