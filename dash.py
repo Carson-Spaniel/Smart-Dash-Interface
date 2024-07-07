@@ -206,7 +206,7 @@ def main():
     clock = pygame.time.Clock()
 
     # Initialize variables
-    pages = ["Main" , "Settings", "RPM", "Off"] #,"MPG", "Off"
+    pages = ["Main" , "Settings", "RPM", "Code"] #,"MPG", "Off"
     current_page = 0
     # mpg_history = []
     # last_mile_mpg = 0.0
@@ -305,26 +305,29 @@ def main():
                                 save_rpm(RPM_MAX,SHIFT)
                         if pages[current_page] == "Settings":
                             # Check for collision with flip rectangle
-                            if mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.05 and mouseX > SCREEN_WIDTH // 2 - SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT*.4 and mouseY > SCREEN_HEIGHT*.3:
+                            if mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.2 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1 and mouseY < SCREEN_HEIGHT*.42 and mouseY > SCREEN_HEIGHT*.32:
                                 if SHIFT_LIGHT:
                                     SHIFT_LIGHT = False
                                 else:
                                     SHIFT_LIGHT = True
 
                             # Check for collision with flip rectangle
-                            elif mouseX < SCREEN_WIDTH*.3 + SCREEN_WIDTH*.05 and mouseX > SCREEN_WIDTH*.3 - SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.2:
-                                logging = False
+                            elif mouseX < SCREEN_WIDTH//2 + SCREEN_WIDTH*.05 and mouseX > SCREEN_WIDTH//2 - SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.2:
+                                if FLIP:
+                                    FLIP = False
+                                else:
+                                    FLIP = True
 
-                            # Check for collision with flip rectangle
+                            # Check for collision with exit rectangle
                             elif mouseX < SCREEN_WIDTH*.3 + SCREEN_WIDTH*.05 and mouseX > SCREEN_WIDTH*.3 - SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.2:
                                 logging = False
 
                             # Check for collision with decrease rectangle
-                            elif mouseX < SCREEN_WIDTH * 0.35 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.35 and mouseY < SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.12:
+                            elif mouseX < SCREEN_WIDTH * 0.5 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.5 and mouseY < SCREEN_HEIGHT*.2+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.2:
                                 decrease_brightness()                            
                             
                             # Check for collision with increase rectangle
-                            elif mouseX < SCREEN_WIDTH * 0.55 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.55 and mouseY < SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.12:
+                            elif mouseX < SCREEN_WIDTH * 0.7 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7 and mouseY < SCREEN_HEIGHT*.2+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.2:
                                 increase_brightness()
           
         if DEV:
@@ -337,6 +340,7 @@ def main():
             fuel_level -= .1
             voltage = random.uniform(max(14,voltage-.1), min(voltage+.1,15))
             air_temp = random.randint(0,50)
+            codes = [("P0104", "Mass or Volume Air Flow Circuit Intermittent"),("B0003", ""),("C0123", "")]
         else:
             # Queries
             response_rpm = connection.query(obd.commands.RPM)
@@ -345,6 +349,7 @@ def main():
             response_maf = connection.query(obd.commands.MAF)      # Mass Air Flow
             response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
             response_air_temp = connection.query(obd.commands.AMBIANT_AIR_TEMP)
+            response_cel = connection.query(obd.commands.GET_DTC)
 
             # Setting the values
             if not response_speed.is_null() and not response_maf.is_null():
@@ -363,6 +368,10 @@ def main():
 
             if not response_air_temp.is_null():
                 air_temp = response_air_temp.value.magnitude
+
+            # Gather CEL codes
+            if response_cel.is_successful():
+                codes = response_cel.value
 
         # if speed > 0:
         #     last_mile_distance += speed / 3600  # speed in miles per second, convert to hours
@@ -483,6 +492,8 @@ def main():
             circle_x += 2 * (circle_radius + circle_spacing)
 
         if pages[current_page] == "RPM":
+            draw_text(screen, "RPM Settings", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
+
             # Draw RPM section
             draw_text(screen, "RPM", font_medium, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4 + 20)
             draw_text(screen, str(rpm), font_large, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 +20)
@@ -617,24 +628,29 @@ def main():
                         circle_x += 2 * (circle_radius + circle_spacing)
 
         elif pages[current_page] == "Settings":
+            draw_text(screen, "General Settings", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
+
             pygame.draw.rect(screen, PURPLE, (SCREEN_WIDTH // 2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
             draw_text(screen, "FLIP", font_small, BLACK, SCREEN_WIDTH // 2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
         
-            pygame.draw.rect(screen, RED, (SCREEN_WIDTH * 0.35, SCREEN_HEIGHT*.12, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
-            pygame.draw.rect(screen, GREEN, (SCREEN_WIDTH * 0.55, SCREEN_HEIGHT*.12, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
+            pygame.draw.rect(screen, RED, (SCREEN_WIDTH * 0.50, SCREEN_HEIGHT*.20, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
+            pygame.draw.rect(screen, GREEN, (SCREEN_WIDTH * 0.70, SCREEN_HEIGHT*.20, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
 
-            draw_text(screen, "-", font_medium, BLACK, SCREEN_WIDTH * 0.35+SCREEN_WIDTH*.05, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
-            draw_text(screen, "+", font_medium, BLACK, SCREEN_WIDTH * 0.55+SCREEN_WIDTH*.05, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
-            draw_text(screen, f"{int(round((BRIGHTNESS/255)*100,0))}%", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.12+SCREEN_HEIGHT*.05)
-            draw_text(screen, "Brightness", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.25)
+            draw_text(screen, "-", font_medium, BLACK, SCREEN_WIDTH * 0.55, SCREEN_HEIGHT*.25)
+            draw_text(screen, "+", font_medium, BLACK, SCREEN_WIDTH * 0.75, SCREEN_HEIGHT*.25)
+            draw_text(screen, f"{int(round((BRIGHTNESS/255)*100,0))}%", font_small, FONT_COLOR, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.25)
+            draw_text(screen, "Brightness", font_small, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.25)
 
-            pygame.draw.rect(screen, GREEN if SHIFT_LIGHT else RED, (SCREEN_WIDTH // 2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT*.3, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
-            draw_text(screen, "On" if SHIFT_LIGHT else "Off", font_small, BLACK, SCREEN_WIDTH // 2, SCREEN_HEIGHT*.35)
-            draw_text(screen, "Shift lights", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.44)
+            pygame.draw.rect(screen, GREEN if SHIFT_LIGHT else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.32, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
+            draw_text(screen, "On" if SHIFT_LIGHT else "Off", font_small, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
+            draw_text(screen, "Shift lights", font_small, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
 
             pygame.draw.rect(screen, RED, (SCREEN_WIDTH*.3 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
             draw_text(screen, "Exit", font_small, BLACK, SCREEN_WIDTH*.3, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
-        
+
+        elif pages[current_page] == "Code":
+            draw_text(screen, "Error Codes", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
+
         elif pages[current_page] == "Off":
             screen.fill(BLACK)
 
