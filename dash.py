@@ -147,22 +147,47 @@ def calculate_mpg(speed, maf):
     """
     if speed == 0 or maf == 0:
         return 0
+    
     # Convert MAF from grams per second to grams per hour
     maf_gph = maf * 3600
+
     # Convert grams per hour to pounds per hour (1 pound = 453.592 grams)
     maf_pph = maf_gph / 453.592
+
     # Convert pounds per hour to gallons per hour (1 gallon of gasoline = 6.17 pounds)
     gph = maf_pph / 6.17
+
     # Calculate MPG
     mpg = speed / gph
 
     return round(mpg*10, 1)
 
-# Function to draw text on screen
-def draw_text(screen, text, font, color, x, y):
-    text_surface = font.render(text, True, color)
-    text_rect = text_surface.get_rect(center=(x, y))
-    screen.blit(text_surface, text_rect)
+# Function to draw text on screen with wrap around functionality
+def draw_text(screen, text, font, color, x, y, max_width=None):
+    words = text.split(' ')
+    space_width, _ = font.size(' ')
+    max_width = max_width or SCREEN_WIDTH
+    
+    lines = []
+    current_line = []
+    current_width = 0
+    
+    for word in words:
+        word_width, _ = font.size(word)
+        if current_width + word_width <= max_width:
+            current_line.append(word)
+            current_width += word_width + space_width
+        else:
+            lines.append(' '.join(current_line))
+            current_line = [word]
+            current_width = word_width + space_width
+    
+    lines.append(' '.join(current_line))
+    
+    for i, line in enumerate(lines):
+        text_surface = font.render(line, True, color)
+        text_rect = text_surface.get_rect(center=(x, y + i * font.get_height()))
+        screen.blit(text_surface, text_rect)
 
 # Function to display Chevrolet logo animation
 def display_logo(screen):
@@ -206,16 +231,15 @@ def main():
     clock = pygame.time.Clock()
 
     # Initialize variables
-    pages = ["Main" , "Settings", "RPM", "Code"] #,"MPG", "Off"
+    pages = ["Main" , "Settings", "RPM", "Error"] #"Off"
     current_page = 0
-    # mpg_history = []
-    # last_mile_mpg = 0.0
-    # last_mile_distance = 0.0
     internal_clock = 2.8000000000000003
     global RPM_MAX
     global SHIFT
     FLIP = False
     SHIFT_LIGHT = True
+    CLEAR = False
+    CLEARED = 0
     display = 1
     curve = pygame.image.load("round2.png").convert_alpha()
     curveOut = pygame.transform.scale(curve, (curve.get_width() * 1.8, curve.get_height() * 1.6))
@@ -329,6 +353,12 @@ def main():
                             # Check for collision with increase rectangle
                             elif mouseX < SCREEN_WIDTH * 0.7 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7 and mouseY < SCREEN_HEIGHT*.2+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.2:
                                 increase_brightness()
+
+                        if pages[current_page] == "Error":
+                            # Check for collision with exit rectangle
+                            if not CLEAR: # To prevent multiple clears
+                                if mouseX < SCREEN_WIDTH//2 + SCREEN_WIDTH*.06 and mouseX > SCREEN_WIDTH//2 - SCREEN_WIDTH*.06 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.2:
+                                    CLEAR = True
           
         if DEV:
             rpm = random.randint(max(0,rpm-50), min(rpm+150,RPM_MAX))
@@ -340,7 +370,14 @@ def main():
             fuel_level -= .1
             voltage = random.uniform(max(14,voltage-.1), min(voltage+.1,15))
             air_temp = random.randint(0,50)
-            codes = [("P0104", "Mass or Volume Air Flow Circuit Intermittent"),("B0003", ""),("C0123", "")]
+            if CLEAR:
+                CLEARED = 3#random.randint(1,3)
+                CLEAR = False
+
+            if CLEARED != 1:
+                codes = [("P0104", "Mass or Volume Air Flow Circuit Intermittent"),("B0123", "This is a very long message to simulate a long description hoping for it to be cut off properly to have a consistent message flow."),("C0123", f"{' '.join(['*' for i in range(60)])}"), ("D0123", ""), ("E0123", "")]
+            else:
+                codes = []
         else:
             # Queries
             response_rpm = connection.query(obd.commands.RPM)
@@ -369,23 +406,19 @@ def main():
             if not response_air_temp.is_null():
                 air_temp = response_air_temp.value.magnitude
 
+            if CLEAR:
+                if response_rpm.value.magnitude == 0: # Only run if engine is off
+                    response_clear = connection.query(obd.commands.CLEAR_DTC)
+                    if response_clear.is_successful():
+                        CLEARED = 1 # Success
+                    else:
+                        CLEARED = 2 # Error
+                else:
+                    CLEARED = 3 # Engine needs to be off
+
             # Gather CEL codes
             if response_cel.is_successful():
                 codes = response_cel.value
-
-        # if speed > 0:
-        #     last_mile_distance += speed / 3600  # speed in miles per second, convert to hours
-        #     mpg_history.append(mpg)
-
-        # # If the last mile is completed
-        # if last_mile_distance >= 1.0:
-
-        #     # Calculate average MPG for the last mile
-        #     last_mile_mpg = sum(mpg_history) / len(mpg_history)
-
-        #     # Reset for the next mile
-        #     last_mile_distance = 0.0
-        #     mpg_history = []
 
         # Clear the screen
         screen.fill(BLACK)
@@ -523,12 +556,7 @@ def main():
                 draw_text(screen, "Volts", font_small, FONT_COLOR, SCREEN_WIDTH*.28, SCREEN_HEIGHT - SCREEN_HEIGHT*.2)
                 draw_text(screen, "MPH", font_small, FONT_COLOR, SCREEN_WIDTH*.72, SCREEN_HEIGHT - SCREEN_HEIGHT*.2)
 
-                # draw_text(screen, f"{round(last_mile_mpg,1)}", font_medium, FONT_COLOR, SCREEN_WIDTH*.28, SCREEN_HEIGHT*.2)
-                # draw_text(screen, "MPG", font_small, FONT_COLOR, SCREEN_WIDTH*.28, SCREEN_HEIGHT*.3)
-                # draw_text(screen, f"{round(last_mile_distance*100,2)}%", font_small, FONT_COLOR, SCREEN_WIDTH*.28, SCREEN_HEIGHT*.4)
-
                 draw_text(screen, f"{round((air_temp*(9/5))+32,1)}F", font_medium, FONT_COLOR, SCREEN_WIDTH*.72, SCREEN_HEIGHT*.2)
-                # draw_text(screen, "Temp", font_small, FONT_COLOR, SCREEN_WIDTH*.72, SCREEN_HEIGHT*.3)
 
                 # Draw RPM and MPG on separate lines
                 draw_text(screen, "RPM", font_medium, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4)
@@ -648,8 +676,53 @@ def main():
             pygame.draw.rect(screen, RED, (SCREEN_WIDTH*.3 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
             draw_text(screen, "Exit", font_small, BLACK, SCREEN_WIDTH*.3, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
 
-        elif pages[current_page] == "Code":
+        elif pages[current_page] == "Error":
             draw_text(screen, "Error Codes", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
+            
+            if len(codes):
+                if CLEARED:
+                    if CLEARED == 2:
+                        error_text = "Error clearing codes"
+                    else:
+                        error_text = "Turn off the engine before clearing codes"
+                    draw_text(screen, error_text, font_small, WHITE, SCREEN_WIDTH//2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
+                else:
+                    pygame.draw.rect(screen, RED, (SCREEN_WIDTH//2 - SCREEN_WIDTH*.06, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.12, SCREEN_HEIGHT*.1))
+                    draw_text(screen, "Clear", font_small, BLACK, SCREEN_WIDTH//2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
+
+                code_offset = 0
+                max_width = SCREEN_WIDTH * 0.8
+                cutoff = 70
+                code_count = 0
+                max_codes = 3
+                for code in codes:
+                    # Make sure there is only a certain amount of codes displaying
+                    if code_count == max_codes:
+                        num_codes_left = len(codes) - code_count
+
+                        code_text = 'Code'
+                        if num_codes_left > 1:
+                            code_text += 's'
+
+                        draw_text(screen, f"{num_codes_left} More {code_text} Remaining", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.75)
+                        break
+
+                    # Fit the text into 2 lines
+                    if len(code[1]) > cutoff:
+                        code = (code[0], code[1][:cutoff-3]+'. . .')
+
+                    # If there is no description
+                    if code[1] == "":
+                        code = (code[0], "Unknown")
+                    
+                    # Draw the error code and description with wrapping
+                    draw_text(screen, f"{code[0]}: {code[1]}", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.2 + SCREEN_HEIGHT*code_offset, max_width=max_width)
+                    
+                    # Adjust the offset for the next code
+                    code_offset += 0.1 + (font_small.get_height() / SCREEN_HEIGHT)
+                    code_count += 1
+            else:
+                draw_text(screen, f"{"Error codes have been cleared" if CLEARED else "No error codes detected"}", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.25)
 
         elif pages[current_page] == "Off":
             screen.fill(BLACK)
