@@ -20,23 +20,28 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
 
 1. Clone or download the repository.
 2. Connect your Bluetooth OBD-II adapter to your vehicle.
-3. Run the script: `python smart_dash.py`
+3. Run the script: `python dash.py`
 4. The script will display a Smart Dash interface on your screen.
 
 ## Features
 
 - **Main Page**:
-  - Displays real-time vehicle data such as RPM, speed, voltage, fuel level, and MPG.
+  - Displays real-time vehicle data such as RPM, speed, voltage, fuel level, ambient temperature, and MPG.
+  - Shift lights.
   - Clickable buttons to navigate to other pages.
+  
+- **Settings Page**:
+  - Option to flip the display vertically (to act as a Heads Up Display).
+  - Brightness adjustment.
+  - Shift light.
+  - Exit button.
 
 - **RPM Page**:
   - Allows adjustment of RPM_MAX and SHIFT values.
   - RPM gauge with shift indicator.
-  
-- **Settings Page**:
-  - Option to flip the display.
-  - Brightness adjustment.
-  - Exit button.
+
+- **Error Code Page**:
+  - Allows for reading and clearing of Check Engine Light codes.
 
 - **Chevrolet Logo Animation**:
   - Displayed on startup (can be disabled for non-DEV mode).

@@ -371,7 +371,7 @@ def main():
             voltage = random.uniform(max(14,voltage-.1), min(voltage+.1,15))
             air_temp = random.randint(0,50)
             if CLEAR:
-                CLEARED = 3#random.randint(1,3)
+                CLEARED = random.randint(1,3)
                 CLEAR = False
 
             if CLEARED != 1:
