@@ -409,7 +409,7 @@ def main():
             if CLEAR:
                 if response_rpm.value.magnitude == 0: # Only run if engine is off
                     response_clear = connection.query(obd.commands.CLEAR_DTC)
-                    if response_clear.is_successful():
+                    if not response_clear.is_null():
                         CLEARED = 1 # Success
                     else:
                         CLEARED = 2 # Error
@@ -417,7 +417,7 @@ def main():
                     CLEARED = 3 # Engine needs to be off
 
             # Gather CEL codes
-            if response_cel.is_successful():
+            if not response_cel.is_null():
                 codes = response_cel.value
 
         # Clear the screen
