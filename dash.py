@@ -210,9 +210,6 @@ def main():
     SHIFT_LIGHT = True
     CLEAR = False
     CLEARED = 0
-    curve = pygame.image.load("Images/round2.png").convert_alpha()
-    curveOut = pygame.transform.scale(curve, (curve.get_width() * 1.8, curve.get_height() * 1.6))
-    curveIn = pygame.transform.scale(curve, (curve.get_width() * 1.4, curve.get_height() * 1.1))
 
     # Load the last visited page
     try:
@@ -263,6 +260,12 @@ def main():
         screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
     pygame.display.set_caption("Smart Dash")
     clock = pygame.time.Clock()
+
+    # Load images
+    curve = pygame.image.load("Images/round2.png").convert_alpha()
+    curveOut = pygame.transform.scale(curve, (curve.get_width() * 1.8, curve.get_height() * 1.6))
+    curveIn = pygame.transform.scale(curve, (curve.get_width() * 1.4, curve.get_height() * 1.1))
+
 
     if not DEV:
         # Display Chevrolet logo
