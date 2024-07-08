@@ -382,6 +382,11 @@ def main():
                             if not CLEAR: # To prevent multiple clears
                                 if mouseX < SCREEN_WIDTH//2 + SCREEN_WIDTH*.06 and mouseX > SCREEN_WIDTH//2 - SCREEN_WIDTH*.06 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.2:
                                     CLEAR = True
+
+        with open("Data/info.txt", "w") as file:
+            file.write(str(current_page))
+            file.write(f'\n{str(int(SHIFT_LIGHT))}')
+            file.write(f'\n{str(int(DEV))}')
           
         if DEV:
             # Set random variables for testing purposes
@@ -669,11 +674,6 @@ def main():
 
         elif pages[current_page] == "Off":
             screen.fill(BLACK)
-
-        with open("Data/info.txt", "w") as file:
-            file.write(str(current_page))
-            file.write(f'\n{str(int(SHIFT_LIGHT))}')
-            file.write(f'\n{str(int(DEV))}')
 
         if FLIP:
             flipped_screen = pygame.transform.flip(screen, False, True)
