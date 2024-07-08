@@ -700,10 +700,12 @@ def main():
                     if code_count == max_codes:
                         num_codes_left = len(codes) - code_count
 
+                        # Add plural
                         code_text = 'Code'
                         if num_codes_left > 1:
                             code_text += 's'
 
+                        # Display how many codes are in list
                         draw_text(screen, f"{num_codes_left} More {code_text} Remaining", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.75)
                         break
 
@@ -722,7 +724,7 @@ def main():
                     code_offset += 0.1 + (font_small.get_height() / SCREEN_HEIGHT)
                     code_count += 1
             else:
-                draw_text(screen, f"{'Error codes have been cleared' if CLEARED else 'No error codes detected'}", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.25)
+                draw_text(screen, f"{'Error codes have been cleared, please restart car' if CLEARED else 'No error codes detected'}", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.25)
 
         elif pages[current_page] == "Off":
             screen.fill(BLACK)
