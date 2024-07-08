@@ -1,4 +1,4 @@
-# Smart Dash Pygame Interface
+# Smart Dash Interface
 
 This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inch display. It utilizes Pygame for graphics rendering and OBD-II for vehicle data retrieval.
 
