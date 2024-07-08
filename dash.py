@@ -29,11 +29,17 @@ BLUE = (0, 150, 255)
 FONT_COLOR = WHITE
 
 # Fonts
-font_xlarge = pygame.font.Font("./digital-7.ttf", 200)
-font_large = pygame.font.Font("./digital-7.ttf", 120)
-font_medlar = pygame.font.Font("./digital-7.ttf", 100)
-font_medium = pygame.font.Font("./digital-7.ttf", 48)
-font_small = pygame.font.Font("./digital-7.ttf", 36)
+font_xlarge = pygame.font.Font("./Fonts/digital-7.ttf", size=200)
+font_large = pygame.font.Font("./Fonts/digital-7.ttf", size=120)
+font_medlar = pygame.font.Font("./Fonts/digital-7.ttf", size=100)
+font_medium = pygame.font.Font("./Fonts/digital-7.ttf", size=48)
+font_small = pygame.font.Font("./Fonts/digital-7.ttf", size=36)
+
+font_xlarge_clean = pygame.font.Font(size=200)
+font_large_clean = pygame.font.Font(size=120)
+font_medlar_clean = pygame.font.Font(size=100)
+font_medium_clean = pygame.font.Font(size=48)
+font_small_clean = pygame.font.Font(size=36)
 
 connect = False
 
@@ -50,7 +56,7 @@ if not DEV:
                 port =  "COM5"
                 
             # Connect to the OBD-II adapter
-            connection = obd.OBD(portstr=port)
+            connection = obd.OBD(portstr=port, fast=False)
 
             # Print a message indicating connection
             if connection.is_connected():
@@ -114,13 +120,13 @@ def increase_brightness():
 
 # Function to save max horsepower data to a file
 def save_rpm(RPM_MAX, SHIFT):
-    with open("RPM.txt", "w") as file:
+    with open("Data/RPM.txt", "w") as file:
         file.write(f"{RPM_MAX},{SHIFT}")
 
 # Function to load max horsepower data from a file
 def load_rpm():
     try:
-        with open("RPM.txt", "r") as file:
+        with open("Data/RPM.txt", "r") as file:
             data = file.read().split(",")
             max = int(data[0])
             shift = int(data[1])
@@ -191,7 +197,7 @@ def draw_text(screen, text, font, color, x, y, max_width=None):
 
 # Function to display Chevrolet logo animation
 def display_logo(screen):
-    logo = pygame.image.load("chevy.jpg").convert_alpha()
+    logo = pygame.image.load("Images/chevy.jpg").convert_alpha()
     logo_rect = logo.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
 
     # Animation variables
@@ -231,7 +237,7 @@ def main():
     clock = pygame.time.Clock()
 
     # Initialize variables
-    pages = ["Main" , "Settings", "RPM", "Error"] #"Off"
+    pages = ["Main" , "Settings", "RPM", "Trouble"] #"Off"
     current_page = 0
     internal_clock = 2.8000000000000003
     global RPM_MAX
@@ -241,13 +247,13 @@ def main():
     CLEAR = False
     CLEARED = 0
     display = 1
-    curve = pygame.image.load("round2.png").convert_alpha()
+    curve = pygame.image.load("Images/round2.png").convert_alpha()
     curveOut = pygame.transform.scale(curve, (curve.get_width() * 1.8, curve.get_height() * 1.6))
     curveIn = pygame.transform.scale(curve, (curve.get_width() * 1.4, curve.get_height() * 1.1))
 
     # Load the last visited page
     try:
-        with open("info.txt", "r") as file:
+        with open("Data/info.txt", "r") as file:
             current_page = int(file.readline())
             if current_page < 0 or current_page >= len(pages):
                 current_page = 0
@@ -354,7 +360,7 @@ def main():
                             elif mouseX < SCREEN_WIDTH * 0.7 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7 and mouseY < SCREEN_HEIGHT*.2+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.2:
                                 increase_brightness()
 
-                        if pages[current_page] == "Error":
+                        if pages[current_page] == "Trouble":
                             # Check for collision with exit rectangle
                             if not CLEAR: # To prevent multiple clears
                                 if mouseX < SCREEN_WIDTH//2 + SCREEN_WIDTH*.06 and mouseX > SCREEN_WIDTH//2 - SCREEN_WIDTH*.06 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.2:
@@ -525,14 +531,14 @@ def main():
             circle_x += 2 * (circle_radius + circle_spacing)
 
         if pages[current_page] == "RPM":
-            draw_text(screen, "RPM Settings", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
+            draw_text(screen, "RPM Settings", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
 
             # Draw RPM section
-            draw_text(screen, "RPM", font_medium, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4 + 20)
+            draw_text(screen, "RPM", font_medium_clean, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4 + 20)
             draw_text(screen, str(rpm), font_large, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 +20)
-            draw_text(screen, "Max", font_small, FONT_COLOR, SCREEN_WIDTH*.28, SCREEN_HEIGHT // 2)
+            draw_text(screen, "Max", font_small_clean, FONT_COLOR, SCREEN_WIDTH*.28, SCREEN_HEIGHT // 2)
             draw_text(screen, str(RPM_MAX), font_medium, FONT_COLOR, SCREEN_WIDTH*.28, SCREEN_HEIGHT // 2 +40)
-            draw_text(screen, "Shift", font_small, FONT_COLOR, SCREEN_WIDTH*.72, SCREEN_HEIGHT // 2)
+            draw_text(screen, "Shift", font_small_clean, FONT_COLOR, SCREEN_WIDTH*.72, SCREEN_HEIGHT // 2)
             draw_text(screen, str(SHIFT), font_medium, FONT_COLOR, SCREEN_WIDTH*.72, SCREEN_HEIGHT // 2 +40)
 
             pygame.draw.rect(screen, GREEN, (SCREEN_WIDTH * 0.2+25, SCREEN_HEIGHT*.3, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
@@ -606,13 +612,13 @@ def main():
                 draw_text(screen, f"{round(fuel_level,1)}%", font_medium, FONT_COLOR, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.93)
                 
                 draw_text(screen, f"{rpm}", font_xlarge, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT//2)
-                draw_text(screen, "RPM", font_small, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT*.7)
+                draw_text(screen, "RPM", font_small_clean, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT*.7)
 
                 draw_text(screen,f"{(round(mpg, 2))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2)
-                draw_text(screen, "MPG", font_small, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2+50)
+                draw_text(screen, "MPG", font_small_clean, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2+50)
 
                 draw_text(screen, f"{int(round(speed,0))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2)
-                draw_text(screen, "MPH", font_small, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2+50)
+                draw_text(screen, "MPH", font_small_clean, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2+50)
 
                 draw_text(screen, f"{round((air_temp*(9/5))+32,1)}F", font_medium, FONT_COLOR, SCREEN_WIDTH*.7, SCREEN_HEIGHT - SCREEN_HEIGHT*.15)
                 draw_text(screen, f"{round(voltage,1)} v", font_medium, FONT_COLOR, SCREEN_WIDTH*.3, SCREEN_HEIGHT - SCREEN_HEIGHT*.15)
@@ -656,10 +662,10 @@ def main():
                         circle_x += 2 * (circle_radius + circle_spacing)
 
         elif pages[current_page] == "Settings":
-            draw_text(screen, "General Settings", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
+            draw_text(screen, "General Settings", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
 
             pygame.draw.rect(screen, PURPLE, (SCREEN_WIDTH // 2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
-            draw_text(screen, "FLIP", font_small, BLACK, SCREEN_WIDTH // 2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
+            draw_text(screen, "FLIP", font_small_clean, BLACK, SCREEN_WIDTH // 2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
         
             pygame.draw.rect(screen, RED, (SCREEN_WIDTH * 0.50, SCREEN_HEIGHT*.20, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
             pygame.draw.rect(screen, GREEN, (SCREEN_WIDTH * 0.70, SCREEN_HEIGHT*.20, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
@@ -667,32 +673,32 @@ def main():
             draw_text(screen, "-", font_medium, BLACK, SCREEN_WIDTH * 0.55, SCREEN_HEIGHT*.25)
             draw_text(screen, "+", font_medium, BLACK, SCREEN_WIDTH * 0.75, SCREEN_HEIGHT*.25)
             draw_text(screen, f"{int(round((BRIGHTNESS/255)*100,0))}%", font_small, FONT_COLOR, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.25)
-            draw_text(screen, "Brightness", font_small, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.25)
+            draw_text(screen, "Brightness", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.25)
 
             pygame.draw.rect(screen, GREEN if SHIFT_LIGHT else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.32, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
-            draw_text(screen, "On" if SHIFT_LIGHT else "Off", font_small, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
-            draw_text(screen, "Shift lights", font_small, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
+            draw_text(screen, "On" if SHIFT_LIGHT else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
+            draw_text(screen, "Shift lights", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
 
             pygame.draw.rect(screen, RED, (SCREEN_WIDTH*.3 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
-            draw_text(screen, "Exit", font_small, BLACK, SCREEN_WIDTH*.3, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
+            draw_text(screen, "Exit", font_small_clean, BLACK, SCREEN_WIDTH*.3, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
 
-        elif pages[current_page] == "Error":
-            draw_text(screen, "Error Codes", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
+        elif pages[current_page] == "Trouble":
+            draw_text(screen, "Trouble Codes", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
             
             if len(codes):
                 if CLEARED:
                     if CLEARED == 2:
                         error_text = "Error clearing codes, Restart dash display"
                     else:
-                        error_text = "Turn off the engine before clearing codes"
-                    draw_text(screen, error_text, font_small, WHITE, SCREEN_WIDTH//2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
+                        error_text = "Turn off the engine before clearing codes!"
+                    draw_text(screen, error_text, font_small_clean, WHITE, SCREEN_WIDTH//2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
                 else:
                     pygame.draw.rect(screen, RED, (SCREEN_WIDTH//2 - SCREEN_WIDTH*.06, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.12, SCREEN_HEIGHT*.1))
-                    draw_text(screen, "Clear", font_small, BLACK, SCREEN_WIDTH//2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
+                    draw_text(screen, "Clear", font_small_clean, BLACK, SCREEN_WIDTH//2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
 
                 code_offset = 0
                 max_width = SCREEN_WIDTH * 0.8
-                cutoff = 70 # Character limit to limit to max of 2 lines
+                cutoff = 100 # Character limit to limit to max of 2 lines
                 code_count = 0
                 max_codes = 3
                 for code in codes:
@@ -706,7 +712,7 @@ def main():
                             code_text += 's'
 
                         # Display how many codes are in list
-                        draw_text(screen, f"{num_codes_left} More {code_text} Remaining", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.75)
+                        draw_text(screen, f"{num_codes_left} More {code_text} Remaining", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.75)
                         break
 
                     # Fit the text into 2 lines
@@ -717,19 +723,19 @@ def main():
                     if code[1] == "":
                         code = (code[0], "Unknown")
                     
-                    # Draw the error code and description with wrapping
-                    draw_text(screen, f"{code[0]}: {code[1]}", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.2 + SCREEN_HEIGHT*code_offset, max_width=max_width)
+                    # Draw the trouble code and description with wrapping
+                    draw_text(screen, f"{code[0]}: {code[1]}", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.2 + SCREEN_HEIGHT*code_offset, max_width=max_width)
                     
                     # Adjust the offset for the next code
                     code_offset += 0.1 + (font_small.get_height() / SCREEN_HEIGHT)
                     code_count += 1
             else:
-                draw_text(screen, f"{'Error codes have been cleared, please restart car' if CLEARED else 'No error codes detected'}", font_small, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.25)
+                draw_text(screen, f"{'Trouble codes have been cleared, Please restart car' if CLEARED else 'No trouble codes detected'}", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.25)
 
         elif pages[current_page] == "Off":
             screen.fill(BLACK)
 
-        with open("info.txt", "w") as file:
+        with open("Data/info.txt", "w") as file:
             file.write(str(current_page))
             file.write(f'\n{str(int(SHIFT_LIGHT))}')
 
