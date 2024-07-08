@@ -211,6 +211,7 @@ def main():
     internal_clock = 0#2.8000000000000003
     global RPM_MAX
     global SHIFT
+    DEV = 1
     FLIP = False
     SHIFT_LIGHT = True
     CLEAR = False
