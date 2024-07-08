@@ -1,4 +1,2 @@
 obd==0.7.2
-Pint==0.20.1
 pygame==2.5.2
-pyserial==3.5
