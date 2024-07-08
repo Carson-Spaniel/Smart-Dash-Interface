@@ -446,8 +446,8 @@ def main():
                 if not response_cel.is_null():
                     codes = response_cel.value
             except Exception as e:
-                print('Connection unknown')
-                subprocess.run("./boot.sh", shell=True, capture_output=True, text=True)
+                print('Connection Unknown...')
+                print('Restarting script')
                 exit()
 
         # Clear the screen
