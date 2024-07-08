@@ -61,4 +61,5 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
 ## Additional Notes
 
 - The script simulates data in `DEV` mode. Ensure to connect a Bluetooth OBD-II adapter in production mode.
+- A Bluetooth OBD-II adapter makes it cleaner, but it will also work with a wired setup.
 - Feel free to customize fonts, colors, and layout as needed in the script.
