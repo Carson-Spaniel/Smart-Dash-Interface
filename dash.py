@@ -198,12 +198,6 @@ def display_logo(screen):
 
 # Main function for the Pygame interface
 def main():
-    if not PI:
-        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    else:
-        screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
-    pygame.display.set_caption("Smart Dash")
-    clock = pygame.time.Clock()
 
     # Initialize variables
     pages = ["Main" , "Settings", "RPM", "Trouble"] #"Off"
@@ -237,32 +231,38 @@ def main():
 
     if not DEV:
         try: 
-            for i in range(3):
-                print('\nAttempting to connect...\n')
+            print('\nAttempting to connect...\n')
 
-                if PI:
-                    # The Bluetooth port for RFCOMM on Raspberry Pi
-                    port = "/dev/rfcomm0"
-                else:
-                    # Port for the Bluetooth connection on my laptop
-                    port =  "COM5"
-                    
-                # Connect to the OBD-II adapter
-                connection = obd.OBD(portstr=port, fast=False)
+            if PI:
+                # The Bluetooth port for RFCOMM on Raspberry Pi
+                port = "/dev/rfcomm0"
+            else:
+                # Port for the Bluetooth connection on my laptop
+                port =  "COM5"
+                
+            # Connect to the OBD-II adapter
+            connection = obd.OBD(portstr=port, fast=False)
 
-                # Print a message indicating connection
-                if connection.is_connected():
-                    print("Connected to OBD-II adapter. Turning on display.")
-                    connect = True
-                    return connection
-                else:
-                    print("Could not connect to OBD-II adapter.")
+            # Print a message indicating connection
+            if connection.is_connected():
+                print("Connected to OBD-II adapter. Turning on display.")
+                connect = True
+            else:
+                print("Could not connect to OBD-II adapter.")
         except Exception:
             print('An error occurred.')
 
         if not connect:
             print('\nExiting...')
             exit()
+
+    # Load Pygame
+    if not PI:
+        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    else:
+        screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
+    pygame.display.set_caption("Smart Dash")
+    clock = pygame.time.Clock()
 
     if not DEV:
         # Display Chevrolet logo
@@ -352,7 +352,7 @@ def main():
 
                             # Check for collision with flip rectangle
                             if mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.2 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1 and mouseY < SCREEN_HEIGHT*.54 and mouseY > SCREEN_HEIGHT*.44:
-                                if SHIFT_LIGHT:
+                                if DEV:
                                     DEV = False
                                 else:
                                     DEV = True
@@ -392,6 +392,7 @@ def main():
             # Set random variables for testing purposes
             rpm = random.randint(max(0,rpm-50), min(rpm+150,RPM_MAX))
             speed = random.uniform(max(0,speed-10), min(speed+100,80))* 0.621371
+            maf = round(maf,0)
             maf = random.randint(max(1,maf-1), min(maf+1,80))
             mpg = calculate_mpg(speed, maf)
             if fuel_level<=0:
