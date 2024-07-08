@@ -682,7 +682,7 @@ def main():
             if len(codes):
                 if CLEARED:
                     if CLEARED == 2:
-                        error_text = "Error clearing codes"
+                        error_text = "Error clearing codes, Restart dash display"
                     else:
                         error_text = "Turn off the engine before clearing codes"
                     draw_text(screen, error_text, font_small, WHITE, SCREEN_WIDTH//2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
@@ -692,7 +692,7 @@ def main():
 
                 code_offset = 0
                 max_width = SCREEN_WIDTH * 0.8
-                cutoff = 70
+                cutoff = 70 # Character limit to limit to max of 2 lines
                 code_count = 0
                 max_codes = 3
                 for code in codes:
