@@ -6,7 +6,6 @@ import math
 import subprocess
 
 # Environment Variables
-DEV = True
 PI = False
 
 # Initialize Pygame
@@ -41,38 +40,6 @@ font_medlar_clean = pygame.font.Font(size=100)
 font_medium_clean = pygame.font.Font(size=48)
 font_small_clean = pygame.font.Font(size=36)
 
-# Attempt to connect to OBD-II Adapter
-connect = False
-
-if not DEV:
-    try: 
-        for i in range(3):
-            print('\nAttempting to connect...\n')
-
-            if PI:
-                # The Bluetooth port for RFCOMM on Raspberry Pi
-                port = "/dev/rfcomm0"
-            else:
-                # Port for the Bluetooth connection on my laptop
-                port =  "COM5"
-                
-            # Connect to the OBD-II adapter
-            connection = obd.OBD(portstr=port, fast=False)
-
-            # Print a message indicating connection
-            if connection.is_connected():
-                print("Connected to OBD-II adapter. Turning on display.")
-                connect = True
-                break
-            else:
-                print("Could not connect to OBD-II adapter.")
-    except Exception:
-        print('An error occurred.')
-
-    if not connect:
-        print('\nExiting...')
-        exit()
-
 # Path to the brightness file
 brightness_file = "/sys/class/backlight/10-0045/brightness"
 
@@ -82,7 +49,7 @@ def get_brightness():
             current_brightness = int(file.read().strip())
         return current_brightness
     except Exception as e:
-        print(f"Error increasing brightness: {e}")
+        print(f"Error reading brightness: {e}")
         return 0
     
 BRIGHTNESS = get_brightness()
@@ -260,8 +227,41 @@ def main():
                 current_page = 0
 
             SHIFT_LIGHT = int(file.readline())
+            DEV = int(file.readline())
     except Exception:
         current_page = 0
+
+    # Attempt to connect to OBD-II Adapter
+    connect = False
+
+    if not DEV:
+        try: 
+            for i in range(3):
+                print('\nAttempting to connect...\n')
+
+                if PI:
+                    # The Bluetooth port for RFCOMM on Raspberry Pi
+                    port = "/dev/rfcomm0"
+                else:
+                    # Port for the Bluetooth connection on my laptop
+                    port =  "COM5"
+                    
+                # Connect to the OBD-II adapter
+                connection = obd.OBD(portstr=port, fast=False)
+
+                # Print a message indicating connection
+                if connection.is_connected():
+                    print("Connected to OBD-II adapter. Turning on display.")
+                    connect = True
+                    return connection
+                else:
+                    print("Could not connect to OBD-II adapter.")
+        except Exception:
+            print('An error occurred.')
+
+        if not connect:
+            print('\nExiting...')
+            exit()
 
     if not DEV:
         # Display Chevrolet logo
@@ -350,6 +350,13 @@ def main():
                                     SHIFT_LIGHT = True
 
                             # Check for collision with flip rectangle
+                            if mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.2 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1 and mouseY < SCREEN_HEIGHT*.54 and mouseY > SCREEN_HEIGHT*.44:
+                                if SHIFT_LIGHT:
+                                    DEV = False
+                                else:
+                                    DEV = True
+
+                            # Check for collision with flip rectangle
                             elif mouseX < SCREEN_WIDTH//2 + SCREEN_WIDTH*.05 and mouseX > SCREEN_WIDTH//2 - SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.2:
                                 if FLIP:
                                     FLIP = False
@@ -395,47 +402,52 @@ def main():
             else:
                 codes = []
         else:
-            # Queries
-            response_rpm = connection.query(obd.commands.RPM)
-            response_fuel_level = connection.query(obd.commands.FUEL_LEVEL)
-            response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
-            response_maf = connection.query(obd.commands.MAF)      # Mass Air Flow
-            response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
-            response_air_temp = connection.query(obd.commands.AMBIANT_AIR_TEMP)
-            response_cel = connection.query(obd.commands.GET_DTC)
+            try:
+                # Queries
+                response_rpm = connection.query(obd.commands.RPM)
+                response_fuel_level = connection.query(obd.commands.FUEL_LEVEL)
+                response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
+                response_maf = connection.query(obd.commands.MAF)      # Mass Air Flow
+                response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
+                response_air_temp = connection.query(obd.commands.AMBIANT_AIR_TEMP)
+                response_cel = connection.query(obd.commands.GET_DTC)
 
-            # Setting the values
-            if not response_speed.is_null() and not response_maf.is_null():
-                speed = response_speed.value.to('mile/hour').magnitude
-                maf = response_maf.value.to('gram/second').magnitude
-                mpg = calculate_mpg(speed, maf)
+                # Setting the values
+                if not response_speed.is_null() and not response_maf.is_null():
+                    speed = response_speed.value.to('mile/hour').magnitude
+                    maf = response_maf.value.to('gram/second').magnitude
+                    mpg = calculate_mpg(speed, maf)
 
-            if not response_rpm.is_null():
-                rpm = int(round(response_rpm.value.magnitude,0))
+                if not response_rpm.is_null():
+                    rpm = int(round(response_rpm.value.magnitude,0))
 
-            if not response_fuel_level.is_null():
-                fuel_level = response_fuel_level.value.magnitude
+                if not response_fuel_level.is_null():
+                    fuel_level = response_fuel_level.value.magnitude
 
-            if not response_voltage.is_null():
-                voltage = response_voltage.value.magnitude
+                if not response_voltage.is_null():
+                    voltage = response_voltage.value.magnitude
 
-            if not response_air_temp.is_null():
-                air_temp = response_air_temp.value.magnitude
+                if not response_air_temp.is_null():
+                    air_temp = response_air_temp.value.magnitude
 
-            # Attempt to clear CEL
-            if CLEAR:
-                if response_rpm.value.magnitude == 0: # Only run if engine is off
-                    response_clear = connection.query(obd.commands.CLEAR_DTC)
-                    if not response_clear.is_null():
-                        CLEARED = 1 # Success
+                # Attempt to clear CEL
+                if CLEAR:
+                    if response_rpm.value.magnitude == 0: # Only run if engine is off
+                        response_clear = connection.query(obd.commands.CLEAR_DTC)
+                        if not response_clear.is_null():
+                            CLEARED = 1 # Success
+                        else:
+                            CLEARED = 2 # Error
                     else:
-                        CLEARED = 2 # Error
-                else:
-                    CLEARED = 3 # Engine needs to be off
+                        CLEARED = 3 # Engine needs to be off
 
-            # Gather CEL codes
-            if not response_cel.is_null():
-                codes = response_cel.value
+                # Gather CEL codes
+                if not response_cel.is_null():
+                    codes = response_cel.value
+            except Exception as e:
+                print('Connection unknown')
+                subprocess.run("./boot.sh", shell=True, capture_output=True, text=True)
+                exit()
 
         # Clear the screen
         screen.fill(BLACK)
@@ -597,6 +609,10 @@ def main():
             draw_text(screen, "On" if SHIFT_LIGHT else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
             draw_text(screen, "Shift lights", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
 
+            pygame.draw.rect(screen, GREEN if SHIFT_LIGHT else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.44, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
+            draw_text(screen, "On" if SHIFT_LIGHT else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
+            draw_text(screen, "Development Mode", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
+
             pygame.draw.rect(screen, RED, (SCREEN_WIDTH*.3 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
             draw_text(screen, "Exit", font_small_clean, BLACK, SCREEN_WIDTH*.3, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
 
@@ -656,6 +672,7 @@ def main():
         with open("Data/info.txt", "w") as file:
             file.write(str(current_page))
             file.write(f'\n{str(int(SHIFT_LIGHT))}')
+            file.write(f'\n{str(int(DEV))}')
 
         if FLIP:
             flipped_screen = pygame.transform.flip(screen, False, True)
