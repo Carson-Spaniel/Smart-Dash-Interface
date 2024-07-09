@@ -224,8 +224,6 @@ def main():
         current_page = 0
 
     # Attempt to connect to OBD-II Adapter
-    connect = False
-
     if not DEV:
         try: 
             print('\nAttempting to connect...\n')
@@ -243,15 +241,12 @@ def main():
             # Print a message indicating connection
             if connection.is_connected():
                 print("Connected to OBD-II adapter. Turning on display.")
-                connect = True
             else:
                 print("Could not connect to OBD-II adapter.")
+                DEV = True
         except Exception:
             print('An error occurred.')
-
-        if not connect:
-            print('\nExiting...')
-            exit()
+            DEV = True
 
     # Load Pygame
     if not PI:
