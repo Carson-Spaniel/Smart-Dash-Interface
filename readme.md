@@ -49,11 +49,10 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
 ## Configuration
 
 - **Environment Variables**:
-  - `DEV`: Set to `True` for development/testing mode, `False` for production.
   - `PI`: Set to `True` if running on Raspberry Pi with Bluetooth, `False` for other platforms.
 
 - **Fonts**:
-  - The script uses digital-7.ttf font for text rendering. Ensure it's in the same directory or update font paths.
+  - The script uses digital-7.ttf font for text rendering. Ensure it's in the correct directory or update font paths.
 
 - **Bluetooth Connection**:
   - Configure the correct port for the Bluetooth connection (`port = "/dev/rfcomm0"` for Raspberry Pi, `"COM5"` for Windows).
