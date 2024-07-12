@@ -6,6 +6,7 @@ import math
 import subprocess
 
 # Environment Variables
+DEV = True
 PI = False
 
 # Initialize Pygame
@@ -205,7 +206,6 @@ def main():
     internal_clock = 0#2.8000000000000003
     global RPM_MAX
     global SHIFT
-    DEV = 1
     FLIP = False
     SHIFT_LIGHT = True
     CLEAR = False
@@ -219,34 +219,39 @@ def main():
                 current_page = 0
 
             SHIFT_LIGHT = int(file.readline())
-            DEV = int(file.readline())
+            # DEV = int(file.readline())
     except Exception:
         current_page = 0
 
     # Attempt to connect to OBD-II Adapter
+    connect = False
     if not DEV:
-        try: 
-            print('\nAttempting to connect...\n')
+        for i in range(3):
+            try:
+                print('\nAttempting to connect...\n')
 
-            if PI:
-                # The Bluetooth port for RFCOMM on Raspberry Pi
-                port = "/dev/rfcomm0"
-            else:
-                # Port for the Bluetooth connection on my laptop
-                port =  "COM5"
-                
-            # Connect to the OBD-II adapter
-            connection = obd.OBD(portstr=port, fast=False)
+                if PI:
+                    # The Bluetooth port for RFCOMM on Raspberry Pi
+                    port = "/dev/rfcomm0"
+                else:
+                    # Port for the Bluetooth connection on my laptop
+                    port =  "COM5"
+                    
+                # Connect to the OBD-II adapter
+                connection = obd.OBD(portstr=port, fast=False)
 
-            # Print a message indicating connection
-            if connection.is_connected():
-                print("Connected to OBD-II adapter. Turning on display.")
-            else:
-                print("Could not connect to OBD-II adapter.")
-                DEV = True
-        except Exception:
-            print('An error occurred.')
-            DEV = True
+                # Print a message indicating connection
+                if connection.is_connected():
+                    print("Connected to OBD-II adapter. Turning on display.")
+                    connect = True
+                else:
+                    print("Could not connect to OBD-II adapter.")
+            except Exception:
+                print('An error occurred.')
+
+        if not connect:
+            print('Exiting...')
+            exit()
 
     # Load Pygame
     if not PI:
@@ -348,12 +353,12 @@ def main():
                                 else:
                                     SHIFT_LIGHT = True
 
-                            # Check for collision with flip rectangle
-                            if mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.2 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1 and mouseY < SCREEN_HEIGHT*.54 and mouseY > SCREEN_HEIGHT*.44:
-                                if DEV:
-                                    DEV = False
-                                else:
-                                    DEV = True
+                            # # Check for collision with flip rectangle
+                            # if mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.2 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1 and mouseY < SCREEN_HEIGHT*.54 and mouseY > SCREEN_HEIGHT*.44:
+                            #     if DEV:
+                            #         DEV = False
+                            #     else:
+                            #         DEV = True
 
                             # Check for collision with flip rectangle
                             elif mouseX < SCREEN_WIDTH//2 + SCREEN_WIDTH*.05 and mouseX > SCREEN_WIDTH//2 - SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.2:
@@ -384,7 +389,7 @@ def main():
         with open("Data/info.txt", "w") as file:
             file.write(str(current_page))
             file.write(f'\n{str(int(SHIFT_LIGHT))}')
-            file.write(f'\n{str(int(DEV))}')
+            # file.write(f'\n{str(int(DEV))}')
           
         if DEV:
             # Set random variables for testing purposes
@@ -614,9 +619,9 @@ def main():
             draw_text(screen, "On" if SHIFT_LIGHT else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
             draw_text(screen, "Shift lights", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
 
-            pygame.draw.rect(screen, GREEN if DEV else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.44, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
-            draw_text(screen, "On" if DEV else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
-            draw_text(screen, "Development Mode", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
+            # pygame.draw.rect(screen, GREEN if DEV else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.44, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
+            # draw_text(screen, "On" if DEV else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
+            # draw_text(screen, "Development Mode", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
 
             pygame.draw.rect(screen, RED, (SCREEN_WIDTH*.3 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
             draw_text(screen, "Exit", font_small_clean, BLACK, SCREEN_WIDTH*.3, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
