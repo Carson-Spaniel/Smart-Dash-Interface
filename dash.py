@@ -219,7 +219,6 @@ def main():
                 current_page = 0
 
             SHIFT_LIGHT = int(file.readline())
-            # DEV = int(file.readline())
     except Exception:
         current_page = 0
 
@@ -353,13 +352,6 @@ def main():
                                 else:
                                     SHIFT_LIGHT = True
 
-                            # # Check for collision with flip rectangle
-                            # if mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.2 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1 and mouseY < SCREEN_HEIGHT*.54 and mouseY > SCREEN_HEIGHT*.44:
-                            #     if DEV:
-                            #         DEV = False
-                            #     else:
-                            #         DEV = True
-
                             # Check for collision with flip rectangle
                             elif mouseX < SCREEN_WIDTH//2 + SCREEN_WIDTH*.05 and mouseX > SCREEN_WIDTH//2 - SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.2:
                                 if FLIP:
@@ -389,7 +381,6 @@ def main():
         with open("Data/info.txt", "w") as file:
             file.write(str(current_page))
             file.write(f'\n{str(int(SHIFT_LIGHT))}')
-            # file.write(f'\n{str(int(DEV))}')
           
         if DEV:
             # Set random variables for testing purposes
@@ -618,10 +609,6 @@ def main():
             pygame.draw.rect(screen, GREEN if SHIFT_LIGHT else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.32, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
             draw_text(screen, "On" if SHIFT_LIGHT else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
             draw_text(screen, "Shift lights", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
-
-            # pygame.draw.rect(screen, GREEN if DEV else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.44, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
-            # draw_text(screen, "On" if DEV else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
-            # draw_text(screen, "Development Mode", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
 
             pygame.draw.rect(screen, RED, (SCREEN_WIDTH*.3 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
             draw_text(screen, "Exit", font_small_clean, BLACK, SCREEN_WIDTH*.3, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
