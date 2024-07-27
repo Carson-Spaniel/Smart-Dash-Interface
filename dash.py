@@ -437,6 +437,7 @@ def main():
                         response_clear = connection.query(obd.commands.CLEAR_DTC)
                         if not response_clear.is_null():
                             CLEARED = 1 # Success
+                            CLEAR = False
                         else:
                             CLEARED = 2 # Error
                     else:
@@ -619,7 +620,7 @@ def main():
             if len(codes):
                 if CLEARED:
                     if CLEARED == 2:
-                        error_text = "Error clearing codes, Restart dash display"
+                        error_text = "Attempting to clear codes..."
                     else:
                         error_text = "Turn off the engine before clearing codes!"
                     draw_text(screen, error_text, font_small_clean, WHITE, SCREEN_WIDTH//2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
