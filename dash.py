@@ -459,7 +459,7 @@ def main():
 
         # Draw page indicators (circles)
         circle_radius = 8
-        circle_spacing = 10
+        circle_spacing = 7
 
         # Calculate total width occupied by circles
         total_circle_width = (len(pages)) * (2 * circle_radius + circle_spacing) + circle_spacing + (2*circle_radius)
