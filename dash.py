@@ -381,7 +381,7 @@ def main():
         with open("Data/info.txt", "w") as file:
             file.write(str(current_page))
             file.write(f'\n{str(int(SHIFT_LIGHT))}')
-          
+        
         if DEV:
             # Set random variables for testing purposes
             rpm = random.randint(max(0,rpm-50), min(rpm+150,RPM_MAX))
