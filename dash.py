@@ -4,6 +4,7 @@ import time
 import random
 import math
 import subprocess
+import datetime
 
 # Environment Variables
 DEV = True
@@ -381,6 +382,10 @@ def main():
         with open("Data/info.txt", "w") as file:
             file.write(str(current_page))
             file.write(f'\n{str(int(SHIFT_LIGHT))}')
+
+        # To calculate the time step
+        with open("Data/time.txt", "a") as file:
+            file.write(f'{datetime.datetime.now()}\n')
         
         if DEV:
             # Set random variables for testing purposes
@@ -579,8 +584,9 @@ def main():
 
                     pygame.draw.circle(screen, FONT_COLOR, (circle_x, circle_y), circle_radius )
                     pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius -1)
-                    blink_pattern = internal_clock % .4 > .2
                     
+                    blink_pattern = round(internal_clock % .4, 1) != .2
+
                     if rpm > SHIFT - (((len(light_colors)+2) - i) * 100):
                         if rpm > SHIFT and blink_pattern:
                             pygame.draw.circle(screen, PURPLE, (circle_x, circle_y), circle_radius)
@@ -676,8 +682,10 @@ def main():
         clock.tick(FPS)
 
         if DEV:
-            internal_clock += .20
-            time.sleep(.25)
+            interval = .2
+            internal_clock += interval
+            internal_clock = round(internal_clock, 1)
+            time.sleep(interval)
         else:
             internal_clock += .10
 
