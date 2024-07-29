@@ -19,9 +19,10 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
 ## Usage
 
 1. Clone or download the repository.
-2. Connect your Bluetooth OBD-II adapter to your vehicle.
-3. Run the script: `python dash.py`
-4. The script will display a Smart Dash interface on your screen.
+2. Run the script: `pip install -r requirements.txt`
+3. Connect your Bluetooth OBD-II adapter to your vehicle.
+4. Run the script: `python dash.py`
+5. The script will display a Smart Dash interface on your screen.
 
 ## Features
 
