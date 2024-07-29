@@ -1,6 +1,5 @@
 from flask import Flask, jsonify, request
 import os
-import random
 import osmnx as ox
 
 # Create a Flask application instance
@@ -50,7 +49,7 @@ def submit_data():
         return jsonify({"error": "Missing 'lat' or 'lon'"}), 400
     
     speed_limit = get_speed(lat, lon)
-    print(speed_limit)
+
     if speed_limit:
         speed_limit = speed_limit.split(' ')[0]
 

@@ -11,8 +11,8 @@ while True:
         "Content-Type": "application/json"
     }
 
-    lat = 30.600041
-    lon = -97.688406
+    lat = 30.669233
+    lon = -97.681279
 
     # Define the data payload as a Python dictionary
     data = {
@@ -26,8 +26,6 @@ while True:
     try:
         # Send the POST request
         response = requests.post(url, headers=headers, data=json_data)
-
-        print(str(response.json()['data']['speed_limit']))
     
         with open("Data/speed_limit.txt", "w") as file:
             file.write(str(response.json()['data']['speed_limit']))

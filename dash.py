@@ -5,8 +5,6 @@ import random
 import math
 import subprocess
 import datetime
-import requests
-import json
 
 # Environment Variables
 DEV = True
@@ -230,10 +228,15 @@ def get_speed(speed_limit, lat, lon):
         # print("Skipping execution. Waiting for 5 seconds interval.")
         return speed_limit
 
-    with open("Data/speed_limit.txt", "r") as file:
-        # Update the last execution time
+    try:
+        with open("Data/speed_limit.txt", "r") as file:
+            # Update the last execution time
+            last_execution_time = current_time
+            return int(file.readline())
+    except Exception:
+        # print("File not found. Run speed.py first")
         last_execution_time = current_time
-        return int(file.readline())
+        return 0
 
 # Main function for the Pygame interface
 def main():
