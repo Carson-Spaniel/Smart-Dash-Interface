@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+import os
 import random
 
 # Create a Flask application instance
@@ -24,18 +25,15 @@ def submit_data():
     if not lat or not lon:
         return jsonify({"error": "Missing 'lat' or 'lon'"}), 400
 
-    # Process the data (e.g., save to a database, perform calculations, etc.)
-    # For now, we'll just echo the received data
     response = {
-        "message": "Data received successfully",
+        "message": "Speed limit retrieved successfully",
         "data": {
-            "speed": round(random.randint(5,85) / 5) * 5
+            "speed_limit": round(random.randint(5,85) / 5) * 5
         }
     }
 
-    # Return a JSON response with status code 201
-    return jsonify(response), 201
+    return jsonify(response), 200
 
 # Run the Flask application
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))

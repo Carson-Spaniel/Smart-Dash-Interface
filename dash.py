@@ -221,7 +221,7 @@ def display_logo(screen):
 
         pygame.time.Clock().tick(FPS)
 
-def get_speed(speed_limit):
+def get_speed(speed_limit, lat, lon):
     global last_execution_time
     current_time = time.time()
 
@@ -240,8 +240,8 @@ def get_speed(speed_limit):
 
     # Define the data payload as a Python dictionary
     data = {
-        "lat": 30.586568,
-        "lon": -97.734418
+        "lat": lat,
+        "lon": lon
     }
 
     # Convert the dictionary to a JSON string
@@ -254,9 +254,9 @@ def get_speed(speed_limit):
         # Update the last execution time
         last_execution_time = current_time
 
-        print(float(response.json()['data']['speed']))
+        print(float(response.json()['data']['speed_limit']))
 
-        return float(response.json()['data']['speed'])
+        return float(response.json()['data']['speed_limit'])
 
     except requests.exceptions.RequestException as e:
         print(f"Request failed: {e}")
@@ -473,7 +473,8 @@ def main():
             else:
                 codes = []
 
-            speed_limit = get_speed(speed_limit)
+            lat = 30.669851
+            lon = -97.697607
 
         else:
             try:
@@ -519,10 +520,16 @@ def main():
                 # Gather CEL codes
                 if not response_cel.is_null():
                     codes = response_cel.value
+
+                lat = 30.669851 # Change when GPS module is added
+                lon = -97.697607
             except Exception as e:
                 print('Connection Unknown...')
                 print('Restarting script')
                 exit()
+
+        # Attempt to get speed limit
+        speed_limit = get_speed(speed_limit, lat, lon)
 
         # Clear the screen
         screen.fill(BLACK)
