@@ -5,8 +5,6 @@ import random
 import math
 import subprocess
 import datetime
-import requests
-import json
 
 # Environment Variables
 DEV = True
@@ -230,38 +228,15 @@ def get_speed(speed_limit, lat, lon):
         # print("Skipping execution. Waiting for 5 seconds interval.")
         return speed_limit
 
-    # Define the URL for the POST request
-    url = "http://127.0.0.1:5000/speed"
-
-    # Define the headers, specifying that we're sending JSON data
-    headers = {
-        "Content-Type": "application/json"
-    }
-
-    # Define the data payload as a Python dictionary
-    data = {
-        "lat": lat,
-        "lon": lon
-    }
-
-    # Convert the dictionary to a JSON string
-    json_data = json.dumps(data)
-
     try:
-        # Send the POST request
-        response = requests.post(url, headers=headers, data=json_data)
-
-        # Update the last execution time
+        with open("Data/speed_limit.txt", "r") as file:
+            # Update the last execution time
+            last_execution_time = current_time
+            return int(file.readline())
+    except Exception:
+        # print("File not found. Run speed.py first")
         last_execution_time = current_time
-
-        print(float(response.json()['data']['speed_limit']))
-
-        return float(response.json()['data']['speed_limit'])
-
-    except requests.exceptions.RequestException as e:
-        print(f"Request failed: {e}")
-
-    return 0
+        return 0
 
 # Main function for the Pygame interface
 def main():
@@ -473,8 +448,8 @@ def main():
             else:
                 codes = []
 
-            lat = 30.669851
-            lon = -97.697607
+            lat = 30.659467
+            lon = -97.673965
 
         else:
             try:
