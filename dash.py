@@ -5,10 +5,13 @@ import random
 import math
 import subprocess
 import datetime
+import requests
+import json
 
 # Environment Variables
 DEV = True
 PI = False
+last_execution_time = 0
 
 # Initialize Pygame
 pygame.init()
@@ -166,6 +169,26 @@ def draw_text(screen, text, font, color, x, y, max_width=None):
         text_rect = text_surface.get_rect(center=(x, y + i * font.get_height()))
         screen.blit(text_surface, text_rect)
 
+
+def draw_rounded_rect(surface, color, rect, radius):
+    # Draw the rounded corners using arcs
+    x, y, width, height = rect
+    pygame.draw.rect(surface, color, pygame.Rect(x + radius, y, width - 2 * radius, height))
+    pygame.draw.rect(surface, color, pygame.Rect(x, y + radius, width, height - 2 * radius))
+    
+    pygame.draw.arc(surface, color, pygame.Rect(x, y, 2 * radius, 2 * radius), math.pi, 1.5 * math.pi, 0)
+    pygame.draw.arc(surface, color, pygame.Rect(x + width - 2 * radius, y, 2 * radius, 2 * radius), 1.5 * math.pi, 2 * math.pi, 0)
+    pygame.draw.arc(surface, color, pygame.Rect(x, y + height - 2 * radius, 2 * radius, 2 * radius), 0, 0.5 * math.pi, 0)
+    pygame.draw.arc(surface, color, pygame.Rect(x + width - 2 * radius, y + height - 2 * radius, 2 * radius, 2 * radius), 0.5 * math.pi, math.pi, 0)
+
+    # Fill the corners with the color
+    corners = [(x + radius, y + radius),
+               (x + width - radius, y + radius),
+               (x + width - radius, y + height - radius),
+               (x + radius, y + height - radius)]
+    for corner in corners:
+        pygame.draw.circle(surface, color, corner, radius)
+
 # Function to display Chevrolet logo animation
 def display_logo(screen):
     logo = pygame.image.load("Images/chevy.jpg").convert_alpha()
@@ -198,6 +221,48 @@ def display_logo(screen):
 
         pygame.time.Clock().tick(FPS)
 
+def get_speed(speed_limit):
+    global last_execution_time
+    current_time = time.time()
+
+    # Check if 5 seconds have passed since the last execution
+    if current_time - last_execution_time < 5:
+        # print("Skipping execution. Waiting for 5 seconds interval.")
+        return speed_limit
+
+    # Define the URL for the POST request
+    url = "http://127.0.0.1:5000/speed"
+
+    # Define the headers, specifying that we're sending JSON data
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    # Define the data payload as a Python dictionary
+    data = {
+        "lat": 30.586568,
+        "lon": -97.734418
+    }
+
+    # Convert the dictionary to a JSON string
+    json_data = json.dumps(data)
+
+    try:
+        # Send the POST request
+        response = requests.post(url, headers=headers, data=json_data)
+
+        # Update the last execution time
+        last_execution_time = current_time
+
+        print(float(response.json()['data']['speed']))
+
+        return float(response.json()['data']['speed'])
+
+    except requests.exceptions.RequestException as e:
+        print(f"Request failed: {e}")
+
+    return 0
+
 # Main function for the Pygame interface
 def main():
 
@@ -211,6 +276,7 @@ def main():
     SHIFT_LIGHT = True
     CLEAR = False
     CLEARED = 0
+    speed_limit = 0
 
     # Load the last visited page
     try:
@@ -265,7 +331,6 @@ def main():
     curve = pygame.image.load("Images/round2.png").convert_alpha()
     curveOut = pygame.transform.scale(curve, (curve.get_width() * 1.8, curve.get_height() * 1.6))
     curveIn = pygame.transform.scale(curve, (curve.get_width() * 1.4, curve.get_height() * 1.1))
-
 
     if not DEV:
         # Display Chevrolet logo
@@ -407,6 +472,9 @@ def main():
                 codes = [("P0104", "Mass or Volume Air Flow Circuit Intermittent"),("B0123", "This is a very long message to simulate a long description hoping for it to be cut off properly to have a consistent message flow."),("C0123", f"{' '.join(['*' for i in range(60)])}"), ("D0123", ""), ("E0123", "")]
             else:
                 codes = []
+
+            speed_limit = get_speed(speed_limit)
+
         else:
             try:
                 # Queries
@@ -554,8 +622,16 @@ def main():
             draw_text(screen,f"{(round(mpg, 2))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2)
             draw_text(screen, "MPG", font_small_clean, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2+50)
 
-            draw_text(screen, f"{int(round(speed,0))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2)
-            draw_text(screen, "MPH", font_small_clean, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2+50)
+            if speed_limit:
+                draw_rounded_rect(screen, WHITE, (SCREEN_WIDTH*0.87-60, SCREEN_HEIGHT//2-70, SCREEN_WIDTH*0.15, SCREEN_HEIGHT*0.3), 15)
+                draw_rounded_rect(screen, BLACK, (SCREEN_WIDTH*0.87-56, SCREEN_HEIGHT//2-65, SCREEN_WIDTH*0.14, SCREEN_HEIGHT*0.28), 10)
+
+                draw_text(screen, "SPEED", font_small_clean, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2-40)
+                draw_text(screen, "LIMIT", font_small_clean, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2-20)
+                draw_text(screen, f"{int(round(speed_limit,0))}", font_medlar_clean, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2+30)
+            else:
+                draw_text(screen, f"{int(round(speed,0))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2)
+                draw_text(screen, "MPH", font_small_clean, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2+50)
 
             draw_text(screen, f"{round((air_temp*(9/5))+32,1)}F", font_medium, FONT_COLOR, SCREEN_WIDTH*.7, SCREEN_HEIGHT - SCREEN_HEIGHT*.15)
             draw_text(screen, f"{round(voltage,1)} v", font_medium, FONT_COLOR, SCREEN_WIDTH*.3, SCREEN_HEIGHT - SCREEN_HEIGHT*.15)
