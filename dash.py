@@ -454,7 +454,7 @@ def main():
         
         if DEV:
             # Set random variables for testing purposes
-            rpm = random.randint(max(0,rpm-50), min(rpm+150,RPM_MAX))
+            rpm = random.randint(max(0,rpm-50), min(rpm+60,RPM_MAX))
             speed = random.uniform(max(0,speed-10), min(speed+100,80))* 0.621371
             maf = round(maf,0)
             maf = random.randint(max(1,maf-1), min(maf+1,80))
