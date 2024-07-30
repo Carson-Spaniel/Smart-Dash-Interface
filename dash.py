@@ -4,9 +4,8 @@ import time
 import random
 import math
 import subprocess
-import datetime
 import threading
-from brain import *
+from Helper.brain import *
 
 # Load Brightness
 BRIGHTNESS = get_brightness()
@@ -271,10 +270,6 @@ def main():
         with open("Data/info.txt", "w") as file:
             file.write(str(current_page))
             file.write(f'\n{str(int(SHIFT_LIGHT))}')
-
-        # To calculate the time step
-        with open("Data/time.txt", "a") as file:
-            file.write(f'{datetime.datetime.now()}\n')
         
         if DEV:
             # Set random variables for testing purposes
