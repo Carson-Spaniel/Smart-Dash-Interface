@@ -39,7 +39,7 @@ def calculate_average_interval(timestamps):
 
 # Main function to run the program
 def main():
-    file_path = "Data/time.txt"
+    file_path = "../Data/time.txt"
     timestamps = read_timestamps(file_path)
 
     if timestamps:
