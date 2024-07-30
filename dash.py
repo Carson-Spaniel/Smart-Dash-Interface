@@ -5,11 +5,26 @@ import random
 import math
 import subprocess
 import datetime
+import threading
 
 # Environment Variables
 DEV = True
 PI = False
+
+# Global variables
 last_execution_time = 0
+
+speed = None
+maf = None
+mpg = None
+rpm = None
+fuel_level = None
+voltage = None
+air_temp = None
+codes = None
+
+CLEAR = False
+CLEARED = 0
 
 # Initialize Pygame
 pygame.init()
@@ -237,6 +252,58 @@ def get_speed(speed_limit, lat, lon):
         # print("File not found. Run speed.py first")
         last_execution_time = current_time
         return 0
+    
+# Function to perform the queries
+def run_query(connection):
+    global speed, maf, mpg, rpm, fuel_level, voltage, air_temp, codes, CLEAR, CLEARED
+    try:
+        # Queries
+        response_rpm = connection.query(obd.commands.RPM)
+        response_fuel_level = connection.query(obd.commands.FUEL_LEVEL)
+        response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
+        response_maf = connection.query(obd.commands.MAF)      # Mass Air Flow
+        response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
+        response_air_temp = connection.query(obd.commands.AMBIANT_AIR_TEMP)
+        response_cel = connection.query(obd.commands.GET_DTC)
+
+        # Setting the values
+        if not response_speed.is_null() and not response_maf.is_null():
+            speed = response_speed.value.to('mile/hour').magnitude
+            maf = response_maf.value.to('gram/second').magnitude
+            mpg = calculate_mpg(speed, maf)
+
+        if not response_rpm.is_null():
+            rpm = int(round(response_rpm.value.magnitude,0))
+
+        if not response_fuel_level.is_null():
+            fuel_level = response_fuel_level.value.magnitude
+
+        if not response_voltage.is_null():
+            voltage = response_voltage.value.magnitude
+
+        if not response_air_temp.is_null():
+            air_temp = response_air_temp.value.magnitude
+
+        # Attempt to clear CEL
+        if CLEAR:
+            if response_rpm.value.magnitude == 0: # Only run if engine is off
+                response_clear = connection.query(obd.commands.CLEAR_DTC)
+                if not response_clear.is_null():
+                    CLEARED = 1 # Success
+                    CLEAR = False
+                else:
+                    CLEARED = 2 # Error
+            else:
+                CLEARED = 3 # Engine needs to be off
+
+        # Gather CEL codes
+        if not response_cel.is_null():
+            codes = response_cel.value
+
+    except Exception as e:
+        print('Connection Unknown...')
+        print('Restarting script')
+        exit()
 
 # Main function for the Pygame interface
 def main():
@@ -251,7 +318,7 @@ def main():
     SHIFT_LIGHT = True
     CLEAR = False
     CLEARED = 0
-    speed_limit = 0
+    # speed_limit = 0
 
     # Load the last visited page
     try:
@@ -319,6 +386,9 @@ def main():
         voltage = 15.5
     
     logging = True
+    query_thread = None
+    query_running = False
+
     while logging:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -448,63 +518,17 @@ def main():
             else:
                 codes = []
 
-            lat = 30.659467
-            lon = -97.673965
-
         else:
-            try:
-                # Queries
-                response_rpm = connection.query(obd.commands.RPM)
-                response_fuel_level = connection.query(obd.commands.FUEL_LEVEL)
-                response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
-                response_maf = connection.query(obd.commands.MAF)      # Mass Air Flow
-                response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
-                response_air_temp = connection.query(obd.commands.AMBIANT_AIR_TEMP)
-                response_cel = connection.query(obd.commands.GET_DTC)
-
-                # Setting the values
-                if not response_speed.is_null() and not response_maf.is_null():
-                    speed = response_speed.value.to('mile/hour').magnitude
-                    maf = response_maf.value.to('gram/second').magnitude
-                    mpg = calculate_mpg(speed, maf)
-
-                if not response_rpm.is_null():
-                    rpm = int(round(response_rpm.value.magnitude,0))
-
-                if not response_fuel_level.is_null():
-                    fuel_level = response_fuel_level.value.magnitude
-
-                if not response_voltage.is_null():
-                    voltage = response_voltage.value.magnitude
-
-                if not response_air_temp.is_null():
-                    air_temp = response_air_temp.value.magnitude
-
-                # Attempt to clear CEL
-                if CLEAR:
-                    if response_rpm.value.magnitude == 0: # Only run if engine is off
-                        response_clear = connection.query(obd.commands.CLEAR_DTC)
-                        if not response_clear.is_null():
-                            CLEARED = 1 # Success
-                            CLEAR = False
-                        else:
-                            CLEARED = 2 # Error
-                    else:
-                        CLEARED = 3 # Engine needs to be off
-
-                # Gather CEL codes
-                if not response_cel.is_null():
-                    codes = response_cel.value
-
-                lat = 30.669851 # Change when GPS module is added
-                lon = -97.697607
-            except Exception as e:
-                print('Connection Unknown...')
-                print('Restarting script')
-                exit()
+            if not query_running:
+                query_thread = threading.Thread(target=run_query, args=connection)
+                query_thread.start()
+                query_running = True
+            else:
+                if not query_thread.is_alive():
+                    query_running = False
 
         # Attempt to get speed limit
-        speed_limit = get_speed(speed_limit, lat, lon)
+        # speed_limit = get_speed(speed_limit, lat, lon)
 
         # Clear the screen
         screen.fill(BLACK)
@@ -604,16 +628,16 @@ def main():
             draw_text(screen,f"{(round(mpg, 2))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2)
             draw_text(screen, "MPG", font_small_clean, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2+50)
 
-            if speed_limit:
-                draw_rounded_rect(screen, WHITE, (SCREEN_WIDTH*0.87-60, SCREEN_HEIGHT//2-70, SCREEN_WIDTH*0.15, SCREEN_HEIGHT*0.3), 15)
-                draw_rounded_rect(screen, BLACK, (SCREEN_WIDTH*0.87-56, SCREEN_HEIGHT//2-65, SCREEN_WIDTH*0.14, SCREEN_HEIGHT*0.28), 10)
+            # if speed_limit:
+            #     draw_rounded_rect(screen, WHITE, (SCREEN_WIDTH*0.87-60, SCREEN_HEIGHT//2-70, SCREEN_WIDTH*0.15, SCREEN_HEIGHT*0.3), 15)
+            #     draw_rounded_rect(screen, BLACK, (SCREEN_WIDTH*0.87-56, SCREEN_HEIGHT//2-65, SCREEN_WIDTH*0.14, SCREEN_HEIGHT*0.28), 10)
 
-                draw_text(screen, "SPEED", font_small_clean, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2-40)
-                draw_text(screen, "LIMIT", font_small_clean, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2-20)
-                draw_text(screen, f"{int(round(speed_limit,0))}", font_medlar_clean, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2+30)
-            else:
-                draw_text(screen, f"{int(round(speed,0))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2)
-                draw_text(screen, "MPH", font_small_clean, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2+50)
+            #     draw_text(screen, "SPEED", font_small_clean, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2-40)
+            #     draw_text(screen, "LIMIT", font_small_clean, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2-20)
+            #     draw_text(screen, f"{int(round(speed_limit,0))}", font_medlar_clean, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2+30)
+            # else:
+            draw_text(screen, f"{int(round(speed,0))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2)
+            draw_text(screen, "MPH", font_small_clean, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2+50)
 
             draw_text(screen, f"{round((air_temp*(9/5))+32,1)}F", font_medium, FONT_COLOR, SCREEN_WIDTH*.7, SCREEN_HEIGHT - SCREEN_HEIGHT*.15)
             draw_text(screen, f"{round(voltage,1)} v", font_medium, FONT_COLOR, SCREEN_WIDTH*.3, SCREEN_HEIGHT - SCREEN_HEIGHT*.15)
@@ -740,7 +764,7 @@ def main():
         clock.tick(FPS)
 
         if DEV:
-            interval = .2
+            interval = 0.524135
             internal_clock += interval
             internal_clock = round(internal_clock, 1)
             time.sleep(interval)
