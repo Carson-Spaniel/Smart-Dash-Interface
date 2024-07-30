@@ -6,318 +6,128 @@ import math
 import subprocess
 import datetime
 import threading
+from brain import *
+
+# Load Brightness
+BRIGHTNESS = get_brightness()
+
+# Load RPM
+RPM_MAX,SHIFT = load_rpm()
 
 # Environment Variables
 DEV = True
 PI = False
-
-# Global variables
 last_execution_time = 0
 
-speed = None
-maf = None
-mpg = None
-rpm = None
-fuel_level = None
-voltage = None
-air_temp = None
-codes = None
-
-CLEAR = False
+# Global Variables
 CLEARED = 0
+CLEAR = False
+rpm = 0
+speed = 0
+maf = 0
+mpg = 0
+fuel_level= 0
+voltage = 0
+air_temp = 0
+codes = []
+logging = True
 
-# Initialize Pygame
-pygame.init()
+# Attempt to connect to OBD-II Adapter
+if not DEV:
+    connect = False
+    for i in range(3):
+        try:
+            print('\nAttempting to connect...\n')
 
-# Screen dimensions for a landscape 4.3-inch display
-SCREEN_WIDTH, SCREEN_HEIGHT = 800, 480
-FPS = 30
-
-# Colors
-YELLOW = (255, 255, 0)
-ORANGE = (255, 165, 0)
-PURPLE = (180, 0, 255)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-BLUE = (0, 150, 255)
-
-FONT_COLOR = WHITE # Default font color
-
-# Fonts
-font_xlarge = pygame.font.Font("./Fonts/digital-7.ttf", size=200)
-font_large = pygame.font.Font("./Fonts/digital-7.ttf", size=120)
-font_medlar = pygame.font.Font("./Fonts/digital-7.ttf", size=100)
-font_medium = pygame.font.Font("./Fonts/digital-7.ttf", size=48)
-font_small = pygame.font.Font("./Fonts/digital-7.ttf", size=36)
-
-font_xlarge_clean = pygame.font.Font(size=200)
-font_large_clean = pygame.font.Font(size=120)
-font_medlar_clean = pygame.font.Font(size=100)
-font_medium_clean = pygame.font.Font(size=48)
-font_small_clean = pygame.font.Font(size=36)
-
-# Path to the brightness file
-brightness_file = "/sys/class/backlight/10-0045/brightness"
-
-def get_brightness():
-    try:
-        with open(brightness_file, "r") as file:
-            current_brightness = int(file.read().strip())
-        return current_brightness
-    except Exception as e:
-        print(f"Error reading brightness: {e}")
-        return 0
-    
-BRIGHTNESS = get_brightness()
-
-# Function to adjust brightness
-def adjust_brightness(value):
-    global BRIGHTNESS
-    BRIGHTNESS = value
-    try:
-        with open(brightness_file, "w") as file:
-            file.write(str(value))
-        print(f"Brightness adjusted to {value}")
-        
-    except Exception as e:
-        print(f"Error adjusting brightness: {e}")
-
-# Function to decrease brightness
-def decrease_brightness():
-    try:
-        with open(brightness_file, "r") as file:
-            current_brightness = int(file.read().strip())
-        new_brightness = max(current_brightness - 15, 0)  # Ensure brightness doesn't go below 10
-        adjust_brightness(new_brightness)
-    except Exception as e:
-        print(f"Error decreasing brightness: {e}")
-
-# Function to increase brightness
-def increase_brightness():
-    try:
-        with open(brightness_file, "r") as file:
-            current_brightness = int(file.read().strip())
-        new_brightness = min(current_brightness + 15, 255)  # Adjust 20 to your desired increment
-        adjust_brightness(new_brightness)
-    except Exception as e:
-        print(f"Error increasing brightness: {e}")
-
-# Function to save max horsepower data to a file
-def save_rpm(RPM_MAX, SHIFT):
-    with open("Data/RPM.txt", "w") as file:
-        file.write(f"{RPM_MAX},{SHIFT}")
-
-# Function to load max horsepower data from a file
-def load_rpm():
-    try:
-        with open("Data/RPM.txt", "r") as file:
-            data = file.read().split(",")
-            max = int(data[0])
-            shift = int(data[1])
-    except Exception as e:
-        print(e)
-        max = 8000
-        shift = 6500
-
-    return max, shift
-
-# Function to calculate MPG
-def calculate_mpg(speed, maf):
-    """
-    Calculate miles per gallon (MPG) based on vehicle speed and mass air flow (MAF).
-    
-    Parameters:
-    speed (float): Vehicle speed in miles per hour.
-    maf (float): Mass air flow in grams per second.
-    
-    Returns:
-    float: Calculated MPG.
-    """
-    if speed == 0 or maf == 0:
-        return 0
-    
-    # Convert MAF from grams per second to grams per hour
-    maf_gph = maf * 3600
-
-    # Convert grams per hour to pounds per hour (1 pound = 453.592 grams)
-    maf_pph = maf_gph / 453.592
-
-    # Convert pounds per hour to gallons per hour (1 gallon of gasoline = 6.17 pounds)
-    gph = maf_pph / 6.17
-
-    # Calculate MPG
-    mpg = speed / gph
-
-    return round(mpg*10, 1)
-
-# Load RPM data
-RPM_MAX,SHIFT = load_rpm()
-
-# Function to draw text on screen with wrap around functionality
-def draw_text(screen, text, font, color, x, y, max_width=None):
-    words = text.split(' ')
-    space_width, _ = font.size(' ')
-    max_width = max_width or SCREEN_WIDTH
-    
-    lines = []
-    current_line = []
-    current_width = 0
-    
-    for word in words:
-        word_width, _ = font.size(word)
-        if current_width + word_width <= max_width:
-            current_line.append(word)
-            current_width += word_width + space_width
-        else:
-            lines.append(' '.join(current_line))
-            current_line = [word]
-            current_width = word_width + space_width
-    
-    lines.append(' '.join(current_line))
-    
-    for i, line in enumerate(lines):
-        text_surface = font.render(line, True, color)
-        text_rect = text_surface.get_rect(center=(x, y + i * font.get_height()))
-        screen.blit(text_surface, text_rect)
-
-
-def draw_rounded_rect(surface, color, rect, radius):
-    # Draw the rounded corners using arcs
-    x, y, width, height = rect
-    pygame.draw.rect(surface, color, pygame.Rect(x + radius, y, width - 2 * radius, height))
-    pygame.draw.rect(surface, color, pygame.Rect(x, y + radius, width, height - 2 * radius))
-    
-    pygame.draw.arc(surface, color, pygame.Rect(x, y, 2 * radius, 2 * radius), math.pi, 1.5 * math.pi, 0)
-    pygame.draw.arc(surface, color, pygame.Rect(x + width - 2 * radius, y, 2 * radius, 2 * radius), 1.5 * math.pi, 2 * math.pi, 0)
-    pygame.draw.arc(surface, color, pygame.Rect(x, y + height - 2 * radius, 2 * radius, 2 * radius), 0, 0.5 * math.pi, 0)
-    pygame.draw.arc(surface, color, pygame.Rect(x + width - 2 * radius, y + height - 2 * radius, 2 * radius, 2 * radius), 0.5 * math.pi, math.pi, 0)
-
-    # Fill the corners with the color
-    corners = [(x + radius, y + radius),
-               (x + width - radius, y + radius),
-               (x + width - radius, y + height - radius),
-               (x + radius, y + height - radius)]
-    for corner in corners:
-        pygame.draw.circle(surface, color, corner, radius)
-
-# Function to display Chevrolet logo animation
-def display_logo(screen):
-    logo = pygame.image.load("Images/chevy.jpg").convert_alpha()
-    logo_rect = logo.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-
-    # Animation variables
-    rotation_angle = 0
-    scale = 0.6
-    animation_duration = 1
-    start_time = time.time()
-
-    while time.time() - start_time < animation_duration:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
-
-        screen.fill(BLACK)
-
-        # Rotate and scale the logo
-        rotated_logo = pygame.transform.rotozoom(logo, rotation_angle, scale)
-        rotated_rect = rotated_logo.get_rect(center=logo_rect.center)
-        screen.blit(rotated_logo, rotated_rect)
-
-        draw_text(screen, "Developed by Carson Spaniel", font_small, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT - 30)
-
-        pygame.display.flip()
-
-        scale += 0.01
-
-        pygame.time.Clock().tick(FPS)
-
-def get_speed(speed_limit, lat, lon):
-    global last_execution_time
-    current_time = time.time()
-
-    # Check if 5 seconds have passed since the last execution
-    if current_time - last_execution_time < 5:
-        # print("Skipping execution. Waiting for 5 seconds interval.")
-        return speed_limit
-
-    try:
-        with open("Data/speed_limit.txt", "r") as file:
-            # Update the last execution time
-            last_execution_time = current_time
-            return int(file.readline())
-    except Exception:
-        # print("File not found. Run speed.py first")
-        last_execution_time = current_time
-        return 0
-    
-# Function to perform the queries
-def run_query(connection):
-    global speed, maf, mpg, rpm, fuel_level, voltage, air_temp, codes, CLEAR, CLEARED
-    try:
-        # Queries
-        response_rpm = connection.query(obd.commands.RPM)
-        response_fuel_level = connection.query(obd.commands.FUEL_LEVEL)
-        response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
-        response_maf = connection.query(obd.commands.MAF)      # Mass Air Flow
-        response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
-        response_air_temp = connection.query(obd.commands.AMBIANT_AIR_TEMP)
-        response_cel = connection.query(obd.commands.GET_DTC)
-
-        # Setting the values
-        if not response_speed.is_null() and not response_maf.is_null():
-            speed = response_speed.value.to('mile/hour').magnitude
-            maf = response_maf.value.to('gram/second').magnitude
-            mpg = calculate_mpg(speed, maf)
-
-        if not response_rpm.is_null():
-            rpm = int(round(response_rpm.value.magnitude,0))
-
-        if not response_fuel_level.is_null():
-            fuel_level = response_fuel_level.value.magnitude
-
-        if not response_voltage.is_null():
-            voltage = response_voltage.value.magnitude
-
-        if not response_air_temp.is_null():
-            air_temp = response_air_temp.value.magnitude
-
-        # Attempt to clear CEL
-        if CLEAR:
-            if response_rpm.value.magnitude == 0: # Only run if engine is off
-                response_clear = connection.query(obd.commands.CLEAR_DTC)
-                if not response_clear.is_null():
-                    CLEARED = 1 # Success
-                    CLEAR = False
-                else:
-                    CLEARED = 2 # Error
+            if PI:
+                # The Bluetooth port for RFCOMM on Raspberry Pi
+                port = "/dev/rfcomm0"
             else:
-                CLEARED = 3 # Engine needs to be off
+                # Port for the Bluetooth connection on my laptop
+                port =  "COM5"
+                
+            # Connect to the OBD-II adapter
+            connection = obd.OBD(portstr=port, fast=False)
 
-        # Gather CEL codes
-        if not response_cel.is_null():
-            codes = response_cel.value
+            # Print a message indicating connection
+            if connection.is_connected():
+                print("Connected to OBD-II adapter. Turning on display.")
+                connect = True
+                break
+            else:
+                print("Could not connect to OBD-II adapter.")
+        except Exception:
+            print('An error occurred.')
 
-    except Exception as e:
-        print('Connection Unknown...')
-        print('Restarting script')
+    if not connect:
+        print('Exiting...')
         exit()
+
+def query():
+    # Get global variables
+    global CLEARED, CLEAR, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes
+
+    while logging:
+        try:
+            # Queries
+            response_rpm = connection.query(obd.commands.RPM)
+            response_fuel_level = connection.query(obd.commands.FUEL_LEVEL)
+            response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
+            response_maf = connection.query(obd.commands.MAF)      # Mass Air Flow
+            response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
+            response_air_temp = connection.query(obd.commands.AMBIANT_AIR_TEMP)
+            response_cel = connection.query(obd.commands.GET_DTC)
+
+            # Setting the values
+            if not response_speed.is_null() and not response_maf.is_null():
+                speed = response_speed.value.to('mile/hour').magnitude
+                maf = response_maf.value.to('gram/second').magnitude
+                mpg = calculate_mpg(speed, maf)
+
+            if not response_rpm.is_null():
+                rpm = int(round(response_rpm.value.magnitude,0))
+
+            if not response_fuel_level.is_null():
+                fuel_level = response_fuel_level.value.magnitude
+
+            if not response_voltage.is_null():
+                voltage = response_voltage.value.magnitude
+
+            if not response_air_temp.is_null():
+                air_temp = response_air_temp.value.magnitude
+
+            # Attempt to clear CEL
+            if CLEAR:
+                if response_rpm.value.magnitude == 0: # Only run if engine is off
+                    response_clear = connection.query(obd.commands.CLEAR_DTC)
+                    if not response_clear.is_null():
+                        CLEARED = 1 # Success
+                        CLEAR = False
+                    else:
+                        CLEARED = 2 # Error
+                else:
+                    CLEARED = 3 # Engine needs to be off
+
+            # Gather CEL codes
+            if not response_cel.is_null():
+                codes = response_cel.value
+
+        except Exception as e:
+            print('Connection Unknown...')
+            print('Restarting script')
+            exit()
 
 # Main function for the Pygame interface
 def main():
+    # Get global variables
+    global RPM_MAX, SHIFT, CLEARED, CLEAR, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes, logging
 
     # Initialize variables
     pages = ["Main" , "Settings", "RPM", "Trouble"] #"Off"
     current_page = 0
     internal_clock = 0#2.8000000000000003
-    global RPM_MAX
-    global SHIFT
     FLIP = False
     SHIFT_LIGHT = True
-    CLEAR = False
-    CLEARED = 0
     # speed_limit = 0
 
     # Load the last visited page
@@ -330,36 +140,6 @@ def main():
             SHIFT_LIGHT = int(file.readline())
     except Exception:
         current_page = 0
-
-    # Attempt to connect to OBD-II Adapter
-    connect = False
-    if not DEV:
-        for i in range(3):
-            try:
-                print('\nAttempting to connect...\n')
-
-                if PI:
-                    # The Bluetooth port for RFCOMM on Raspberry Pi
-                    port = "/dev/rfcomm0"
-                else:
-                    # Port for the Bluetooth connection on my laptop
-                    port =  "COM5"
-                    
-                # Connect to the OBD-II adapter
-                connection = obd.OBD(portstr=port, fast=False)
-
-                # Print a message indicating connection
-                if connection.is_connected():
-                    print("Connected to OBD-II adapter. Turning on display.")
-                    connect = True
-                else:
-                    print("Could not connect to OBD-II adapter.")
-            except Exception:
-                print('An error occurred.')
-
-        if not connect:
-            print('Exiting...')
-            exit()
 
     # Load Pygame
     if not PI:
@@ -374,21 +154,20 @@ def main():
     curveOut = pygame.transform.scale(curve, (curve.get_width() * 1.8, curve.get_height() * 1.6))
     curveIn = pygame.transform.scale(curve, (curve.get_width() * 1.4, curve.get_height() * 1.1))
 
-    if not DEV:
-        # Display Chevrolet logo
-        display_logo(screen)
-
     if DEV:
+        # Set fake values
         rpm = 650
         fuel_level = random.randint(0,100)
         speed = 0
         maf = 6
         voltage = 15.5
-    
-    logging = True
-    query_thread = None
-    query_running = False
+    else:
+        # Display Chevrolet logo
+        display_logo(screen)
 
+        # Run Queries on Separate Thread
+        threading.Thread(target=query, daemon=True).start()
+    
     while logging:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -517,15 +296,6 @@ def main():
                 codes = [("P0104", "Mass or Volume Air Flow Circuit Intermittent"),("B0123", "This is a very long message to simulate a long description hoping for it to be cut off properly to have a consistent message flow."),("C0123", f"{' '.join(['*' for i in range(60)])}"), ("D0123", ""), ("E0123", "")]
             else:
                 codes = []
-
-        else:
-            if not query_running:
-                query_thread = threading.Thread(target=run_query, args=connection)
-                query_thread.start()
-                query_running = True
-            else:
-                if not query_thread.is_alive():
-                    query_running = False
 
         # Attempt to get speed limit
         # speed_limit = get_speed(speed_limit, lat, lon)

@@ -1,3 +1,4 @@
 env/
 Data/*.txt
 cache/
+__pycache__/
