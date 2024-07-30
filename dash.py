@@ -120,7 +120,7 @@ def query():
 # Main function for the Pygame interface
 def main():
     # Get global variables
-    global RPM_MAX, SHIFT, CLEARED, CLEAR, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes, logging
+    global BRIGHTNESS, RPM_MAX, SHIFT, CLEARED, CLEAR, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes, logging
 
     # Initialize variables
     pages = ["Main" , "Settings", "RPM", "Trouble"] #"Off"
@@ -255,11 +255,11 @@ def main():
 
                             # Check for collision with decrease rectangle
                             elif mouseX < SCREEN_WIDTH * 0.5 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.5 and mouseY < SCREEN_HEIGHT*.2+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.2:
-                                decrease_brightness()                            
+                                BRIGHTNESS = decrease_brightness()                            
                             
                             # Check for collision with increase rectangle
                             elif mouseX < SCREEN_WIDTH * 0.7 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7 and mouseY < SCREEN_HEIGHT*.2+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.2:
-                                increase_brightness()
+                                BRIGHTNESS = increase_brightness()
 
                         if pages[current_page] == "Trouble":
 
@@ -437,7 +437,7 @@ def main():
                     pygame.draw.circle(screen, FONT_COLOR, (circle_x, circle_y), circle_radius )
                     pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius -1)
                     
-                    blink_pattern = round(internal_clock % .4, 1) != .2
+                    blink_pattern = (internal_clock == .1) or (internal_clock == .3)
 
                     if rpm > SHIFT - (((len(light_colors)+2) - i) * 100):
                         if rpm > SHIFT and blink_pattern:
@@ -533,13 +533,11 @@ def main():
         pygame.display.flip()
         clock.tick(FPS)
 
+        interval = 0.1
         if DEV:
-            interval = 0.524135
-            internal_clock += interval
-            internal_clock = round(internal_clock, 1)
-            time.sleep(interval)
-        else:
-            internal_clock += .10
+            interval += .0215
+        internal_clock = round((internal_clock + interval) % .4, 1)
+        time.sleep(interval)
 
     print("Exiting...")
 

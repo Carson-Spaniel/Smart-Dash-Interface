@@ -65,8 +65,10 @@ def decrease_brightness():
             current_brightness = int(file.read().strip())
         new_brightness = max(current_brightness - 15, 0)  # Ensure brightness doesn't go below 10
         adjust_brightness(new_brightness)
+        return new_brightness
     except Exception as e:
         print(f"Error decreasing brightness: {e}")
+        return 0
 
 # Function to increase brightness
 def increase_brightness():
@@ -75,8 +77,10 @@ def increase_brightness():
             current_brightness = int(file.read().strip())
         new_brightness = min(current_brightness + 15, 255)  # Adjust 20 to your desired increment
         adjust_brightness(new_brightness)
+        return new_brightness
     except Exception as e:
         print(f"Error increasing brightness: {e}")
+        return 0
 
 # Function to save max horsepower data to a file
 def save_rpm(RPM_MAX, SHIFT):
