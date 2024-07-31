@@ -88,7 +88,7 @@ def shutdown():
 # Run the Flask application
 if __name__ == '__main__':
     print("Starting Flask application")
-    file_path = "Experimental/Maps/AUS_DAL_map.graphml"
+    file_path = "Experimental/Maps/georgetown_map.graphml"
 
     print(f"Loading street network from file: {file_path}")
 
