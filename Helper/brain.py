@@ -180,8 +180,7 @@ def display_logo(screen):
 
         pygame.time.Clock().tick(FPS)
 
-def get_speed(speed_limit, lat, lon):
-    global last_execution_time
+def get_speed(speed_limit, last_execution_time):
     current_time = time.time()
 
     # Check if 5 seconds have passed since the last execution
