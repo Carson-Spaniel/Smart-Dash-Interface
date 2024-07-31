@@ -6,10 +6,10 @@ dir_path = 'Maps'
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
 
-def download_and_save_as_graphml(file_path="Maps/map.graphml"):
+def download_and_save_as_graphml(file_path="Maps/texas.graphml"):
     # Define the bounding box coordinates
-    bottom, left = 30.610327077517546, -97.82914630749687
-    top, right = 33.34599146415902, -96.27847196976995
+    bottom, left = 29.988136455122646, -102.96291936654507
+    top, right = 36.12217810900451, -94.82397401640121
 
     # Create a graph from the bounding box
     G = ox.graph_from_bbox(bbox=(top,bottom,right,left), network_type='drive')
