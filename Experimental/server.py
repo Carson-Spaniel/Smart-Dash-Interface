@@ -71,6 +71,20 @@ def submit_data():
 
     return jsonify(response), 200
 
+def shutdown_server():
+    print('server.py has ended.')
+    os._exit(0)
+
+# Define a shutdown endpoint
+@app.route('/shutdown', methods=['POST'])
+def shutdown():
+    print("Shutdown request received.")
+    response = jsonify({"message": "Server shutting down..."}), 200
+    
+    # Give the response and then shutdown
+    shutdown_server()
+    return response
+
 # Run the Flask application
 if __name__ == '__main__':
     print("Starting Flask application")

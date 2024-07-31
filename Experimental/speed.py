@@ -2,7 +2,12 @@ import requests
 import json
 import time
 
-while True:
+stop = False
+
+while not stop:
+    with open('Data/kill.txt', 'r') as file:
+        stop = int(file.readline())
+
     # Define the URL for the POST request
     url = "http://127.0.0.1:5000/speed"
 
@@ -33,5 +38,7 @@ while True:
 
         except requests.exceptions.RequestException as e:
             print(f"Request failed: {e}")
-    
-    time.sleep(5)
+        
+        time.sleep(5)
+
+print('speed.py has ended.')
