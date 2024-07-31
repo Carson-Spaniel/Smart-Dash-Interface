@@ -131,6 +131,10 @@ def main():
     mouse_button_down = False
     skip = True
 
+    # Clear the previous speed limit
+    with open("Data/speed_limit.txt", "w") as file:
+        file.write(str(0))
+
     # Load the last visited page
     try:
         with open("Data/info.txt", "r") as file:
@@ -238,7 +242,7 @@ def main():
 
                         if pages[current_page] == "Settings":
 
-                            # Check for collision with flip rectangle
+                            # Check for collision with shift light rectangle
                             if mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.2 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1 and mouseY < SCREEN_HEIGHT*.42 and mouseY > SCREEN_HEIGHT*.32:
                                 if SHIFT_LIGHT:
                                     SHIFT_LIGHT = False
@@ -274,98 +278,66 @@ def main():
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
                     mouse_button_down = False
+
+        # If holding down button
         if mouse_button_down:
-            
             if not skip:
                 mouseX, mouseY = pygame.mouse.get_pos()
 
-                # Check top left corner for page change
-                if mouseX < SCREEN_WIDTH // 10 and mouseY < SCREEN_HEIGHT // 10:
-                    current_page = (current_page - 1) % len(pages)
+                if pages[current_page] == "RPM":
 
-                # Check top right corner for page change
-                elif mouseX > SCREEN_WIDTH - SCREEN_WIDTH // 10 and mouseY < SCREEN_HEIGHT // 10:
-                    current_page = (current_page + 1) % len(pages)
+                    # Check for collision with increase rectangle
+                    if mouseX < SCREEN_WIDTH * 0.2+25+SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.2+25 and mouseY < SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.3:
+                        RPM_MAX += 100  # Increase RPM_MAX by 100
 
-                else:
-                    if pages[current_page] == "RPM":
+                        if RPM_MAX > 50000:
+                            RPM_MAX = 50000
 
-                        # Check for collision with increase rectangle
-                        if mouseX < SCREEN_WIDTH * 0.2+25+SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.2+25 and mouseY < SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.3:
-                            RPM_MAX += 100  # Increase RPM_MAX by 100
+                        # Save the new max horsepower data
+                        save_rpm(RPM_MAX,SHIFT)
 
-                            if RPM_MAX > 50000:
-                                RPM_MAX = 50000
+                    # Check for collision with decrease rectangle
+                    elif mouseX < SCREEN_WIDTH * 0.2+25+SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.2+25 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.3:
+                        RPM_MAX -= 100  # Decrease RPM_MAX by 100
+                        if RPM_MAX == 0:
+                            RPM_MAX = 100
 
-                            # Save the new max horsepower data
-                            save_rpm(RPM_MAX,SHIFT)
+                        if SHIFT > RPM_MAX:
+                            SHIFT = RPM_MAX
 
-                        # Check for collision with decrease rectangle
-                        elif mouseX < SCREEN_WIDTH * 0.2+25+SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.2+25 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.3:
-                            RPM_MAX -= 100  # Decrease RPM_MAX by 100
-                            if RPM_MAX == 0:
-                                RPM_MAX = 100
+                        # Save the new max horsepower data
+                        save_rpm(RPM_MAX,SHIFT)
 
-                            if SHIFT > RPM_MAX:
-                                SHIFT = RPM_MAX
+                    # Check for collision with increase rectangle
+                    elif mouseX < SCREEN_WIDTH * 0.7-25+SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7-25 and mouseY < SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.3:
+                        SHIFT += 100  # Increase SHIFT by 100
 
-                            # Save the new max horsepower data
-                            save_rpm(RPM_MAX,SHIFT)
+                        if SHIFT > RPM_MAX:
+                            SHIFT = RPM_MAX
 
-                        # Check for collision with increase rectangle
-                        elif mouseX < SCREEN_WIDTH * 0.7-25+SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7-25 and mouseY < SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.3:
-                            SHIFT += 100  # Increase SHIFT by 100
+                        # Save the new max horsepower data
+                        save_rpm(RPM_MAX,SHIFT)
 
-                            if SHIFT > RPM_MAX:
-                                SHIFT = RPM_MAX
+                    # Check for collision with decrease rectangle
+                    elif mouseX < SCREEN_WIDTH * 0.7-25+SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7-25 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.3:
+                        SHIFT -= 100  # Decrease SHIFT by 100
 
-                            # Save the new max horsepower data
-                            save_rpm(RPM_MAX,SHIFT)
+                        if SHIFT == 0:
+                            SHIFT = 100
 
-                        # Check for collision with decrease rectangle
-                        elif mouseX < SCREEN_WIDTH * 0.7-25+SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7-25 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.3:
-                            SHIFT -= 100  # Decrease SHIFT by 100
+                        # Save the new max horsepower data
+                        save_rpm(RPM_MAX,SHIFT)
 
-                            if SHIFT == 0:
-                                SHIFT = 100
+                if pages[current_page] == "Settings":
 
-                            # Save the new max horsepower data
-                            save_rpm(RPM_MAX,SHIFT)
+                    # Check for collision with decrease rectangle
+                    if mouseX < SCREEN_WIDTH * 0.5 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.5 and mouseY < SCREEN_HEIGHT*.2+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.2:
+                        BRIGHTNESS = decrease_brightness()                            
+                    
+                    # Check for collision with increase rectangle
+                    elif mouseX < SCREEN_WIDTH * 0.7 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7 and mouseY < SCREEN_HEIGHT*.2+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.2:
+                        BRIGHTNESS = increase_brightness()
 
-                    if pages[current_page] == "Settings":
-
-                        # Check for collision with flip rectangle
-                        if mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.2 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1 and mouseY < SCREEN_HEIGHT*.42 and mouseY > SCREEN_HEIGHT*.32:
-                            if SHIFT_LIGHT:
-                                SHIFT_LIGHT = False
-                            else:
-                                SHIFT_LIGHT = True
-
-                        # Check for collision with flip rectangle
-                        elif mouseX < SCREEN_WIDTH//2 + SCREEN_WIDTH*.05 and mouseX > SCREEN_WIDTH//2 - SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.2:
-                            if FLIP:
-                                FLIP = False
-                            else:
-                                FLIP = True
-
-                        # Check for collision with exit rectangle
-                        elif mouseX < SCREEN_WIDTH*.3 + SCREEN_WIDTH*.05 and mouseX > SCREEN_WIDTH*.3 - SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.2:
-                            logging = False
-
-                        # Check for collision with decrease rectangle
-                        elif mouseX < SCREEN_WIDTH * 0.5 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.5 and mouseY < SCREEN_HEIGHT*.2+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.2:
-                            BRIGHTNESS = decrease_brightness()                            
-                        
-                        # Check for collision with increase rectangle
-                        elif mouseX < SCREEN_WIDTH * 0.7 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7 and mouseY < SCREEN_HEIGHT*.2+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.2:
-                            BRIGHTNESS = increase_brightness()
-
-                    if pages[current_page] == "Trouble":
-
-                        # Check for collision with exit rectangle
-                        if not CLEAR: # To prevent multiple clears
-                            if mouseX < SCREEN_WIDTH//2 + SCREEN_WIDTH*.06 and mouseX > SCREEN_WIDTH//2 - SCREEN_WIDTH*.06 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.2:
-                                CLEAR = True
                 time.sleep(.1)
             skip = False
 
