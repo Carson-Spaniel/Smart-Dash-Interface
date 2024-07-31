@@ -2,6 +2,10 @@ import requests
 import json
 import time
 
+# Clear the previous speed limit
+with open("../Data/speed_limit.txt", "w") as file:
+    file.write(str(0))
+
 while True:
     # Define the URL for the POST request
     url = "http://127.0.0.1:5000/speed"
@@ -11,7 +15,7 @@ while True:
         "Content-Type": "application/json"
     }
 
-    lat, lon = 30.63154389424747, -97.75077985606404
+    lat, lon = 30.681598416806178, -97.7147931842906
 
     if lat and lon:
 

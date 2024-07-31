@@ -1,6 +1,12 @@
 import osmnx as ox
+import os
 
-def download_and_save_as_graphml(file_path="AUS_DAL_map.graphml"):
+dir_path = 'Maps'
+
+if not os.path.exists(dir_path):
+    os.makedirs(dir_path)
+
+def download_and_save_as_graphml(file_path="Maps/AUS_DAL_map.graphml"):
     # Define the bounding box coordinates for Georgetown, Texas (left, bottom, right, top)
     left, bottom, right, top = -98.1400289734493, 30.07194267071515, -96.25525714157412, 33.286098847129324
     
