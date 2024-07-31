@@ -28,7 +28,7 @@ while True:
             # Send the POST request
             response = requests.post(url, headers=headers, data=json_data)
         
-            with open("../Data/speed_limit.txt", "w") as file:
+            with open("Data/speed_limit.txt", "w") as file:
                 file.write(str(response.json()['data']['speed_limit']))
 
         except requests.exceptions.RequestException as e:

@@ -5,7 +5,7 @@ import random
 import math
 import subprocess
 import threading
-from Helper.brain import *
+from brain import *
 
 # Load Brightness
 BRIGHTNESS = get_brightness()
