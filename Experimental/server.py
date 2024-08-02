@@ -100,4 +100,5 @@ if __name__ == '__main__':
     load_time = end_time - start_time
     print(f"Street network loaded in {load_time:.2f} seconds")
 
+    # Start flask server
     app.run(debug=False, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
