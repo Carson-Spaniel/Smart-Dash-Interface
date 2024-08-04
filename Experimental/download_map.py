@@ -3,6 +3,7 @@ import os
 
 dir_path = 'Maps'
 
+# Make the directory if it doesn't exist
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
 
