@@ -75,7 +75,7 @@ def shutdown_server():
     print('server.py has ended.')
     os._exit(0)
 
-# Define a shutdown endpoint
+# Shutdown endpoint
 @app.route('/shutdown', methods=['POST'])
 def shutdown():
     print("Shutdown request received.")
