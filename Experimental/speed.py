@@ -1,12 +1,22 @@
 import requests
 import json
 import time
+import gpsd
 
 stop = False
+
+gpsd.connect()
 
 while not stop:
     with open('Data/kill.txt', 'r') as file:
         stop = int(file.readline())
+
+    try:
+        packet = gpsd.get_current()
+    except Exception:
+        print('passing')
+        time.sleep(2)
+        continue
 
     # Define the URL for the POST request
     url = "http://127.0.0.1:5000/speed"
@@ -16,7 +26,9 @@ while not stop:
         "Content-Type": "application/json"
     }
 
-    lat, lon = 30.681598416806178, -97.7147931842906
+    #lat, lon = 30.681598416806178, -97.7147931842906
+    lat = packet.lat
+    lon = packet.lon
 
     if lat and lon:
 
