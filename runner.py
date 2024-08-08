@@ -7,8 +7,8 @@ import requests
 # Define the scripts to run
 scripts = {
     'dash': 'python3 Helper/dash.py',
-    #'server': 'python3 Experimental/server.py',
-    #'speed': 'python3 Experimental/speed.py'
+    'server': 'python3 Experimental/server.py',
+    'speed': 'python3 Experimental/speed.py'
 }
 
 stop = False
