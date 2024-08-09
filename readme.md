@@ -41,7 +41,7 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
   - Allows for reading and clearing of Check Engine Light codes.
 
 - **Chevrolet Logo Animation**:
-  - Displayed on startup (can be disabled for non-DEV mode).
+  - Displayed on startup.
 
 ## Configuration
 
