@@ -59,6 +59,7 @@ if not DEV:
         print('Exiting...')
         exit()
 
+# TODO separate the queries to speed up responses
 def query():
     # Get global variables
     global CLEARED, CLEAR, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes
