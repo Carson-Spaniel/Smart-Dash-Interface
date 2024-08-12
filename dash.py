@@ -4,7 +4,6 @@ import time
 import random
 import math
 import subprocess
-import threading
 from Helper.brain import *
 
 # Load Brightness
@@ -117,57 +116,6 @@ def main():
         connection.start()
 
     while logging:
-        try:
-            # Queries
-            response_rpm = connection.query(obd.commands.RPM)
-            response_fuel_level = connection.query(obd.commands.FUEL_LEVEL)
-            response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
-            response_maf = connection.query(obd.commands.MAF)      # Mass Air Flow
-            response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
-            response_air_temp = connection.query(obd.commands.AMBIANT_AIR_TEMP)
-            response_cel = connection.query(obd.commands.GET_DTC)
-
-            # Setting the values
-            if not response_rpm.is_null():
-                rpm = int(round(response_rpm.value.magnitude,0))
-
-            if not response_speed.is_null() and not response_maf.is_null():
-                speed = response_speed.value.to('mile/hour').magnitude
-                maf = response_maf.value.to('gram/second').magnitude
-                mpg = calculate_mpg(speed, maf)
-
-            if not response_fuel_level.is_null():
-                fuel_level = response_fuel_level.value.magnitude
-
-            if not response_voltage.is_null():
-                voltage = response_voltage.value.magnitude
-
-            if not response_air_temp.is_null():
-                air_temp = response_air_temp.value.magnitude
-
-            # Gather CEL codes
-            if not response_cel.is_null():
-                codes = response_cel.value
-
-            # Attempt to clear CEL
-            if CLEAR:
-                if response_rpm.value.magnitude == 0: # Only run if engine is off
-                    
-                    response_clear = connection.query(obd.commands.CLEAR_DTC)
-
-                    if not response_clear.is_null():
-                        CLEARED = 1 # Success
-                        CLEAR = False
-                    else:
-                        CLEARED = 2 # Error
-                else:
-                    CLEARED = 3 # Engine needs to be off
-
-        except Exception as e:
-            print('Connection Unknown...')
-            print('Restarting script')
-            exit()
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 logging = False
@@ -359,6 +307,57 @@ def main():
                 codes = [("P0104", "Mass or Volume Air Flow Circuit Intermittent"),("B0123", "This is a very long message to simulate a long description hoping for it to be cut off properly to have a consistent message flow."),("C0123", f"{' '.join(['*' for i in range(60)])}"), ("D0123", ""), ("E0123", "")]
             else:
                 codes = []
+        else:
+            try:
+                # Queries
+                response_rpm = connection.query(obd.commands.RPM)
+                response_fuel_level = connection.query(obd.commands.FUEL_LEVEL)
+                response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
+                response_maf = connection.query(obd.commands.MAF)      # Mass Air Flow
+                response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
+                response_air_temp = connection.query(obd.commands.AMBIANT_AIR_TEMP)
+                response_cel = connection.query(obd.commands.GET_DTC)
+
+                # Setting the values
+                if not response_rpm.is_null():
+                    rpm = int(round(response_rpm.value.magnitude,0))
+
+                if not response_speed.is_null() and not response_maf.is_null():
+                    speed = response_speed.value.to('mile/hour').magnitude
+                    maf = response_maf.value.to('gram/second').magnitude
+                    mpg = calculate_mpg(speed, maf)
+
+                if not response_fuel_level.is_null():
+                    fuel_level = response_fuel_level.value.magnitude
+
+                if not response_voltage.is_null():
+                    voltage = response_voltage.value.magnitude
+
+                if not response_air_temp.is_null():
+                    air_temp = response_air_temp.value.magnitude
+
+                # Gather CEL codes
+                if not response_cel.is_null():
+                    codes = response_cel.value
+
+                # Attempt to clear CEL
+                if CLEAR:
+                    if response_rpm.value.magnitude == 0: # Only run if engine is off
+                        
+                        response_clear = connection.query(obd.commands.CLEAR_DTC)
+
+                        if not response_clear.is_null():
+                            CLEARED = 1 # Success
+                            CLEAR = False
+                        else:
+                            CLEARED = 2 # Error
+                    else:
+                        CLEARED = 3 # Engine needs to be off
+
+            except Exception as e:
+                print('Connection Unknown...')
+                print('Restarting script')
+                exit()
 
         # Clear the screen
         screen.fill(BLACK)
