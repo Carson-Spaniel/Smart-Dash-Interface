@@ -53,7 +53,6 @@ if not DEV:
                 print("Could not connect to OBD-II adapter.")
         except Exception:
             print('An error occurred.')
-
     if not connect:
         print('Exiting...')
         exit()
@@ -124,7 +123,7 @@ def query():
             time.sleep(.1)
 
         except Exception as e:
-            print('Connection Unknown...')
+            print(f'An error occured: {e}')
             print('Restarting script')
             exit()
 
