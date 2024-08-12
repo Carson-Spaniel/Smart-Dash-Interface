@@ -49,7 +49,6 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
   - `DEV`: Set to `True` if testing, `False` if running with a connection to the car.
   - `PI`: Set to `True` if running on Raspberry Pi with Bluetooth, `False` for other platforms.
 
-
 - **Fonts**:
   - The script uses digital-7.ttf font for text rendering. Ensure it's in the correct directory or update font paths.
 
