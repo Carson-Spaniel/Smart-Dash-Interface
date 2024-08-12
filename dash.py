@@ -30,14 +30,47 @@ air_temp = 0
 codes = []
 logging = True
 
-def query_rpm(connection):
+# Attempt to connect to OBD-II Adapter
+if not DEV:
+    connect = False
+    for i in range(3):
+        try:
+            print('\nAttempting to connect...\n')
+
+            # The Bluetooth port for RFCOMM on Raspberry Pi
+            port = "/dev/rfcomm0"
+                
+            # Connect to the OBD-II adapter
+            connection = obd.OBD(portstr=port, fast=False)
+
+            # Print a message indicating connection
+            if connection.is_connected():
+                print("Connected to OBD-II adapter. Turning on display.")
+                connect = True
+                break
+            else:
+                print("Could not connect to OBD-II adapter.")
+        except Exception:
+            print('An error occurred.')
+
+    if not connect:
+        print('Exiting...')
+        exit()
+
+connection_lock = threading.Lock()
+
+def query_rpm():
     # Get global variables
     global CLEARED, CLEAR, rpm
 
     while logging:
         try:
+            connection_lock.acquire()
+
             # Query rpm
             response_rpm = connection.query(obd.commands.RPM)
+
+            connection_lock.release()
 
             # Setting the values
             if not response_rpm.is_null():
@@ -46,7 +79,11 @@ def query_rpm(connection):
             # Attempt to clear CEL
             if CLEAR:
                 if response_rpm.value.magnitude == 0: # Only run if engine is off
+                    
+                    connection_lock.acquire()
                     response_clear = connection.query(obd.commands.CLEAR_DTC)
+                    connection_lock.release()
+
                     if not response_clear.is_null():
                         CLEARED = 1 # Success
                         CLEAR = False
@@ -60,12 +97,14 @@ def query_rpm(connection):
             print('Restarting script')
             exit()
 
-def query(connection):
+def query():
     # Get global variables
     global speed, maf, mpg, fuel_level, voltage, air_temp, codes
 
     while logging:
         try:
+            connection_lock.acquire()
+
             # Queries
             response_fuel_level = connection.query(obd.commands.FUEL_LEVEL)
             response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
@@ -73,6 +112,8 @@ def query(connection):
             response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
             response_air_temp = connection.query(obd.commands.AMBIANT_AIR_TEMP)
             response_cel = connection.query(obd.commands.GET_DTC)
+
+            connection_lock.release()
 
             # Setting the values
             if not response_speed.is_null() and not response_maf.is_null():
@@ -144,40 +185,12 @@ def main():
         maf = 6
         voltage = 15.5
     else:
-        # Attempt to connect to OBD-II Adapter
-        if not DEV:
-            connect = False
-            for i in range(3):
-                try:
-                    print('\nAttempting to connect...\n')
-
-                    # The Bluetooth port for RFCOMM on Raspberry Pi
-                    port = "/dev/rfcomm0"
-                        
-                    # Connect to the OBD-II adapter
-                    connection1 = obd.OBD(portstr=port, fast=False)
-                    connection2 = obd.OBD(portstr=port, fast=False)
-
-                    # Print a message indicating connection
-                    if connection1.is_connected() and connection2.is_connected():
-                        print("Connected to OBD-II adapter. Turning on display.")
-                        connect = True
-                        break
-                    else:
-                        print("Could not connect to OBD-II adapter.")
-                except Exception:
-                    print('An error occurred.')
-
-            if not connect:
-                print('Exiting...')
-                exit()
-
         # Display Chevrolet logo
         display_logo(screen)
 
         # Run Queries on Separate Thread
-        threading.Thread(target=query, daemon=True, args=(connection1,)).start()
-        threading.Thread(target=query_rpm, daemon=True, args=(connection2,)).start()
+        threading.Thread(target=query, daemon=True).start()
+        threading.Thread(target=query_rpm, daemon=True).start()
 
     while logging:
         for event in pygame.event.get():
