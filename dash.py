@@ -29,6 +29,7 @@ voltage = 0
 air_temp = 0
 codes = []
 logging = True
+internal_clock = 0
 
 # Attempt to connect to OBD-II Adapter
 if not DEV:
@@ -41,7 +42,7 @@ if not DEV:
             port = "/dev/rfcomm0"
                 
             # Connect to the OBD-II adapter
-            connection = obd.Async(portstr=port, delay_cmds=0)
+            connection = obd.OBD(portstr=port)
 
             # Print a message indicating connection
             if connection.is_connected():
@@ -57,20 +58,59 @@ if not DEV:
         print('Exiting...')
         exit()
 
-def query_rpm():
-    global CLEAR, CLEARED, rpm
+def query():
+    # Get global variables
+    global CLEAR, CLEARED, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes
+
+    delay1 = time.time()
+    delay2 = time.time()
     while logging:
+        current_time = time.time()
         try:
             response_rpm = connection.query(obd.commands.RPM)
 
             # Setting the values
             if not response_rpm.is_null():
                 rpm = int(round(response_rpm.value.magnitude,0))
+            
+            # Run every .2 seconds
+            if current_time - delay1 >= .5:
+                delay1 = current_time
+
+                response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
+                response_maf = connection.query(obd.commands.MAF)      # Mass Air Flow
+                
+                if not response_speed.is_null() and not response_maf.is_null():
+                    speed = response_speed.value.to('mile/hour').magnitude
+                    maf = response_maf.value.to('gram/second').magnitude
+                    mpg = calculate_mpg(speed, maf)
+
+            # Run every 1 second
+            if current_time - delay2 >= 1:
+                delay2 = current_time
+
+                response_fuel_level = connection.query(obd.commands.FUEL_LEVEL)
+                response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
+                response_air_temp = connection.query(obd.commands.AMBIANT_AIR_TEMP)
+
+                if not response_fuel_level.is_null():
+                    fuel_level = response_fuel_level.value.magnitude
+
+                if not response_voltage.is_null():
+                    voltage = response_voltage.value.magnitude
+
+                if not response_air_temp.is_null():
+                    air_temp = response_air_temp.value.magnitude
+
+                # Gather CEL codes
+                response_cel = connection.query(obd.commands.GET_DTC)
+                if not response_cel.is_null():
+                    codes = response_cel.value
 
             # Attempt to clear CEL
             if CLEAR:
                 if response_rpm.value.magnitude == 0: # Only run if engine is off
-                    
+
                     response_clear = connection.query(obd.commands.CLEAR_DTC)
 
                     if not response_clear.is_null():
@@ -81,42 +121,8 @@ def query_rpm():
                 else:
                     CLEARED = 3 # Engine needs to be off
 
-        except Exception as e:
-            print('Connection Unknown...')
-            print('Restarting script')
-            exit()
+            time.sleep(.1)
 
-def query():
-    # Get global variables
-    global speed, maf, mpg, fuel_level, voltage, air_temp, codes
-
-    while logging:
-        try:
-            # Queries
-            response_fuel_level = connection.query(obd.commands.FUEL_LEVEL)
-            response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
-            response_maf = connection.query(obd.commands.MAF)      # Mass Air Flow
-            response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
-            response_air_temp = connection.query(obd.commands.AMBIANT_AIR_TEMP)
-            response_cel = connection.query(obd.commands.GET_DTC)
-
-            if not response_speed.is_null() and not response_maf.is_null():
-                speed = response_speed.value.to('mile/hour').magnitude
-                maf = response_maf.value.to('gram/second').magnitude
-                mpg = calculate_mpg(speed, maf)
-
-            if not response_fuel_level.is_null():
-                fuel_level = response_fuel_level.value.magnitude
-
-            if not response_voltage.is_null():
-                voltage = response_voltage.value.magnitude
-
-            if not response_air_temp.is_null():
-                air_temp = response_air_temp.value.magnitude
-
-            # Gather CEL codes
-            if not response_cel.is_null():
-                codes = response_cel.value
         except Exception as e:
             print('Connection Unknown...')
             print('Restarting script')
@@ -125,12 +131,11 @@ def query():
 # Main function for the Pygame interface
 def main():
     # Get global variables
-    global BRIGHTNESS, RPM_MAX, SHIFT, CLEARED, CLEAR, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes, logging
+    global BRIGHTNESS, RPM_MAX, SHIFT, CLEARED, CLEAR, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes, logging, internal_clock
 
     # Initialize variables
     pages = ["Main" , "Settings", "RPM", "Trouble"] #"Off"
     current_page = 0
-    internal_clock = 0
     FLIP = False
     SHIFT_LIGHT = True
     mouse_button_down = False
@@ -171,20 +176,8 @@ def main():
         # Display Chevrolet logo
         display_logo(screen)
 
-        # Start watching
-        connection.watch(obd.commands.RPM)
-        connection.watch(obd.commands.FUEL_LEVEL)
-        connection.watch(obd.commands.SPEED)
-        connection.watch(obd.commands.MAF)
-        connection.watch(obd.commands.CONTROL_MODULE_VOLTAGE)
-        connection.watch(obd.commands.AMBIANT_AIR_TEMP)
-        connection.watch(obd.commands.GET_DTC)
-
-        connection.start()
-
         # Run Queries on Separate Thread
         threading.Thread(target=query, daemon=True).start()
-        threading.Thread(target=query_rpm, daemon=True).start()
 
     while logging:
         for event in pygame.event.get():
