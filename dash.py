@@ -155,10 +155,11 @@ def main():
                     port = "/dev/rfcomm0"
                         
                     # Connect to the OBD-II adapter
-                    connection = obd.OBD(portstr=port, fast=False)
+                    connection1 = obd.OBD(portstr=port, fast=False)
+                    connection2 = obd.OBD(portstr=port, fast=False)
 
                     # Print a message indicating connection
-                    if connection.is_connected():
+                    if connection1.is_connected() and connection2.is_connected():
                         print("Connected to OBD-II adapter. Turning on display.")
                         connect = True
                         break
@@ -175,8 +176,8 @@ def main():
         display_logo(screen)
 
         # Run Queries on Separate Thread
-        threading.Thread(target=query, daemon=True, args=(connection,)).start()
-        threading.Thread(target=query_rpm, daemon=True, args=(connection,)).start()
+        threading.Thread(target=query, daemon=True, args=(connection1,)).start()
+        threading.Thread(target=query_rpm, daemon=True, args=(connection2,)).start()
 
     while logging:
         for event in pygame.event.get():
