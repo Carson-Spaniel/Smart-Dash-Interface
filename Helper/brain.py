@@ -179,24 +179,6 @@ def display_logo(screen):
         scale += 0.01
 
         pygame.time.Clock().tick(FPS)
-
-def get_speed(speed_limit, last_execution_time):
-    current_time = time.time()
-
-    # Check if 5 seconds have passed since the last execution
-    if current_time - last_execution_time < 5:
-        # print("Skipping execution. Waiting for 5 seconds interval.")
-        return speed_limit
-
-    try:
-        with open("Data/speed_limit.txt", "r") as file:
-            # Update the last execution time
-            last_execution_time = current_time
-            return int(file.readline())
-    except Exception:
-        # print("File not found. Run speed.py first")
-        last_execution_time = current_time
-        return 0
     
 # Function to calculate MPG
 def calculate_mpg(speed, maf):

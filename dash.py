@@ -30,34 +30,7 @@ air_temp = 0
 codes = []
 logging = True
 
-# Attempt to connect to OBD-II Adapter
-if not DEV:
-    connect = False
-    for i in range(3):
-        try:
-            print('\nAttempting to connect...\n')
-
-            # The Bluetooth port for RFCOMM on Raspberry Pi
-            port = "/dev/rfcomm0"
-                
-            # Connect to the OBD-II adapter
-            connection = obd.OBD(portstr=port, fast=False)
-
-            # Print a message indicating connection
-            if connection.is_connected():
-                print("Connected to OBD-II adapter. Turning on display.")
-                connect = True
-                break
-            else:
-                print("Could not connect to OBD-II adapter.")
-        except Exception:
-            print('An error occurred.')
-
-    if not connect:
-        print('Exiting...')
-        exit()
-
-def query_rpm():
+def query_rpm(connection):
     # Get global variables
     global CLEARED, CLEAR, rpm
 
@@ -87,7 +60,7 @@ def query_rpm():
             print('Restarting script')
             exit()
 
-def query():
+def query(connection):
     # Get global variables
     global speed, maf, mpg, fuel_level, voltage, air_temp, codes
 
@@ -171,13 +144,40 @@ def main():
         maf = 6
         voltage = 15.5
     else:
+        # Attempt to connect to OBD-II Adapter
+        if not DEV:
+            connect = False
+            for i in range(3):
+                try:
+                    print('\nAttempting to connect...\n')
+
+                    # The Bluetooth port for RFCOMM on Raspberry Pi
+                    port = "/dev/rfcomm0"
+                        
+                    # Connect to the OBD-II adapter
+                    connection = obd.OBD(portstr=port, fast=False)
+
+                    # Print a message indicating connection
+                    if connection.is_connected():
+                        print("Connected to OBD-II adapter. Turning on display.")
+                        connect = True
+                        break
+                    else:
+                        print("Could not connect to OBD-II adapter.")
+                except Exception:
+                    print('An error occurred.')
+
+            if not connect:
+                print('Exiting...')
+                exit()
+
         # Display Chevrolet logo
         display_logo(screen)
 
         # Run Queries on Separate Thread
-        threading.Thread(target=query, daemon=True).start()
-        threading.Thread(target=query_rpm, daemon=True).start()
-    
+        threading.Thread(target=query, daemon=True, args=(connection,)).start()
+        threading.Thread(target=query_rpm, daemon=True, args=(connection,)).start()
+
     while logging:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
