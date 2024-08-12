@@ -5,7 +5,7 @@ import random
 import math
 import subprocess
 import threading
-from brain import *
+from Helper.brain import *
 
 # Load Brightness
 BRIGHTNESS = get_brightness()
@@ -29,8 +29,6 @@ voltage = 0
 air_temp = 0
 codes = []
 logging = True
-speed_limit = 0
-last_execution_time = 0
 
 # Attempt to connect to OBD-II Adapter
 if not DEV:
@@ -59,7 +57,24 @@ if not DEV:
         print('Exiting...')
         exit()
 
-# TODO separate the queries to speed up responses
+def query_rpm():
+    # Get global variables
+    global rpm
+
+    while logging:
+        try:
+            # Query rpm
+            response_rpm = connection.query(obd.commands.RPM)
+
+            # Setting the values
+            if not response_rpm.is_null():
+                rpm = int(round(response_rpm.value.magnitude,0))
+
+        except Exception as e:
+            print('Connection Unknown...')
+            print('Restarting script')
+            exit()
+
 def query():
     # Get global variables
     global CLEARED, CLEAR, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes
@@ -117,7 +132,7 @@ def query():
 # Main function for the Pygame interface
 def main():
     # Get global variables
-    global BRIGHTNESS, RPM_MAX, SHIFT, CLEARED, CLEAR, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes, logging, speed_limit, last_execution_time
+    global BRIGHTNESS, RPM_MAX, SHIFT, CLEARED, CLEAR, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes, logging
 
     # Initialize variables
     pages = ["Main" , "Settings", "RPM", "Trouble"] #"Off"
@@ -127,10 +142,6 @@ def main():
     SHIFT_LIGHT = True
     mouse_button_down = False
     skip = True
-
-    # Clear the previous speed limit
-    with open("Data/speed_limit.txt", "w") as file:
-        file.write(str(0))
 
     # Load the last visited page
     try:
@@ -169,6 +180,7 @@ def main():
 
         # Run Queries on Separate Thread
         threading.Thread(target=query, daemon=True).start()
+        threading.Thread(target=query_rpm, daemon=True).start()
     
     while logging:
         for event in pygame.event.get():
@@ -363,9 +375,6 @@ def main():
             else:
                 codes = []
 
-        # Attempt to get speed limit
-        speed_limit = get_speed(speed_limit, last_execution_time)
-
         # Clear the screen
         screen.fill(BLACK)
 
@@ -464,16 +473,8 @@ def main():
             draw_text(screen,f"{(round(mpg, 2))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2)
             draw_text(screen, "MPG", font_small_clean, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2+50)
 
-            if speed_limit:
-                draw_rounded_rect(screen, WHITE, (SCREEN_WIDTH*0.87-60, SCREEN_HEIGHT//2-70, SCREEN_WIDTH*0.15, SCREEN_HEIGHT*0.3), 15)
-                draw_rounded_rect(screen, BLACK, (SCREEN_WIDTH*0.87-56, SCREEN_HEIGHT//2-65, SCREEN_WIDTH*0.14, SCREEN_HEIGHT*0.28), 10)
-
-                draw_text(screen, "SPEED", font_small_clean, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2-40)
-                draw_text(screen, "LIMIT", font_small_clean, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2-20)
-                draw_text(screen, f"{int(round(speed_limit,0))}", font_medlar_clean, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2+30)
-            # else:
-            #     draw_text(screen, f"{int(round(speed,0))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2)
-            #     draw_text(screen, "MPH", font_small_clean, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2+50)
+            draw_text(screen, f"{int(round(speed,0))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2)
+            draw_text(screen, "MPH", font_small_clean, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2+50)
 
             draw_text(screen, f"{round((air_temp*(9/5))+32,1)}F", font_medium, FONT_COLOR, SCREEN_WIDTH*.7, SCREEN_HEIGHT - SCREEN_HEIGHT*.15)
             draw_text(screen, f"{round(voltage,1)} v", font_medium, FONT_COLOR, SCREEN_WIDTH*.3, SCREEN_HEIGHT - SCREEN_HEIGHT*.15)
