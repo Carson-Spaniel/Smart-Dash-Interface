@@ -59,7 +59,7 @@ if not DEV:
 
 def query_rpm():
     # Get global variables
-    global rpm
+    global CLEARED, CLEAR, rpm
 
     while logging:
         try:
@@ -70,6 +70,18 @@ def query_rpm():
             if not response_rpm.is_null():
                 rpm = int(round(response_rpm.value.magnitude,0))
 
+            # Attempt to clear CEL
+            if CLEAR:
+                if response_rpm.value.magnitude == 0: # Only run if engine is off
+                    response_clear = connection.query(obd.commands.CLEAR_DTC)
+                    if not response_clear.is_null():
+                        CLEARED = 1 # Success
+                        CLEAR = False
+                    else:
+                        CLEARED = 2 # Error
+                else:
+                    CLEARED = 3 # Engine needs to be off
+
         except Exception as e:
             print('Connection Unknown...')
             print('Restarting script')
@@ -77,12 +89,11 @@ def query_rpm():
 
 def query():
     # Get global variables
-    global CLEARED, CLEAR, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes
+    global speed, maf, mpg, fuel_level, voltage, air_temp, codes
 
     while logging:
         try:
             # Queries
-            response_rpm = connection.query(obd.commands.RPM)
             response_fuel_level = connection.query(obd.commands.FUEL_LEVEL)
             response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
             response_maf = connection.query(obd.commands.MAF)      # Mass Air Flow
@@ -96,9 +107,6 @@ def query():
                 maf = response_maf.value.to('gram/second').magnitude
                 mpg = calculate_mpg(speed, maf)
 
-            if not response_rpm.is_null():
-                rpm = int(round(response_rpm.value.magnitude,0))
-
             if not response_fuel_level.is_null():
                 fuel_level = response_fuel_level.value.magnitude
 
@@ -107,18 +115,6 @@ def query():
 
             if not response_air_temp.is_null():
                 air_temp = response_air_temp.value.magnitude
-
-            # Attempt to clear CEL
-            if CLEAR:
-                if response_rpm.value.magnitude == 0: # Only run if engine is off
-                    response_clear = connection.query(obd.commands.CLEAR_DTC)
-                    if not response_clear.is_null():
-                        CLEARED = 1 # Success
-                        CLEAR = False
-                    else:
-                        CLEARED = 2 # Error
-                else:
-                    CLEARED = 3 # Engine needs to be off
 
             # Gather CEL codes
             if not response_cel.is_null():
