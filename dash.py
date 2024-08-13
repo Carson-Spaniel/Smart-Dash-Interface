@@ -72,7 +72,7 @@ def query():
             if not response_rpm.is_null():
                 rpm = int(round(response_rpm.value.magnitude,0))
             
-            # Run every .2 seconds
+            # Run every .5 seconds
             if current_time - delay1 >= .5:
                 delay1 = current_time
 
@@ -370,38 +370,6 @@ def main():
                 codes = [("P0104", "Mass or Volume Air Flow Circuit Intermittent"),("B0123", "This is a very long message to simulate a long description hoping for it to be cut off properly to have a consistent message flow."),("C0123", f"{' '.join(['*' for i in range(60)])}"), ("D0123", ""), ("E0123", "")]
             else:
                 codes = []
-        else:
-            try:
-                # Queries
-                response_fuel_level = connection.query(obd.commands.FUEL_LEVEL)
-                response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
-                response_maf = connection.query(obd.commands.MAF)      # Mass Air Flow
-                response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
-                response_air_temp = connection.query(obd.commands.AMBIANT_AIR_TEMP)
-                response_cel = connection.query(obd.commands.GET_DTC)
-
-                if not response_speed.is_null() and not response_maf.is_null():
-                    speed = response_speed.value.to('mile/hour').magnitude
-                    maf = response_maf.value.to('gram/second').magnitude
-                    mpg = calculate_mpg(speed, maf)
-
-                if not response_fuel_level.is_null():
-                    fuel_level = response_fuel_level.value.magnitude
-
-                if not response_voltage.is_null():
-                    voltage = response_voltage.value.magnitude
-
-                if not response_air_temp.is_null():
-                    air_temp = response_air_temp.value.magnitude
-
-                # Gather CEL codes
-                if not response_cel.is_null():
-                    codes = response_cel.value
-
-            except Exception as e:
-                print('Connection Unknown...')
-                print('Restarting script')
-                exit()
 
         # Clear the screen
         screen.fill(BLACK)
