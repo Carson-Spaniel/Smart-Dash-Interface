@@ -120,7 +120,7 @@ def query():
                 else:
                     CLEARED = 3 # Engine needs to be off
 
-            time.sleep(.1)
+            time.sleep(.1) # Increasing this will slow down RPM
 
         except Exception as e:
             print(f'An error occured: {e}')
