@@ -74,7 +74,7 @@ def query():
             if not response_rpm.is_null():
                 rpm = int(round(response_rpm.value.magnitude,0))
             
-            # Run every .5 seconds
+            # Run every .5 seconds or if DELAY is on
             if current_time - delay1 >= .5 or DELAY:
                 delay1 = current_time
 
@@ -92,7 +92,7 @@ def query():
                 if not response_fuel_level.is_null():
                     fuel_level = response_fuel_level.value.magnitude
 
-            # Run every 1 second
+            # Run every 1 second or if DELAY is on
             if not OPTIMIZE:
                 if current_time - delay2 >= 1 or DELAY:
                     delay2 = current_time
