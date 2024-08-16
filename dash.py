@@ -16,9 +16,10 @@ RPM_MAX,SHIFT = load_rpm()
 # Environment Variables
 DEV = True
 PI = False
-DELAY = True
 
 # Global Variables
+DELAY = 1
+OPTIMIZE = 0
 CLEARED = 0
 CLEAR = False
 rpm = 0
@@ -77,35 +78,38 @@ def query():
             if current_time - delay1 >= .5 or DELAY:
                 delay1 = current_time
 
-                response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
-                response_maf = connection.query(obd.commands.MAF)      # Mass Air Flow
-                
-                if not response_speed.is_null() and not response_maf.is_null():
-                    speed = response_speed.value.to('mile/hour').magnitude
-                    maf = response_maf.value.to('gram/second').magnitude
-                    mpg = calculate_mpg(speed, maf)
+                if not OPTIMIZE:
+                    response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
+                    response_maf = connection.query(obd.commands.MAF)      # Mass Air Flow
 
-            # Run every 1 second
-            if current_time - delay2 >= 1 or DELAY:
-                delay2 = current_time
+                    if not response_speed.is_null() and not response_maf.is_null():
+                        speed = response_speed.value.to('mile/hour').magnitude
+                        maf = response_maf.value.to('gram/second').magnitude
+                        mpg = calculate_mpg(speed, maf)
 
                 response_fuel_level = connection.query(obd.commands.FUEL_LEVEL)
-                response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
-                response_air_temp = connection.query(obd.commands.AMBIANT_AIR_TEMP)
 
                 if not response_fuel_level.is_null():
                     fuel_level = response_fuel_level.value.magnitude
 
-                if not response_voltage.is_null():
-                    voltage = response_voltage.value.magnitude
+            # Run every 1 second
+            if not OPTIMIZE:
+                if current_time - delay2 >= 1 or DELAY:
+                    delay2 = current_time
 
-                if not response_air_temp.is_null():
-                    air_temp = response_air_temp.value.magnitude
+                    response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
+                    response_air_temp = connection.query(obd.commands.AMBIANT_AIR_TEMP)
 
-                # Gather CEL codes
-                response_cel = connection.query(obd.commands.GET_DTC)
-                if not response_cel.is_null():
-                    codes = response_cel.value
+                    if not response_voltage.is_null():
+                        voltage = response_voltage.value.magnitude
+
+                    if not response_air_temp.is_null():
+                        air_temp = response_air_temp.value.magnitude
+
+                    # Gather CEL codes
+                    response_cel = connection.query(obd.commands.GET_DTC)
+                    if not response_cel.is_null():
+                        codes = response_cel.value
 
             # Attempt to clear CEL
             if CLEAR:
@@ -131,7 +135,7 @@ def query():
 # Main function for the Pygame interface
 def main():
     # Get global variables
-    global BRIGHTNESS, RPM_MAX, SHIFT, CLEARED, CLEAR, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes, logging, internal_clock
+    global DELAY, OPTIMIZE, BRIGHTNESS, RPM_MAX, SHIFT, CLEARED, CLEAR, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes, logging, internal_clock
 
     # Initialize variables
     pages = ["Main" , "Settings", "RPM", "Trouble"] #"Off"
@@ -149,6 +153,8 @@ def main():
                 current_page = 0
 
             SHIFT_LIGHT = int(file.readline())
+            DELAY = int(file.readline())
+            OPTIMIZE = int(file.readline())
     except Exception:
         current_page = 0
 
@@ -262,6 +268,20 @@ def main():
                                 else:
                                     FLIP = True
 
+                            # Check for collision with delay rectangle
+                            elif mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.2 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1 and mouseY < SCREEN_HEIGHT*.54 and mouseY > SCREEN_HEIGHT*.44:
+                                if DELAY:
+                                    DELAY = False
+                                else:
+                                    DELAY = True
+
+                            # Check for collision with optimize rectangle
+                            elif mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.2 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1 and mouseY < SCREEN_HEIGHT*.68 and mouseY > SCREEN_HEIGHT*.56:
+                                if OPTIMIZE:
+                                    OPTIMIZE = False
+                                else:
+                                    OPTIMIZE = True
+
                             # Check for collision with exit rectangle
                             elif mouseX < SCREEN_WIDTH*.3 + SCREEN_WIDTH*.05 and mouseX > SCREEN_WIDTH*.3 - SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.2:
                                 logging = False
@@ -344,12 +364,14 @@ def main():
                     elif mouseX < SCREEN_WIDTH * 0.7 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7 and mouseY < SCREEN_HEIGHT*.2+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.2:
                         BRIGHTNESS = increase_brightness()
 
-                time.sleep(.1)
+                time.sleep(.05)
             skip = False
 
         with open("Data/info.txt", "w") as file:
             file.write(str(current_page))
             file.write(f'\n{str(int(SHIFT_LIGHT))}')
+            file.write(f'\n{str(int(DELAY))}')
+            file.write(f'\n{str(int(OPTIMIZE))}')
         
         if DEV:
             # Set random variables for testing purposes
@@ -463,18 +485,20 @@ def main():
             pygame.draw.rect(screen, BLACK, (SCREEN_WIDTH*.12, SCREEN_HEIGHT*.15, SCREEN_WIDTH*.75, SCREEN_HEIGHT*.7))
             
             draw_text(screen, f"{round(fuel_level,1)}%", font_medium, FONT_COLOR, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.93)
-            
+
             draw_text(screen, f"{rpm}", font_xlarge, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT//2)
             draw_text(screen, "RPM", font_small_clean, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT*.7)
 
-            draw_text(screen,f"{(round(mpg, 2))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2)
-            draw_text(screen, "MPG", font_small_clean, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2+50)
+            if not OPTIMIZE:
+                draw_text(screen,f"{(round(mpg, 2))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2)
+                draw_text(screen, "MPG", font_small_clean, FONT_COLOR, SCREEN_WIDTH *.13, SCREEN_HEIGHT // 2+50)
 
-            draw_text(screen, f"{int(round(speed,0))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2)
-            draw_text(screen, "MPH", font_small_clean, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2+50)
+                draw_text(screen, f"{int(round(speed,0))}", font_medlar, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2)
+                draw_text(screen, "MPH", font_small_clean, FONT_COLOR, SCREEN_WIDTH *.87, SCREEN_HEIGHT // 2+50)
 
-            draw_text(screen, f"{round((air_temp*(9/5))+32,1)}F", font_medium, FONT_COLOR, SCREEN_WIDTH*.7, SCREEN_HEIGHT - SCREEN_HEIGHT*.15)
-            draw_text(screen, f"{round(voltage,1)} v", font_medium, FONT_COLOR, SCREEN_WIDTH*.3, SCREEN_HEIGHT - SCREEN_HEIGHT*.15)
+            if not OPTIMIZE:
+                draw_text(screen, f"{round((air_temp*(9/5))+32,1)}F", font_medium, FONT_COLOR, SCREEN_WIDTH*.7, SCREEN_HEIGHT - SCREEN_HEIGHT*.15)
+                draw_text(screen, f"{round(voltage,1)} v", font_medium, FONT_COLOR, SCREEN_WIDTH*.3, SCREEN_HEIGHT - SCREEN_HEIGHT*.15)
 
             # Draw page buttons
             draw_text(screen, "<", font_medium, FONT_COLOR, SCREEN_WIDTH*.02, SCREEN_HEIGHT * .05)
@@ -532,6 +556,14 @@ def main():
             pygame.draw.rect(screen, GREEN if SHIFT_LIGHT else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.32, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
             draw_text(screen, "On" if SHIFT_LIGHT else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
             draw_text(screen, "Shift lights", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
+
+            pygame.draw.rect(screen, GREEN if DELAY else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.44, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
+            draw_text(screen, "On" if DELAY else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
+            draw_text(screen, "Delay readings", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
+
+            pygame.draw.rect(screen, GREEN if OPTIMIZE else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.56, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
+            draw_text(screen, "On" if OPTIMIZE else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.61)
+            draw_text(screen, "Optimize readings", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.61)
 
             pygame.draw.rect(screen, RED, (SCREEN_WIDTH*.3 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
             draw_text(screen, "Exit", font_small_clean, BLACK, SCREEN_WIDTH*.3, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
