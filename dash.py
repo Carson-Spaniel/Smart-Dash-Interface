@@ -16,6 +16,7 @@ RPM_MAX,SHIFT = load_rpm()
 # Environment Variables
 DEV = True
 PI = False
+DELAY = True
 
 # Global Variables
 CLEARED = 0
@@ -73,7 +74,7 @@ def query():
                 rpm = int(round(response_rpm.value.magnitude,0))
             
             # Run every .5 seconds
-            if current_time - delay1 >= .5:
+            if current_time - delay1 >= .5 or DELAY:
                 delay1 = current_time
 
                 response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
@@ -85,7 +86,7 @@ def query():
                     mpg = calculate_mpg(speed, maf)
 
             # Run every 1 second
-            if current_time - delay2 >= 1:
+            if current_time - delay2 >= 1 or DELAY:
                 delay2 = current_time
 
                 response_fuel_level = connection.query(obd.commands.FUEL_LEVEL)
