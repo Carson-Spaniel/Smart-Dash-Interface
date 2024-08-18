@@ -364,7 +364,7 @@ def main():
                     elif mouseX < SCREEN_WIDTH * 0.7 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7 and mouseY < SCREEN_HEIGHT*.2+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.2:
                         BRIGHTNESS = increase_brightness()
 
-                time.sleep(.05)
+                time.sleep(.05) # Regulate speed of change when holding
             skip = False
 
         with open("Data/info.txt", "w") as file:
