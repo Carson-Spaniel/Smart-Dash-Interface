@@ -125,7 +125,7 @@ def query():
                 else:
                     CLEARED = 3 # Engine needs to be off
 
-            time.sleep(.1) # Increasing this will slow down RPM
+            time.sleep(.1) # Increasing this will slow down queries
 
         except Exception as e:
             print(f'An error occured: {e}')
@@ -364,7 +364,7 @@ def main():
                     elif mouseX < SCREEN_WIDTH * 0.7 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7 and mouseY < SCREEN_HEIGHT*.2+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.2:
                         BRIGHTNESS = increase_brightness()
 
-                time.sleep(.05) # Regulate speed of change when holding
+                time.sleep(.05)
             skip = False
 
         with open("Data/info.txt", "w") as file:
