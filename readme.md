@@ -31,6 +31,8 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
   - Option to flip the display vertically (to act as a Heads Up Display).
   - Brightness adjustment.
   - Shift light.
+  - Delay readings: Slow down all readings to happen at the same time.
+  - Optimize readings: Only read RPM and Fuel level data.
   - Exit button.
 
 - **RPM Page**:
