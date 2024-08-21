@@ -18,7 +18,7 @@ DEV = True
 PI = False
 
 # Global Variables
-DELAY = 1
+DELAY = 0
 OPTIMIZE = 0
 CLEARED = 0
 CLEAR = False
