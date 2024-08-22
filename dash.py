@@ -172,7 +172,7 @@ def main():
     curveIn = pygame.transform.scale(curve, (curve.get_width() * 1.4, curve.get_height() * 1.1))
 
     if DEV:
-        # Set fake values
+        # Set fake initial values
         rpm = 650
         fuel_level = random.randint(0,100)
         speed = 0
