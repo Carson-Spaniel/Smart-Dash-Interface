@@ -1,7 +1,2 @@
 obd==0.7.2
 pygame==2.5.2
-Flask==3.0.3
-requests==2.32.3
-osmnx==1.9.4
-scikit-learn==1.5.1
-gpsd-py3==0.3.0
