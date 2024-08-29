@@ -50,8 +50,8 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
   ![Trouble Code Page Screenshot](https://github.com/Carson-Spaniel/Smart-Dash-Interface/blob/main/Screenshots/Trouble%20Codes.png)
   - Allows for reading and clearing of Check Engine Light codes.
 
-- **Chevrolet Logo Animation**:
-  - Displayed on startup.
+- **Chevrolet Camaro Logo Animation**:
+  - Displayed on startup (can be changed in the code).
 
 ## Configuration
 
