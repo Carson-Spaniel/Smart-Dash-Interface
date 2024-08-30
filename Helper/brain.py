@@ -37,6 +37,7 @@ font_small_clean = pygame.font.Font(size=36)
 # Path to the brightness file
 brightness_file = "/sys/class/backlight/10-0045/brightness"
 
+# Function to get current brightness
 def get_brightness():
     try:
         with open(brightness_file, "r") as file:
@@ -128,7 +129,7 @@ def draw_text(screen, text, font, color, x, y, max_width=None):
         text_rect = text_surface.get_rect(center=(x, y + i * font.get_height()))
         screen.blit(text_surface, text_rect)
 
-
+# Function to draw a rounded rectangle
 def draw_rounded_rect(surface, color, rect, radius):
     # Draw the rounded corners using arcs
     x, y, width, height = rect
