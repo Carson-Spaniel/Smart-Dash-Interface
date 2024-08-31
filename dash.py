@@ -65,6 +65,10 @@ def query():
 
     delay1 = time.time()
     delay2 = time.time()
+
+    # Made it these specific times so that all queries only line up every 9.1 seconds
+    first_delay = .7
+    second_delay = 1.3
     while logging:
         current_time = time.time()
         try:
@@ -74,8 +78,8 @@ def query():
             if not response_rpm.is_null():
                 rpm = int(round(response_rpm.value.magnitude,0))
             
-            # Run every .5 seconds or if DELAY is on
-            if current_time - delay1 >= .5 or DELAY:
+            # Run every first_delay seconds or if DELAY is on
+            if current_time - delay1 >= first_delay or DELAY:
                 delay1 = current_time
 
                 if not OPTIMIZE:
@@ -92,9 +96,9 @@ def query():
                 if not response_fuel_level.is_null():
                     fuel_level = response_fuel_level.value.magnitude
 
-            # Run every 1 second or if DELAY is on
+            # Run every second_delay second or if DELAY is on
             if not OPTIMIZE:
-                if current_time - delay2 >= 1 or DELAY:
+                if current_time - delay2 >= second_delay or DELAY:
                     delay2 = current_time
 
                     response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
