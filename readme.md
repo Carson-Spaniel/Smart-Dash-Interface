@@ -76,3 +76,11 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
 - A Bluetooth OBD-II adapter makes it cleaner, but it will also work with a wired setup.
 - Any Raspberry Pi should work but just make sure you have Bluetooth unless running a wired connection.
 - Feel free to customize fonts, colors, and layout as needed in the script.
+
+## Upcoming
+- Customization page: adding more customization such as color choices and placement of values.
+- Flashdrive updating: be able to update through flashdrive.
+
+## Far Future
+- Raspberry Pi hotspot for wifi connection to phone for GPS data for GPS related features.
+- Performance page: top speed tracking, 0-60 time tracking, more performance related things.
