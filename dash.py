@@ -449,7 +449,7 @@ def main():
             draw_text(screen, "-", font_medium, BLACK, SCREEN_WIDTH * 0.7-25+SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.05)
 
         elif pages[current_page] == "Main":
-            screen.fill(BLUE)
+            screen.fill(BACKGROUND_COLOR)
 
             # Calculate the width of the filled portion based on percentage
             fuel_width = math.floor((SCREEN_WIDTH*.7663) * fuel_level/100)

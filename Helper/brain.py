@@ -20,6 +20,7 @@ BLACK = (0, 0, 0)
 BLUE = (0, 150, 255)
 
 FONT_COLOR = WHITE # Default font color
+BACKGROUND_COLOR = BLUE # Default background color
 
 # Fonts
 font_xlarge = pygame.font.Font("./Fonts/digital-7.ttf", size=200)
