@@ -78,6 +78,7 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
 - Feel free to customize fonts, colors, and layout as needed in the script.
 
 ## Upcoming
+- Swiping gestures for easier page navigation
 - Customization page: adding more customization such as color choices and placement of values.
 - Flashdrive updating: be able to update through flashdrive.
 
