@@ -142,25 +142,45 @@ def main():
     global DELAY, OPTIMIZE, BRIGHTNESS, RPM_MAX, SHIFT, CLEARED, CLEAR, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes, logging, internal_clock
 
     # Initialize variables
-    pages = ["Main" , "Settings", "RPM", "Trouble"] #"Off"
-    current_page = 0
+    #pages = ["Main" , "Settings", "RPM", "Trouble"] #"Off"
+    pages = [
+        ["Main"],
+        ["Settings", "RPM"],
+        ["Trouble"]
+    ]
+    print(pages[1][1])
+    current_page = (0, 0)
     FLIP = False
     SHIFT_LIGHT = True
     mouse_button_down = False
     skip = True
 
+    swipe_start_x = 0
+    swipe_start_y = 0
+    swipe_threshold = 50  # Threshold for swipe detection (in pixels)
+    is_swiping = False
+
     # Load the last visited page
     try:
         with open("Data/info.txt", "r") as file:
-            current_page = int(file.readline())
-            if current_page < 0 or current_page >= len(pages):
-                current_page = 0
+            current_page_x = int(file.readline())
+            if current_page_x < 0 or current_page_x >= len(pages[0]):
+                current_page_x = 0
+
+            current_page_y = int(file.readline())
+            if current_page_y < 0 or current_page_y >= len(pages[1]):
+                current_page_y = 0
+
+            current_page = (current_page_x, current_page_y)
 
             SHIFT_LIGHT = int(file.readline())
             DELAY = int(file.readline())
             OPTIMIZE = int(file.readline())
     except Exception:
-        current_page = 0
+        current_page = (0, 0)
+        SHIFT_LIGHT = True
+        DELAY = False
+        OPTIMIZE = False
 
     # Load Pygame
     if not PI:
@@ -194,7 +214,34 @@ def main():
             if event.type == pygame.QUIT:
                 logging = False
 
+            elif event.type == pygame.MOUSEMOTION:
+                if mouse_button_down:  # If touch is in progress
+                    current_x, current_y = event.pos
+                    dx = current_x - swipe_start_x  # Horizontal movement
+                    dy = current_y - swipe_start_y  # Vertical movement
+
+                    # Detect if a swipe gesture is happening
+                    if abs(dx) > swipe_threshold and abs(dx) > abs(dy):  # Horizontal swipe
+                        is_swiping = True  # Mark as swiping
+                        mouse_button_down = False  # Cancel button press if it's a swipe
+                        if dx > 0:  # Swipe right (to previous page)
+                            current_page = ((current_page[0] - 1) % len(pages), 0)
+                        else:  # Swipe left (to next page)
+                            current_page = ((current_page[0] + 1) % len(pages), 0)
+
+                    elif abs(dy) > swipe_threshold and abs(dy) > abs(dx):  # vertical swipe
+                        is_swiping = True  # Mark as swiping
+                        mouse_button_down = False  # Cancel button press if it's a swipe
+                        if dx > 0:  # Swipe down
+                            current_page = (current_page[0], (current_page[1] - 1) % len(pages[current_page[0]]))
+                        else:  # Swipe up
+                            current_page = (current_page[0], (current_page[1] + 1) % len(pages[current_page[0]]))
+
             elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_button_down = True
+                swipe_start_x, swipe_start_y = event.pos  # Record the start position of the touch
+                is_swiping = False  # Reset swiping status for this touch event
+
                 mouseX, mouseY = event.pos[0], event.pos[1]
 
                 if FLIP:
@@ -205,14 +252,15 @@ def main():
 
                     # Check top left corner for page change
                     if mouseX < SCREEN_WIDTH // 10 and mouseY < SCREEN_HEIGHT // 10:
-                        current_page = (current_page - 1) % len(pages)
+                        print("left")
+                        current_page = ((current_page[0] - 1) % len(pages), 0)
 
                     # Check top right corner for page change
                     elif mouseX > SCREEN_WIDTH - SCREEN_WIDTH // 10 and mouseY < SCREEN_HEIGHT // 10:
-                        current_page = (current_page + 1) % len(pages)
+                        current_page = ((current_page[0] + 1) % len(pages), 0)
 
                     else:
-                        if pages[current_page] == "RPM":
+                        if pages[current_page[0]][current_page[1]] == "RPM":
 
                             # Check for collision with increase rectangle
                             if mouseX < SCREEN_WIDTH * 0.2+25+SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.2+25 and mouseY < SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.3:
@@ -256,7 +304,7 @@ def main():
                                 # Save the new max horsepower data
                                 save_rpm(RPM_MAX,SHIFT)
 
-                        if pages[current_page] == "Settings":
+                        if pages[current_page[0]][current_page[1]] == "Settings":
 
                             # Check for collision with shift light rectangle
                             if mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.2 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1 and mouseY < SCREEN_HEIGHT*.42 and mouseY > SCREEN_HEIGHT*.32:
@@ -298,7 +346,7 @@ def main():
                             elif mouseX < SCREEN_WIDTH * 0.7 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7 and mouseY < SCREEN_HEIGHT*.2+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.2:
                                 BRIGHTNESS = increase_brightness()
 
-                        if pages[current_page] == "Trouble":
+                        if pages[current_page[0]][current_page[1]] == "Trouble":
 
                             # Check for collision with exit rectangle
                             if not CLEAR: # To prevent multiple clears
@@ -314,7 +362,7 @@ def main():
             if not skip:
                 mouseX, mouseY = pygame.mouse.get_pos()
 
-                if pages[current_page] == "RPM":
+                if pages[current_page[0]][current_page[1]] == "RPM":
 
                     # Check for collision with increase rectangle
                     if mouseX < SCREEN_WIDTH * 0.2+25+SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.2+25 and mouseY < SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.3:
@@ -358,7 +406,7 @@ def main():
                         # Save the new max horsepower data
                         save_rpm(RPM_MAX,SHIFT)
 
-                if pages[current_page] == "Settings":
+                if pages[current_page[0]][current_page[1]] == "Settings":
 
                     # Check for collision with decrease rectangle
                     if mouseX < SCREEN_WIDTH * 0.5 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.5 and mouseY < SCREEN_HEIGHT*.2+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.2:
@@ -372,7 +420,8 @@ def main():
             skip = False
 
         with open("Data/info.txt", "w") as file:
-            file.write(str(current_page))
+            file.write(str(current_page[0]))
+            file.write(f'\n{str(current_page[1])}')
             file.write(f'\n{str(int(SHIFT_LIGHT))}')
             file.write(f'\n{str(int(DELAY))}')
             file.write(f'\n{str(int(OPTIMIZE))}')
@@ -419,13 +468,13 @@ def main():
 
         for i, page in enumerate(pages):
             # if page != 'Off':
-            color = FONT_COLOR if i == current_page else BLACK
+            color = FONT_COLOR if i == current_page[0] else BLACK
             pygame.draw.circle(screen, FONT_COLOR, (circle_x, circle_y), circle_radius + 4)
             pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius + 2)
             pygame.draw.circle(screen, color, (circle_x, circle_y), circle_radius)
             circle_x += 2 * (circle_radius + circle_spacing)
 
-        if pages[current_page] == "RPM":
+        if pages[current_page[0]][current_page[1]] == "RPM":
             draw_text(screen, "RPM Settings", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
 
             # Draw RPM section
@@ -448,7 +497,7 @@ def main():
             draw_text(screen, "+", font_medium, BLACK, SCREEN_WIDTH * 0.7-25+SCREEN_WIDTH*.05, SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.05)
             draw_text(screen, "-", font_medium, BLACK, SCREEN_WIDTH * 0.7-25+SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.05)
 
-        elif pages[current_page] == "Main":
+        elif pages[current_page[0]][current_page[1]] == "Main":
             screen.fill(BACKGROUND_COLOR)
 
             # Calculate the width of the filled portion based on percentage
@@ -543,7 +592,7 @@ def main():
                         
                     circle_x += 2 * (circle_radius + circle_spacing)
 
-        elif pages[current_page] == "Settings":
+        elif pages[current_page[0]][current_page[1]] == "Settings":
             draw_text(screen, "General Settings", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
 
             pygame.draw.rect(screen, PURPLE, (SCREEN_WIDTH // 2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
@@ -572,7 +621,7 @@ def main():
             pygame.draw.rect(screen, RED, (SCREEN_WIDTH*.3 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
             draw_text(screen, "Exit", font_small_clean, BLACK, SCREEN_WIDTH*.3, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
 
-        elif pages[current_page] == "Trouble":
+        elif pages[current_page[0]][current_page[1]] == "Trouble":
             draw_text(screen, "Trouble Codes", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
             
             if len(codes):
@@ -622,7 +671,7 @@ def main():
             else:
                 draw_text(screen, f"{'Trouble codes have been cleared, Please restart car' if CLEARED else 'No trouble codes detected'}", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.25)
 
-        elif pages[current_page] == "Off":
+        elif pages[current_page[0]][current_page[1]] == "Off":
             screen.fill(BLACK)
 
         if FLIP:
