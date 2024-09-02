@@ -1,5 +1,5 @@
 env/
-Data/*.txt
+Dash/Data/*.txt
 cache/
 __pycache__/
 Experimental/
