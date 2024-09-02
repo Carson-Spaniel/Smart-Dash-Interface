@@ -11,7 +11,7 @@ Most of the pictures still capture the overall design of the dash, but the readm
 
 ## Installation
 
-### You can find all these commands in [Download Script](https://github.com/Carson-Spaniel/Smart-Dash-Interface/tree/main/download.sh)
+### You can find all these commands in [Download Script](https://github.com/Carson-Spaniel/Smart-Dash-Interface/blob/main/download.sh)
 1. Move into the home directory with `cd /home/pi/`.
 2. Run `wget -O Dash.tar.xz https://github.com/Carson-Spaniel/Smart-Dash-Interface/releases/latest/download/Dash.tar.xz` to download the files.
 3. Run `tar -xJvf Dash.tar.xz` to unpack everything.
