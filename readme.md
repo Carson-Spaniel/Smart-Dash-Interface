@@ -9,7 +9,7 @@ Most of the pictures still capture the overall design of the dash, but the readm
 
 - A Bluetooth OBD-II adapter
 
-## Installation
+## Raspberry Pi Installation
 
 ### You can find all these commands in [Download Script](https://github.com/Carson-Spaniel/Smart-Dash-Interface/blob/main/download.sh)
 1. Move into the home directory with `cd /home/pi/`.
