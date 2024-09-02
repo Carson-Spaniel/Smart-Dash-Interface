@@ -11,12 +11,14 @@ Most of the pictures still capture the overall design of the dash, but the readm
 
 ## Installation
 
-1. Move `Dash.tar.xz` into `/home/pi/` on your raspberry pi.
-2. Run `tar -xJvf Dash.tar.xz` to unpack everything.
-3. Change into the Dash directory using `cd Dash/`.
-4. Run `sudo ./install.sh` to start the installation and connection with your Bluetooth device.
-5. Ensure you have a Bluetooth OBD-II adapter paired with your device and put into either the `boot.sh` script (Bluetooth connection) or `dash.py` script.
-6. Reboot your raspberry pi.
+### You can find all these commands in [Download Script](https://github.com/Carson-Spaniel/Smart-Dash-Interface/tree/main/download.sh)
+1. Move into the home directory with `cd /home/pi/`.
+2. Run `wget -O Dash.tar.xz https://github.com/Carson-Spaniel/Smart-Dash-Interface/releases/latest/download/Dash.tar.xz` to download the files.
+3. Run `tar -xJvf Dash.tar.xz` to unpack everything.
+4. Change into the Dash directory using `cd Dash/`.
+5. Run `sudo ./install.sh` to start the installation and connection with your Bluetooth device.
+6. Ensure you have a Bluetooth OBD-II adapter paired with your device and put into either the `boot.sh` script (Bluetooth connection) or `dash.py` script.
+7. Reboot your raspberry pi.
 
 ## Features
 
