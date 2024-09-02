@@ -2,6 +2,9 @@
 
 This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inch display. It utilizes Pygame for graphics rendering and OBD-II for vehicle data retrieval.
 
+## Disclaimer
+Most of the pictures still capture the overall design of the dash, but the readme has not been fully updated recently. Please read the version updates to see what is new since the last full readme update.
+
 ## Needs
 
 - A Bluetooth OBD-II adapter
@@ -101,3 +104,4 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
 
 ### v1.x.x 
 - All previous versions were not documented.
+- This is where the current readme is at.
