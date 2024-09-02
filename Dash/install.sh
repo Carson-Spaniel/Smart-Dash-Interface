@@ -93,7 +93,7 @@ select_bluetooth_device() {
                 continue
             fi
             break
-        elif [[ "$user_input" =~ ^[0-9]+$ ]] && [ "$user_input" -ge 1 ] && [ "$user_input" -lt "$i" ]]; then
+        elif [[ "$user_input" =~ ^[0-9]+$ ]] && [[ "$user_input" -ge 1 ]] && [[ "$user_input" -lt "$i" ]]; then
             mac_address=${device_list[$user_input]}
             break
         elif [[ "$user_input" -eq "$i" ]]; then
