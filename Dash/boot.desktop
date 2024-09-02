@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=DashBootScript
+Exec=/bin/bash /home/pi/Dash/boot.sh
+Terminal=True
+icon=python

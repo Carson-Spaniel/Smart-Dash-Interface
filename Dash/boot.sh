@@ -9,7 +9,7 @@ echo "----------Setting environment variables----------" >> $logfile
 export DISPLAY=:0
 
 echo "----------Changing brightness permissions----------" >> $logfile
-# Change permissions (replace <username> with your actual username)
+# Change permissions
 sudo chown pi /sys/class/backlight/10-0045/brightness >> $logfile
 
 echo "----------Granting brightness permissions----------" >> $logfile
@@ -18,11 +18,11 @@ sudo chmod 666 /sys/class/backlight/10-0045/brightness >> $logfile
 
 echo "----------Creating bluetooth port----------" >> $logfile
 # Create the Bluetooth Port
-sudo rfcomm bind /dev/rfcomm0 8C:DE:52:DC:17:24 >> $logfile
+sudo rfcomm bind /dev/rfcomm0 8C:DE:52:DC:17:24 >> $logfile # change this to your Bluetooth address of your device (if using bluetooth)
 
 echo "----------Moving to correct directory----------" >> $logfile
 # Move into correct folder
-cd /home/pi/Python-OBD-Practice/
+cd /home/pi/Dash/
 
 echo "----------Activating virtual environment----------" >> $logfile
 # Activate the virtual environment
