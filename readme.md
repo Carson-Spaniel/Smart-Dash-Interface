@@ -78,8 +78,9 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
 - Feel free to customize fonts, colors, and layout as needed in the script.
 
 ## Upcoming
-- Customization page: adding more customization such as color choices and placement of values.
-- Flashdrive updating: be able to update through flashdrive.
+1. Customization page: adding more customization such as color choices and placement of values.
+2. Flashdrive updating: be able to update through flashdrive.
+3. Complete Readme overhaul: Update the read me to most accurate information.
 
 ## Far Future
 - Raspberry Pi hotspot for wifi connection to phone for GPS data for GPS related features.
