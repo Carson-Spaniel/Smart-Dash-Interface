@@ -16,7 +16,7 @@ RPM_MAX,SHIFT = load_rpm()
 # Environment Variables
 DEV = True
 PI = False
-SYSTEM_VERSION = "2.0.0"
+SYSTEM_VERSION = "2.1.0"
 
 # Global Variables
 DELAY = 0
