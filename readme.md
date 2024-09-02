@@ -89,6 +89,10 @@ Most of the pictures still capture the overall design of the dash, but the readm
 
 ## Versions
 
+### v2.1.1
+- Fixed
+  - Install scripts: trying to make it even easier with as little interaction as possible
+
 ### v2.1.0
 - Added
   - Customization Page: Added customization page that will be used to customize the overall look of the dash.

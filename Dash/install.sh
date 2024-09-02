@@ -93,7 +93,7 @@ select_bluetooth_device() {
                 continue
             fi
             break
-        elif [[ "$user_input" =~ ^[0-9]+$ ]] && [ "$user_input" -ge 1 ] && [ "$user_input" -lt "$i" ]; then
+        elif [[ "$user_input" =~ ^[0-9]+$ ]] && [ "$user_input" -ge 1 ] && [ "$user_input" -lt "$i" ]]; then
             mac_address=${device_list[$user_input]}
             break
         elif [[ "$user_input" -eq "$i" ]]; then
@@ -130,7 +130,7 @@ fi
 
 # Moving autostart app
 log "Creating autostart app"
-if sudo mv boot.desktop /home/pi/.config/autostart/ 2>>$LOGFILE; then
+if mv boot.desktop /home/pi/.config/autostart/ 2>>$LOGFILE; then
     log "Autostart app created."
 else
     error_exit
@@ -149,6 +149,34 @@ log "Activating virtual environment"
 source env/bin/activate 2>>$LOGFILE
 if [ $? -eq 0 ]; then
     log "Virtual environment activated."
+else
+    error_exit
+fi
+
+# Changing brightness permissions
+log "Changing brightness permissions"
+sudo chown pi /sys/class/backlight/10-0045/brightness >> $LOGFILE
+if [ $? -eq 0 ]; then
+    log "Ownership of brightness file changed."
+else
+    error_exit
+fi
+
+# Granting brightness permissions
+log "Granting brightness permissions"
+sudo chmod 666 /sys/class/backlight/10-0045/brightness >> $LOGFILE
+if [ $? -eq 0 ]; then
+    log "Permissions of brightness file granted."
+else
+    error_exit
+fi
+
+# Adding visudo entry for rfcomm without password
+log "Adding visudo entry for rfcomm"
+VISUDO_LINE="pi ALL=(ALL) NOPASSWD: /usr/bin/rfcomm"
+sudo grep -qF "$VISUDO_LINE" /etc/sudoers || echo "$VISUDO_LINE" | sudo EDITOR='tee -a' visudo
+if [ $? -eq 0 ]; then
+    log "Visudo entry added successfully for rfcomm."
 else
     error_exit
 fi

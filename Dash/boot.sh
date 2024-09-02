@@ -9,14 +9,6 @@ echo "----------Setting environment variables----------" >> $logfile
 # Set the DISPLAY variable
 export DISPLAY=:0
 
-echo "----------Changing brightness permissions----------" >> $logfile
-# Change permissions
-sudo chown pi /sys/class/backlight/10-0045/brightness >> $logfile
-
-echo "----------Granting brightness permissions----------" >> $logfile
-# Grant write permission
-sudo chmod 666 /sys/class/backlight/10-0045/brightness >> $logfile
-
 echo "----------Creating bluetooth port----------" >> $logfile
 
 # Read the Bluetooth MAC address from the file
