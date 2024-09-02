@@ -11,16 +11,12 @@ Most of the pictures still capture the overall design of the dash, but the readm
 
 ## Installation
 
-1. Install Python (if not already installed).
-2. Install Requirements: `pip install -r requirements.txt`
-3. Ensure you have a Bluetooth OBD-II adapter paired with your device.
-
-## Usage
-
-1. Clone or download the repository.
-2. Connect your Bluetooth OBD-II adapter to your vehicle.
-3. Run the script: `python dash.py`
-4. The script will display a Smart Dash interface on your screen.
+1. Move `Dash.tar.xz` into `/home/pi/` on your raspberry pi.
+2. Run `tar -xJvf Dash.tar.xz` to unpack everything.
+3. Change into the Dash directory using `cd Dash/`.
+4. Run `sudo ./install.sh` to start the installation and connection with your Bluetooth device.
+5. Ensure you have a Bluetooth OBD-II adapter paired with your device and put into either the `boot.sh` script (Bluetooth connection) or `dash.py` script.
+6. Reboot your raspberry pi.
 
 ## Features
 

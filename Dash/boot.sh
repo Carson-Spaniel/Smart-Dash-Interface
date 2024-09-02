@@ -1,6 +1,7 @@
 #!/bin/bash
 
-logfile=~/bootup.log
+logfile=/home/pi/Dash/bootup.log
+device=/home/pi/Dash/Data/device.txt
 
 echo "----------Starting boot.sh----------" > $logfile
 
@@ -17,8 +18,24 @@ echo "----------Granting brightness permissions----------" >> $logfile
 sudo chmod 666 /sys/class/backlight/10-0045/brightness >> $logfile
 
 echo "----------Creating bluetooth port----------" >> $logfile
-# Create the Bluetooth Port
-sudo rfcomm bind /dev/rfcomm0 8C:DE:52:DC:17:24 >> $logfile # change this to your Bluetooth address of your device (if using bluetooth)
+
+# Read the Bluetooth MAC address from the file
+if [ -f "$device" ]; then
+    bt_mac=$(cat $device)
+    if [ "$bt_mac" == "No Bluetooth" ]; then
+        echo "No Bluetooth configured. Skipping Bluetooth setup." >> $logfile
+    elif [ -n "$bt_mac" ]; then
+        # Create the Bluetooth Port
+        sudo rfcomm bind /dev/rfcomm0 "$bt_mac" >> $logfile
+        echo "Using Bluetooth address: $bt_mac" >> $logfile
+    else
+        echo "Invalid entry in $device. Exiting." >> $logfile
+        exit 1
+    fi
+else
+    echo "Device file $device not found. Exiting." >> $logfile
+    exit 1
+fi
 
 echo "----------Moving to correct directory----------" >> $logfile
 # Move into correct folder
