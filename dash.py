@@ -146,7 +146,7 @@ def main():
     #pages = ["Main" , "Settings", "RPM", "Trouble"] #"Off"
     pages = [
         ["Main"],
-        ["Settings", "RPM", "Info"],
+        ["Settings", "RPM", "Custom","Info"],
         ["Trouble"]
     ]
     current_page = (0, 0)
@@ -164,11 +164,11 @@ def main():
     try:
         with open("Data/info.txt", "r") as file:
             current_page_x = int(file.readline())
-            if current_page_x < 0 or current_page_x >= len(pages[0]):
+            if current_page_x < 0 or current_page_x >= len(pages):
                 current_page_x = 0
 
             current_page_y = int(file.readline())
-            if current_page_y < 0 or current_page_y >= len(pages[1]):
+            if current_page_y < 0 or current_page_y >= len(pages[current_page_x]):
                 current_page_y = 0
 
             current_page = (current_page_x, current_page_y)
@@ -295,10 +295,10 @@ def main():
 
                         # Check for collision with shift light rectangle
                         if mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.2 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1 and mouseY < SCREEN_HEIGHT*.42 and mouseY > SCREEN_HEIGHT*.32:
-                            if SHIFT_LIGHT:
-                                SHIFT_LIGHT = False
+                            if OPTIMIZE:
+                                OPTIMIZE = False
                             else:
-                                SHIFT_LIGHT = True
+                                OPTIMIZE = True
 
                         # Check for collision with flip rectangle
                         elif mouseX < SCREEN_WIDTH//2 + SCREEN_WIDTH*.05 and mouseX > SCREEN_WIDTH//2 - SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.2:
@@ -313,13 +313,6 @@ def main():
                                 DELAY = False
                             else:
                                 DELAY = True
-
-                        # Check for collision with optimize rectangle
-                        elif mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.2 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1 and mouseY < SCREEN_HEIGHT*.68 and mouseY > SCREEN_HEIGHT*.56:
-                            if OPTIMIZE:
-                                OPTIMIZE = False
-                            else:
-                                OPTIMIZE = True
 
                         # Check for collision with decrease rectangle
                         elif mouseX < SCREEN_WIDTH * 0.5 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.5 and mouseY < SCREEN_HEIGHT*.2+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.2:
@@ -341,6 +334,15 @@ def main():
                         # Check for collision with exit rectangle
                         if mouseX < SCREEN_WIDTH//2 + SCREEN_WIDTH*.05 and mouseX > SCREEN_WIDTH//2 - SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.2:
                             logging = False
+
+                    elif pages[current_page[0]][current_page[1]] == "Custom":
+
+                        # Check for collision with shift light rectangle
+                        if mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.2 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1 and mouseY < SCREEN_HEIGHT*.2+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.2:
+                            if SHIFT_LIGHT:
+                                SHIFT_LIGHT = False
+                            else:
+                                SHIFT_LIGHT = True
 
                 skip = True
             elif event.type == pygame.MOUSEBUTTONUP:
@@ -604,25 +606,13 @@ def main():
                 draw_text(screen, f"{int(round((BRIGHTNESS/255)*100,0))}%", font_small, FONT_COLOR, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.25)
                 draw_text(screen, "Brightness", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.25)
 
-                pygame.draw.rect(screen, GREEN if SHIFT_LIGHT else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.32, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
-                draw_text(screen, "On" if SHIFT_LIGHT else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
-                draw_text(screen, "Shift lights", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
+                pygame.draw.rect(screen, GREEN if OPTIMIZE else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.32, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
+                draw_text(screen, "On" if OPTIMIZE else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
+                draw_text(screen, "Optimize readings", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
 
                 pygame.draw.rect(screen, GREEN if DELAY else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.44, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
                 draw_text(screen, "On" if DELAY else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
                 draw_text(screen, "Delay readings", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
-
-                pygame.draw.rect(screen, GREEN if OPTIMIZE else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.56, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
-                draw_text(screen, "On" if OPTIMIZE else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.61)
-                draw_text(screen, "Optimize readings", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.61)
-
-            elif pages[current_page[0]][current_page[1]] == "Info":
-                draw_text(screen, "System Information", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
-
-                draw_text(screen, f"Version: {SYSTEM_VERSION}", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.2)
-            
-                pygame.draw.rect(screen, RED, (SCREEN_WIDTH//2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
-                draw_text(screen, "Exit", font_small_clean, BLACK, SCREEN_WIDTH//2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
 
             elif pages[current_page[0]][current_page[1]] == "Trouble":
                 draw_text(screen, "Trouble Codes", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
@@ -673,6 +663,21 @@ def main():
                         code_count += 1
                 else:
                     draw_text(screen, f"{'Trouble codes have been cleared, Please restart car' if CLEARED else 'No trouble codes detected'}", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.25)
+
+            elif pages[current_page[0]][current_page[1]] == "Info":
+                draw_text(screen, "System Information", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
+
+                draw_text(screen, f"Version: {SYSTEM_VERSION}", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.2)
+            
+                pygame.draw.rect(screen, RED, (SCREEN_WIDTH//2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
+                draw_text(screen, "Exit", font_small_clean, BLACK, SCREEN_WIDTH//2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
+
+            elif pages[current_page[0]][current_page[1]] == "Custom":
+                draw_text(screen, "Customization Settings", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
+
+                pygame.draw.rect(screen, GREEN if SHIFT_LIGHT else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
+                draw_text(screen, "On" if SHIFT_LIGHT else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.25)
+                draw_text(screen, "Shift lights", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.25)
 
             elif pages[current_page[0]][current_page[1]] == "Off":
                 screen.fill(BLACK)
