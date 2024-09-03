@@ -16,7 +16,7 @@ RPM_MAX,SHIFT = load_rpm()
 # Environment Variables
 DEV = False
 PI = True
-SYSTEM_VERSION = "2.1.2"
+SYSTEM_VERSION = "2.2.0"
 
 # Global Variables
 DELAY = 0
@@ -33,6 +33,7 @@ air_temp = 0
 codes = []
 logging = True
 internal_clock = 0
+exit_text = "Exiting..."
 
 # Attempt to connect to OBD-II Adapter
 if not DEV:
@@ -140,7 +141,7 @@ def query():
 # Main function for the Pygame interface
 def main():
     # Get global variables
-    global DELAY, OPTIMIZE, BRIGHTNESS, RPM_MAX, SHIFT, CLEARED, CLEAR, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes, logging, internal_clock
+    global DELAY, OPTIMIZE, BRIGHTNESS, RPM_MAX, SHIFT, CLEARED, CLEAR, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes, logging, internal_clock, exit_text
 
     # Initialize variables
     #pages = ["Main" , "Settings", "RPM", "Trouble"] #"Off"
@@ -210,6 +211,13 @@ def main():
         threading.Thread(target=query, daemon=True).start()
 
     while logging:
+        try:
+            with open("Data/wifi.txt", "r") as file:
+                wifi = int(file.readline())
+        except Exception:
+            print("No wifi file.")
+            wifi = 0
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 logging = False
@@ -293,7 +301,7 @@ def main():
 
                     elif pages[current_page[0]][current_page[1]] == "Settings":
 
-                        # Check for collision with shift light rectangle
+                        # Check for collision with optimize rectangle
                         if mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.2 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1 and mouseY < SCREEN_HEIGHT*.42 and mouseY > SCREEN_HEIGHT*.32:
                             if OPTIMIZE:
                                 OPTIMIZE = False
@@ -334,6 +342,13 @@ def main():
                         # Check for collision with exit rectangle
                         if mouseX < SCREEN_WIDTH//2 + SCREEN_WIDTH*.05 and mouseX > SCREEN_WIDTH//2 - SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.2:
                             logging = False
+                            exit_text = "Exiting..."
+                        
+                        # Check for collision with update rectangle
+                        elif mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.21 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.09 and mouseY < SCREEN_HEIGHT*.42 and mouseY > SCREEN_HEIGHT*.32:
+                            if wifi:
+                                logging = False
+                                exit_text = "Wifi Update"
 
                     elif pages[current_page[0]][current_page[1]] == "Custom":
 
@@ -672,6 +687,10 @@ def main():
                 pygame.draw.rect(screen, RED, (SCREEN_WIDTH//2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
                 draw_text(screen, "Exit", font_small_clean, BLACK, SCREEN_WIDTH//2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
 
+                pygame.draw.rect(screen, GREEN, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.09, SCREEN_HEIGHT*.32, SCREEN_WIDTH*.12, SCREEN_HEIGHT*.1))
+                draw_text(screen, "Update", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
+                draw_text(screen, "Wifi Update", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
+
             elif pages[current_page[0]][current_page[1]] == "Custom":
                 draw_text(screen, "Customization Settings", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
 
@@ -698,7 +717,7 @@ def main():
         internal_clock = round((internal_clock + interval) % .4, 1)
         time.sleep(interval)
 
-    print("Exiting...")
+    print(exit_text)
 
     if not DEV:
         # Stop and close the connection

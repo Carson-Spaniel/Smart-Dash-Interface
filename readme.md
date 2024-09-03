@@ -89,13 +89,17 @@ Most of the pictures still capture the overall design of the dash, but the readm
 
 ## Versions
 
+### v2.2.0
+- Added
+  - Wifi Update: be able to update the device over wifi.
+
 ### v2.1.2
 - Fixed
-  - Install script bug: wouldn't let you pick a number from the bluetooth list
+  - Install script bug: wouldn't let you pick a number from the bluetooth list.
 
 ### v2.1.1
 - Fixed
-  - Install scripts: trying to make it even easier with as little interaction as possible
+  - Install scripts: trying to make it even easier with as little interaction as possible.
 
 ### v2.1.0
 - Added
