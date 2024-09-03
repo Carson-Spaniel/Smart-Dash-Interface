@@ -16,7 +16,7 @@ RPM_MAX,SHIFT = load_rpm()
 # Environment Variables
 DEV = False
 PI = True
-SYSTEM_VERSION = "2.3.0"
+SYSTEM_VERSION = "2.3.1"
 
 # Global Variables
 DELAY = 0
@@ -818,8 +818,7 @@ def main():
     print(exit_text)
 
     if not DEV:
-        # Stop and close the connection
-        connection.stop()
+        # Close the connection
         connection.close()
 
         # Shutting down

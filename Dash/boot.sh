@@ -85,7 +85,18 @@ while true; do
         wget -O Dash.tar.xz https://github.com/Carson-Spaniel/Smart-Dash-Interface/releases/latest/download/Dash.tar.xz
         tar -xJvf Dash.tar.xz
         cd Dash/
-        sudo reboot
+        # Activating virtual environment
+        echo "Activating virtual environment" >> $logfile
+        source env/bin/activate 2>>$logfile
+
+        # Installing requirements
+        log "Installing requirements"
+        if pip install -r requirements.txt 2>>$logfile; then
+            echo "Requirements installed." >> $logfile
+        else
+            break
+        fi
+        continue
     else
         break
     fi

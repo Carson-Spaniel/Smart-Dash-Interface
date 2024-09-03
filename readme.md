@@ -87,6 +87,11 @@ Most of the pictures still capture the overall design of the dash, but the readm
 
 ## Versions
 
+### v2.3.1
+- Fixed
+  - Wifi Update: some problems associated with old code.
+  - Exiting: Shutdown was encountering an error.
+
 ### v2.3.0
 - Added
   - Color Customization: can now change the colors of the font and backgrounds.
