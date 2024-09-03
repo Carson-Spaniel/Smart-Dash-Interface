@@ -14,8 +14,8 @@ BRIGHTNESS = get_brightness()
 RPM_MAX,SHIFT = load_rpm()
 
 # Environment Variables
-DEV = True
-PI = False
+DEV = False
+PI = True
 SYSTEM_VERSION = "2.3.2"
 
 # Global Variables
