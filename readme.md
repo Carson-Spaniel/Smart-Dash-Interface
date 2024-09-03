@@ -80,12 +80,11 @@ Most of the pictures still capture the overall design of the dash, but the readm
 
 ## Upcoming
 1. Customization page: adding more customization such as color choices and placement of values.
-2. Flashdrive updating: be able to update through flashdrive.
+2. Performance page: top speed tracking, 0-60 time tracking, more performance related things.
 3. Complete Readme overhaul: Update the read me to most accurate information.
 
 ## Far Future
 - Raspberry Pi hotspot for wifi connection to phone for GPS data for GPS related features.
-- Performance page: top speed tracking, 0-60 time tracking, more performance related things.
 
 ## Versions
 
