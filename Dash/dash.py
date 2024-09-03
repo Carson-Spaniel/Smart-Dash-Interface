@@ -821,8 +821,5 @@ def main():
         # Close the connection
         connection.close()
 
-        # Shutting down
-        subprocess.run("sudo shutdown -h now", shell=True, capture_output=True, text=True)
-
 if __name__ == "__main__":
     main()

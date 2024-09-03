@@ -75,6 +75,7 @@ while true; do
     # Check if the script needs to be restarted
     if grep -q "Exiting..." $logfile; then
         echo "----------Ending dash script----------" >> $logfile
+        sudo shutdown -h now
         break
     elif grep -q "Restarting script" $logfile; then
         echo "----------Restarting dash script----------" >> $logfile
