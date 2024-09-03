@@ -87,6 +87,10 @@ Most of the pictures still capture the overall design of the dash, but the readm
 
 ## Versions
 
+### v2.4.0
+- Added
+  - Shift Light Settings: can now change the colors of the shift light as well as adjust the "padding" which is how you control when the lights start turing on.
+
 ### v2.3.2
 - Updated
   - Colors: Much more colors have been added.
