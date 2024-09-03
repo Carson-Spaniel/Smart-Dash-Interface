@@ -87,6 +87,10 @@ Most of the pictures still capture the overall design of the dash, but the readm
 
 ## Versions
 
+### v2.3.2
+- Updated
+  - Colors: Much more colors have been added.
+
 ### v2.3.1
 - Fixed
   - Wifi Update: some problems associated with old code.

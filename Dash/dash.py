@@ -14,9 +14,9 @@ BRIGHTNESS = get_brightness()
 RPM_MAX,SHIFT = load_rpm()
 
 # Environment Variables
-DEV = False
-PI = True
-SYSTEM_VERSION = "2.3.1"
+DEV = True
+PI = False
+SYSTEM_VERSION = "2.3.2"
 
 # Global Variables
 DELAY = 0
@@ -161,9 +161,9 @@ def main():
     swipe_start_y = 0
     swipe_threshold = 50  # Threshold for swipe detection (in pixels)
 
-    font_index = 19
-    background_1_index = 12
-    background_2_index = 20
+    font_index = 46
+    background_1_index = 23
+    background_2_index = 45
 
     # Load the last visited page
     try:
@@ -189,9 +189,9 @@ def main():
         SHIFT_LIGHT = True
         DELAY = False
         OPTIMIZE = False
-        font_index = 18
-        background_1_index = 11
-        background_2_index = 19
+        font_index = 46
+        background_1_index = 23
+        background_2_index = 45
 
     # Load Pygame
     if not PI:
@@ -619,10 +619,10 @@ def main():
                 pygame.draw.rect(screen, BACKGROUND_2_COLOR, pygame.Rect(SCREEN_WIDTH-SCREEN_WIDTH*.02, 0, SCREEN_WIDTH, SCREEN_HEIGHT))
                 pygame.draw.rect(screen, BACKGROUND_2_COLOR, pygame.Rect(0, 0, SCREEN_WIDTH*.02, SCREEN_HEIGHT))
 
-                pygame.draw.circle(screen, BACKGROUND_2_COLOR, (0, 0), SCREEN_WIDTH*.08)
-                # pygame.draw.circle(screen, BACKGROUND_2_COLOR, (0, SCREEN_HEIGHT), SCREEN_WIDTH*.08)
-                pygame.draw.circle(screen, BACKGROUND_2_COLOR, (SCREEN_WIDTH, 0), SCREEN_WIDTH*.08)
-                pygame.draw.circle(screen, BACKGROUND_2_COLOR, (SCREEN_WIDTH, SCREEN_HEIGHT), SCREEN_WIDTH*.08)
+                pygame.draw.circle(screen, BACKGROUND_2_COLOR, (0, 0), SCREEN_WIDTH*.085)
+                # pygame.draw.circle(screen, BACKGROUND_2_COLOR, (0, SCREEN_HEIGHT), SCREEN_WIDTH*.085)
+                pygame.draw.circle(screen, BACKGROUND_2_COLOR, (SCREEN_WIDTH, 0), SCREEN_WIDTH*.085)
+                pygame.draw.circle(screen, BACKGROUND_2_COLOR, (SCREEN_WIDTH, SCREEN_HEIGHT), SCREEN_WIDTH*.085)
 
                 draw_rounded_rect(screen, BACKGROUND_2_COLOR, (SCREEN_WIDTH//2-((SCREEN_WIDTH*.89)//2), SCREEN_HEIGHT//2-((SCREEN_HEIGHT*.83)//2), SCREEN_WIDTH*.89, SCREEN_HEIGHT*.83), 90)
 
@@ -779,21 +779,21 @@ def main():
 
                 draw_text(screen, "<", font_medium, FONT_COLOR, SCREEN_WIDTH * 0.55, SCREEN_HEIGHT*.37)
                 draw_text(screen, ">", font_medium, FONT_COLOR, SCREEN_WIDTH * 0.75, SCREEN_HEIGHT*.37)
-                draw_text(screen, f"{font_index+1}", font_small, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
+                draw_text(screen, f"{font_index+1}", font_small, BLACK if COLORS[font_index] != BLACK else WHITE, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
                 draw_text(screen, "Font Color", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
 
                 pygame.draw.rect(screen, COLORS[background_1_index], ((SCREEN_WIDTH//2)+SCREEN_WIDTH*.1, SCREEN_HEIGHT*.44, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
 
                 draw_text(screen, "<", font_medium, FONT_COLOR, SCREEN_WIDTH * 0.55, SCREEN_HEIGHT*.49)
                 draw_text(screen, ">", font_medium, FONT_COLOR, SCREEN_WIDTH * 0.75, SCREEN_HEIGHT*.49)
-                draw_text(screen, f"{background_1_index+1}", font_small, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
+                draw_text(screen, f"{background_1_index+1}", font_small, BLACK if COLORS[background_1_index] != BLACK else WHITE, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
                 draw_text(screen, "Background Color 1", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
 
                 pygame.draw.rect(screen, COLORS[background_2_index], ((SCREEN_WIDTH//2)+SCREEN_WIDTH*.1, SCREEN_HEIGHT*.56, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
 
                 draw_text(screen, "<", font_medium, FONT_COLOR, SCREEN_WIDTH * 0.55, SCREEN_HEIGHT*.61)
                 draw_text(screen, ">", font_medium, FONT_COLOR, SCREEN_WIDTH * 0.75, SCREEN_HEIGHT*.61)
-                draw_text(screen, f"{background_2_index+1}", font_small, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.61)
+                draw_text(screen, f"{background_2_index+1}", font_small, BLACK if COLORS[background_2_index] != BLACK else WHITE, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.61)
                 draw_text(screen, "Background Color 2", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.61)
 
             elif pages[current_page[0]][current_page[1]] == "Off":
