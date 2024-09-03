@@ -6,6 +6,11 @@ device=/home/pi/Dash/Data/device.txt
 # Path to the wifi.txt file
 WIFI_STATUS_FILE="/home/pi/Dash/Data/wifi.txt"
 
+# Ensure the wifi.txt file exists
+if [ ! -f "$WIFI_STATUS_FILE" ]; then
+    echo "0" > "$WIFI_STATUS_FILE"  # Initialize the file with 0
+fi
+
 # Function to constantly check Wi-Fi status by pinging an external server
 check_wifi_loop() {
     while true; do
