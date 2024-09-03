@@ -85,7 +85,7 @@ while true; do
         wget -O Dash.tar.xz https://github.com/Carson-Spaniel/Smart-Dash-Interface/releases/latest/download/Dash.tar.xz
         tar -xJvf Dash.tar.xz
         cd Dash/
-        continue
+        sudo reboot
     else
         break
     fi
