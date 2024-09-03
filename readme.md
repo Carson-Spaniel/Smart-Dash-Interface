@@ -79,14 +79,17 @@ Most of the pictures still capture the overall design of the dash, but the readm
 - Feel free to customize fonts, colors, and layout as needed in the script.
 
 ## Upcoming
-1. Customization page: adding more customization such as color choices and placement of values.
-2. Performance page: top speed tracking, 0-60 time tracking, more performance related things.
-3. Complete Readme overhaul: Update the read me to most accurate information.
+1. Performance page: top speed tracking, 0-60 time tracking, more performance related things.
+2. Complete Readme overhaul: Update the read me to most accurate information.
 
 ## Far Future
 - Raspberry Pi hotspot for wifi connection to phone for GPS data for GPS related features.
 
 ## Versions
+
+### v2.3.0
+- Added
+  - Color Customization: can now change the colors of the font and backgrounds.
 
 ### v2.2.0
 - Added

@@ -1,6 +1,7 @@
 import pygame
 import math
 import time
+import numpy as np
 
 # Initialize Pygame
 pygame.init()
@@ -10,17 +11,40 @@ SCREEN_WIDTH, SCREEN_HEIGHT = 800, 480
 FPS = 30
 
 # Colors
-YELLOW = (255, 255, 0)
-ORANGE = (255, 165, 0)
-PURPLE = (180, 0, 255)
 RED = (255, 0, 0)
+DARK_RED = (139, 0, 0)
+ORANGE = (255, 165, 0)
+DARK_ORANGE = (255, 140, 0)
+YELLOW = (255, 255, 0)
+GOLD = (255, 215, 0)
+LIGHT_YELLOW = (255, 255, 224)
 GREEN = (0, 255, 0)
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
+DARK_GREEN = (0, 100, 0)
+LIGHT_GREEN = (144, 238, 144)
+CYAN = (0, 255, 255)
 BLUE = (0, 150, 255)
+DARK_BLUE = (0, 0, 139)
+LIGHT_BLUE = (173, 216, 230)
+PURPLE = (180, 0, 255)
+MAGENTA = (255, 0, 255)
+PINK = (255, 192, 203)
+DARK_PURPLE = (75, 0, 130)
 
-FONT_COLOR = WHITE # Default font color
-BACKGROUND_COLOR = BLUE # Default background color
+# Additional Colors
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+GRAY = (128, 128, 128)
+LIGHT_GRAY = (211, 211, 211)
+BROWN = (139, 69, 19)
+DARK_BROWN = (101, 67, 33)
+
+COLORS = [
+    RED, DARK_RED, ORANGE, DARK_ORANGE, YELLOW, 
+    GOLD, LIGHT_YELLOW, GREEN, DARK_GREEN, LIGHT_GREEN, 
+    CYAN, BLUE, DARK_BLUE, LIGHT_BLUE, PURPLE, 
+    MAGENTA, DARK_PURPLE, PINK, WHITE, BLACK,
+    GRAY, LIGHT_GRAY, BROWN, DARK_BROWN
+]
 
 # Fonts
 font_xlarge = pygame.font.Font("./Fonts/digital-7.ttf", size=200)

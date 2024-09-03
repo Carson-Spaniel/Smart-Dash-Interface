@@ -16,7 +16,7 @@ RPM_MAX,SHIFT = load_rpm()
 # Environment Variables
 DEV = False
 PI = True
-SYSTEM_VERSION = "2.2.0"
+SYSTEM_VERSION = "2.3.0"
 
 # Global Variables
 DELAY = 0
@@ -147,7 +147,8 @@ def main():
     #pages = ["Main" , "Settings", "RPM", "Trouble"] #"Off"
     pages = [
         ["Main"],
-        ["Settings", "RPM", "Custom","Info"],
+        ["Custom"],
+        ["Settings", "RPM","Info"],
         ["Trouble"]
     ]
     current_page = (0, 0)
@@ -159,7 +160,10 @@ def main():
     swipe_start_x = 0
     swipe_start_y = 0
     swipe_threshold = 50  # Threshold for swipe detection (in pixels)
-    is_swiping = False
+
+    font_index = 19
+    background_1_index = 12
+    background_2_index = 20
 
     # Load the last visited page
     try:
@@ -177,11 +181,17 @@ def main():
             SHIFT_LIGHT = int(file.readline())
             DELAY = int(file.readline())
             OPTIMIZE = int(file.readline())
+            font_index = int(file.readline())
+            background_1_index = int(file.readline())
+            background_2_index = int(file.readline())
     except Exception:
         current_page = (0, 0)
         SHIFT_LIGHT = True
         DELAY = False
         OPTIMIZE = False
+        font_index = 18
+        background_1_index = 11
+        background_2_index = 19
 
     # Load Pygame
     if not PI:
@@ -190,11 +200,6 @@ def main():
         screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
     pygame.display.set_caption("Smart Dash")
     clock = pygame.time.Clock()
-
-    # Load images
-    curve = pygame.image.load("Images/round2.png").convert_alpha()
-    curveOut = pygame.transform.scale(curve, (curve.get_width() * 1.8, curve.get_height() * 1.6))
-    curveIn = pygame.transform.scale(curve, (curve.get_width() * 1.4, curve.get_height() * 1.1))
 
     if DEV:
         # Set fake initial values
@@ -211,6 +216,10 @@ def main():
         threading.Thread(target=query, daemon=True).start()
 
     while logging:
+        FONT_COLOR = COLORS[font_index] # Default font color
+        BACKGROUND_1_COLOR = COLORS[background_1_index] # Default background 1 color
+        BACKGROUND_2_COLOR = COLORS[background_2_index] # Default background 2 color
+
         try:
             with open("Data/wifi.txt", "r") as file:
                 wifi = int(file.readline())
@@ -358,6 +367,29 @@ def main():
                                 SHIFT_LIGHT = False
                             else:
                                 SHIFT_LIGHT = True
+                                            # Check for collision with left rectangle
+                        elif mouseX < SCREEN_WIDTH * 0.5 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.5 and mouseY < SCREEN_HEIGHT*.32+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.32:
+                            font_index = (font_index - 1) % len(COLORS)
+
+                        # Check for collision with right rectangle
+                        elif mouseX < SCREEN_WIDTH * 0.7 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7 and mouseY < SCREEN_HEIGHT*.32+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.32:
+                            font_index = (font_index + 1) % len(COLORS)
+ 
+                        # Check for collision with left rectangle
+                        elif mouseX < SCREEN_WIDTH * 0.5 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.5 and mouseY < SCREEN_HEIGHT*.44+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.32:
+                            background_1_index = (background_1_index - 1) % len(COLORS)
+
+                        # Check for collision with right rectangle
+                        elif mouseX < SCREEN_WIDTH * 0.7 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7 and mouseY < SCREEN_HEIGHT*.44+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.44:
+                            background_1_index = (background_1_index + 1) % len(COLORS)
+
+                        # Check for collision with left rectangle
+                        elif mouseX < SCREEN_WIDTH * 0.5 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.5 and mouseY < SCREEN_HEIGHT*.56+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.56:
+                            background_2_index = (background_2_index - 1) % len(COLORS)
+
+                        # Check for collision with right rectangle
+                        elif mouseX < SCREEN_WIDTH * 0.7 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7 and mouseY < SCREEN_HEIGHT*.56+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.56:
+                            background_2_index = (background_2_index + 1) % len(COLORS)
 
                 skip = True
             elif event.type == pygame.MOUSEBUTTONUP:
@@ -413,7 +445,7 @@ def main():
                         # Save the new max horsepower data
                         save_rpm(RPM_MAX,SHIFT)
 
-                if pages[current_page[0]][current_page[1]] == "Settings":
+                elif pages[current_page[0]][current_page[1]] == "Settings":
 
                     # Check for collision with decrease rectangle
                     if mouseX < SCREEN_WIDTH * 0.5 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.5 and mouseY < SCREEN_HEIGHT*.2+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.2:
@@ -422,6 +454,32 @@ def main():
                     # Check for collision with increase rectangle
                     elif mouseX < SCREEN_WIDTH * 0.7 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7 and mouseY < SCREEN_HEIGHT*.2+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.2:
                         BRIGHTNESS = increase_brightness()
+                
+                elif pages[current_page[0]][current_page[1]] == "Custom":
+
+                    # Check for collision with left rectangle
+                    if mouseX < SCREEN_WIDTH * 0.5 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.5 and mouseY < SCREEN_HEIGHT*.32+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.32:
+                        font_index = (font_index - 1) % len(COLORS)
+
+                    # Check for collision with right rectangle
+                    elif mouseX < SCREEN_WIDTH * 0.7 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7 and mouseY < SCREEN_HEIGHT*.32+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.44:
+                        font_index = (font_index + 1) % len(COLORS)
+
+                    # Check for collision with left rectangle
+                    elif mouseX < SCREEN_WIDTH * 0.5 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.5 and mouseY < SCREEN_HEIGHT*.44+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.32:
+                        background_1_index = (background_1_index - 1) % len(COLORS)
+
+                    # Check for collision with right rectangle
+                    elif mouseX < SCREEN_WIDTH * 0.7 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7 and mouseY < SCREEN_HEIGHT*.44+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.44:
+                        background_1_index = (background_1_index + 1) % len(COLORS)
+
+                    # Check for collision with left rectangle
+                    elif mouseX < SCREEN_WIDTH * 0.5 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.5 and mouseY < SCREEN_HEIGHT*.56+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.56:
+                        background_2_index = (background_2_index - 1) % len(COLORS)
+
+                    # Check for collision with right rectangle
+                    elif mouseX < SCREEN_WIDTH * 0.7 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7 and mouseY < SCREEN_HEIGHT*.56+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.56:
+                        background_2_index = (background_2_index + 1) % len(COLORS)
 
                 time.sleep(.05)
             skip = False
@@ -432,6 +490,9 @@ def main():
             file.write(f'\n{str(int(SHIFT_LIGHT))}')
             file.write(f'\n{str(int(DELAY))}')
             file.write(f'\n{str(int(OPTIMIZE))}')
+            file.write(f'\n{str(int(font_index))}')
+            file.write(f'\n{str(int(background_1_index))}')
+            file.write(f'\n{str(int(background_2_index))}')
         
         if DEV:
             # Set random variables for testing purposes
@@ -455,7 +516,7 @@ def main():
                 codes = []
 
         # Clear the screen
-        screen.fill(BLACK)
+        screen.fill(BACKGROUND_2_COLOR)
 
         # Draw page indicators (circles)
         circle_radius = 8
@@ -471,9 +532,9 @@ def main():
 
         for i, page in enumerate(pages):
             # if page != 'Off':
-            color = FONT_COLOR if i == current_page[0] else BLACK
+            color = FONT_COLOR if i == current_page[0] else BACKGROUND_2_COLOR
             pygame.draw.circle(screen, FONT_COLOR, (circle_x, circle_y), circle_radius + 4)
-            pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius + 2)
+            pygame.draw.circle(screen, BACKGROUND_2_COLOR, (circle_x, circle_y), circle_radius + 2)
             pygame.draw.circle(screen, color, (circle_x, circle_y), circle_radius)
             circle_x += 2 * (circle_radius + circle_spacing)
 
@@ -486,9 +547,9 @@ def main():
         circle_y = start_y + circle_radius + circle_spacing
 
         for i, page in enumerate(pages[current_page[0]]):
-            color = FONT_COLOR if i == current_page[1] else BLACK
+            color = FONT_COLOR if i == current_page[1] else BACKGROUND_2_COLOR
             pygame.draw.circle(screen, FONT_COLOR, (circle_x, circle_y), circle_radius + 4)
-            pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius + 2)
+            pygame.draw.circle(screen, BACKGROUND_2_COLOR, (circle_x, circle_y), circle_radius + 2)
             pygame.draw.circle(screen, color, (circle_x, circle_y), circle_radius)
             circle_y += 2 * (circle_radius + circle_spacing)
 
@@ -517,7 +578,7 @@ def main():
                 draw_text(screen, "-", font_medium, BLACK, SCREEN_WIDTH * 0.7-25+SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.05)
 
             elif pages[current_page[0]][current_page[1]] == "Main":
-                screen.fill(BACKGROUND_COLOR)
+                screen.fill(BACKGROUND_1_COLOR)
 
                 # Calculate the width of the filled portion based on percentage
                 fuel_width = math.floor((SCREEN_WIDTH*.7663) * fuel_level/100)
@@ -550,11 +611,27 @@ def main():
                 pygame.draw.rect(screen, rpm_color, (SCREEN_WIDTH * 0.01, 0, rpm_width, SCREEN_HEIGHT*.25))
                 pygame.draw.line(screen, shiftLineColor, (SCREEN_WIDTH-shift_line_x, 0), (SCREEN_WIDTH-shift_line_x, SCREEN_HEIGHT*.25), 5)
 
-                screen.blit(curveOut, ((SCREEN_WIDTH - curveOut.get_width())//2, (SCREEN_HEIGHT - curveOut.get_height())//2))
-                screen.blit(curveIn, ((SCREEN_WIDTH - curveIn.get_width())//2, (SCREEN_HEIGHT - curveIn.get_height())//2))
-                pygame.draw.rect(screen, BLACK, (0, SCREEN_HEIGHT*.25, SCREEN_WIDTH * .22, SCREEN_HEIGHT))
-                pygame.draw.rect(screen, BLACK, (SCREEN_WIDTH-SCREEN_WIDTH*.22, SCREEN_HEIGHT*.25, SCREEN_WIDTH, SCREEN_HEIGHT*.5))
-                pygame.draw.rect(screen, BLACK, (SCREEN_WIDTH*.12, SCREEN_HEIGHT*.15, SCREEN_WIDTH*.75, SCREEN_HEIGHT*.7))
+                # screen.blit(curveOut, ((SCREEN_WIDTH - curveOut.get_width())//2, (SCREEN_HEIGHT - curveOut.get_height())//2))
+                pygame.draw.rect(screen, BACKGROUND_2_COLOR, pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT),  20, 120)
+                
+                pygame.draw.rect(screen, BACKGROUND_2_COLOR, pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT*.03))
+                pygame.draw.rect(screen, BACKGROUND_2_COLOR, pygame.Rect(0, SCREEN_HEIGHT-SCREEN_HEIGHT*.03, SCREEN_WIDTH, SCREEN_HEIGHT))
+                pygame.draw.rect(screen, BACKGROUND_2_COLOR, pygame.Rect(SCREEN_WIDTH-SCREEN_WIDTH*.02, 0, SCREEN_WIDTH, SCREEN_HEIGHT))
+                pygame.draw.rect(screen, BACKGROUND_2_COLOR, pygame.Rect(0, 0, SCREEN_WIDTH*.02, SCREEN_HEIGHT))
+
+                pygame.draw.circle(screen, BACKGROUND_2_COLOR, (0, 0), SCREEN_WIDTH*.08)
+                # pygame.draw.circle(screen, BACKGROUND_2_COLOR, (0, SCREEN_HEIGHT), SCREEN_WIDTH*.08)
+                pygame.draw.circle(screen, BACKGROUND_2_COLOR, (SCREEN_WIDTH, 0), SCREEN_WIDTH*.08)
+                pygame.draw.circle(screen, BACKGROUND_2_COLOR, (SCREEN_WIDTH, SCREEN_HEIGHT), SCREEN_WIDTH*.08)
+
+                draw_rounded_rect(screen, BACKGROUND_2_COLOR, (SCREEN_WIDTH//2-((SCREEN_WIDTH*.89)//2), SCREEN_HEIGHT//2-((SCREEN_HEIGHT*.83)//2), SCREEN_WIDTH*.89, SCREEN_HEIGHT*.83), 90)
+
+                pygame.draw.rect(screen, BACKGROUND_2_COLOR, pygame.Rect(SCREEN_WIDTH//2-((SCREEN_WIDTH*.89)//2), SCREEN_HEIGHT//2-((SCREEN_HEIGHT*.83)//2), SCREEN_WIDTH*.89, SCREEN_HEIGHT*.83),  20, 90)
+
+
+                pygame.draw.rect(screen, BACKGROUND_2_COLOR, (0, SCREEN_HEIGHT*.25, SCREEN_WIDTH * .22, SCREEN_HEIGHT))
+                pygame.draw.rect(screen, BACKGROUND_2_COLOR, (SCREEN_WIDTH-SCREEN_WIDTH*.22, SCREEN_HEIGHT*.25, SCREEN_WIDTH, SCREEN_HEIGHT*.5))
+                pygame.draw.rect(screen, BACKGROUND_2_COLOR, (SCREEN_WIDTH*.12, SCREEN_HEIGHT*.15, SCREEN_WIDTH*.75, SCREEN_HEIGHT*.7))
                 
                 draw_text(screen, f"{round(fuel_level,1)}%", font_medium, FONT_COLOR, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.93)
 
@@ -574,15 +651,15 @@ def main():
 
                 if SHIFT_LIGHT:
                     # Draw shift indicators (circles)
-                    circle_radius = 22
-                    circle_spacing = 5
+                    circle_radius = 24
+                    circle_spacing = 4
 
                     total_circle_width = 12 * (2 * circle_radius + 2 * circle_spacing)
 
                     # Calculate starting position to center horizontally
                     start_x = (SCREEN_WIDTH - total_circle_width) // 2
                     circle_x = start_x + circle_radius + circle_spacing
-                    circle_y = circle_radius + circle_spacing+SCREEN_HEIGHT*.15
+                    circle_y = circle_radius + circle_spacing+SCREEN_HEIGHT*.17
 
                     # Colors for each light
                     light_colors = [GREEN, GREEN, GREEN, GREEN, YELLOW, YELLOW, YELLOW, YELLOW, RED, RED, RED, RED]
@@ -590,8 +667,8 @@ def main():
                     for i in range(len(light_colors)):
                         color = light_colors[i]
 
-                        pygame.draw.circle(screen, FONT_COLOR, (circle_x, circle_y), circle_radius )
-                        pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius -1)
+                        pygame.draw.circle(screen, FONT_COLOR, (circle_x, circle_y), circle_radius)
+                        pygame.draw.circle(screen, BACKGROUND_2_COLOR, (circle_x, circle_y), circle_radius-3)
                         
                         blink_pattern = (internal_clock == .1) or (internal_clock == .3)
 
@@ -599,7 +676,7 @@ def main():
                             if rpm > SHIFT and blink_pattern:
                                 pygame.draw.circle(screen, PURPLE, (circle_x, circle_y), circle_radius)
                             elif rpm > SHIFT and not blink_pattern:
-                                pygame.draw.circle(screen, BLACK, (circle_x, circle_y), circle_radius)
+                                pygame.draw.circle(screen, BACKGROUND_2_COLOR, (circle_x, circle_y), circle_radius)
                             elif rpm < SHIFT and rpm > SHIFT - 200:
                                 pygame.draw.circle(screen, PURPLE, (circle_x, circle_y), circle_radius)
                             else:
@@ -697,6 +774,27 @@ def main():
                 pygame.draw.rect(screen, GREEN if SHIFT_LIGHT else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
                 draw_text(screen, "On" if SHIFT_LIGHT else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.25)
                 draw_text(screen, "Shift lights", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.25)
+
+                pygame.draw.rect(screen, COLORS[font_index], ((SCREEN_WIDTH//2)+SCREEN_WIDTH*.1, SCREEN_HEIGHT*.32, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
+
+                draw_text(screen, "<", font_medium, FONT_COLOR, SCREEN_WIDTH * 0.55, SCREEN_HEIGHT*.37)
+                draw_text(screen, ">", font_medium, FONT_COLOR, SCREEN_WIDTH * 0.75, SCREEN_HEIGHT*.37)
+                draw_text(screen, f"{font_index+1}", font_small, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
+                draw_text(screen, "Font Color", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
+
+                pygame.draw.rect(screen, COLORS[background_1_index], ((SCREEN_WIDTH//2)+SCREEN_WIDTH*.1, SCREEN_HEIGHT*.44, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
+
+                draw_text(screen, "<", font_medium, FONT_COLOR, SCREEN_WIDTH * 0.55, SCREEN_HEIGHT*.49)
+                draw_text(screen, ">", font_medium, FONT_COLOR, SCREEN_WIDTH * 0.75, SCREEN_HEIGHT*.49)
+                draw_text(screen, f"{background_1_index+1}", font_small, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
+                draw_text(screen, "Background Color 1", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
+
+                pygame.draw.rect(screen, COLORS[background_2_index], ((SCREEN_WIDTH//2)+SCREEN_WIDTH*.1, SCREEN_HEIGHT*.56, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
+
+                draw_text(screen, "<", font_medium, FONT_COLOR, SCREEN_WIDTH * 0.55, SCREEN_HEIGHT*.61)
+                draw_text(screen, ">", font_medium, FONT_COLOR, SCREEN_WIDTH * 0.75, SCREEN_HEIGHT*.61)
+                draw_text(screen, f"{background_2_index+1}", font_small, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.61)
+                draw_text(screen, "Background Color 2", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.61)
 
             elif pages[current_page[0]][current_page[1]] == "Off":
                 screen.fill(BLACK)
