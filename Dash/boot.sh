@@ -3,6 +3,31 @@
 logfile=/home/pi/Dash/bootup.log
 device=/home/pi/Dash/Data/device.txt
 
+# Path to the wifi.txt file
+WIFI_STATUS_FILE="/home/pi/Dash/Data/wifi.txt"
+
+# Function to constantly check Wi-Fi status by pinging an external server
+check_wifi_loop() {
+    while true; do
+        # Ping an external server (e.g., Google's DNS server) to check internet connectivity
+        if ping -c 1 -W 2 8.8.8.8 > /dev/null 2>&1; then
+            # Internet is accessible, write 1 to the file
+            echo "1" > "$WIFI_STATUS_FILE"
+        else
+            # Internet is not accessible, write 0 to the file
+            echo "0" > "$WIFI_STATUS_FILE"
+        fi
+
+        # Wait for 10 seconds before the next check (adjust as needed)
+        sleep 10
+    done
+}
+
+# Start Wi-Fi checker only if not already running
+if ! pgrep -f check_wifi_loop > /dev/null; then
+    check_wifi_loop &
+fi
+
 echo "----------Starting boot.sh----------" > $logfile
 
 echo "----------Setting environment variables----------" >> $logfile
@@ -48,6 +73,13 @@ while true; do
         break
     elif grep -q "Restarting script" $logfile; then
         echo "----------Restarting dash script----------" >> $logfile
+        continue
+    elif grep -q "Wifi Update" $logfile; then
+        echo "----------Updating through Wifi----------" >> $logfile
+        cd /home/pi/
+        wget -O Dash.tar.xz https://github.com/Carson-Spaniel/Smart-Dash-Interface/releases/latest/download/Dash.tar.xz
+        tar -xJvf Dash.tar.xz
+        cd Dash/
         continue
     else
         break
