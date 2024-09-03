@@ -14,8 +14,8 @@ BRIGHTNESS = get_brightness()
 RPM_MAX,SHIFT = load_rpm()
 
 # Environment Variables
-DEV = False
-PI = True
+DEV = True
+PI = False
 SYSTEM_VERSION = "2.2.0"
 
 # Global Variables
@@ -687,8 +687,8 @@ def main():
                 pygame.draw.rect(screen, RED, (SCREEN_WIDTH//2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
                 draw_text(screen, "Exit", font_small_clean, BLACK, SCREEN_WIDTH//2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
 
-                pygame.draw.rect(screen, GREEN, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.09, SCREEN_HEIGHT*.32, SCREEN_WIDTH*.12, SCREEN_HEIGHT*.1))
-                draw_text(screen, "Update", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
+                pygame.draw.rect(screen, GREEN if wifi else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.09, SCREEN_HEIGHT*.32, SCREEN_WIDTH*.12, SCREEN_HEIGHT*.1))
+                draw_text(screen, "Update" if wifi else "No Wifi", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
                 draw_text(screen, "Wifi Update", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
 
             elif pages[current_page[0]][current_page[1]] == "Custom":
