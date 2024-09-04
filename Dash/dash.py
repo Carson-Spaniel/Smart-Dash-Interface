@@ -3,7 +3,6 @@ import obd
 import time
 import random
 import math
-import subprocess
 import threading
 from Helper.brain import *
 
@@ -14,8 +13,8 @@ BRIGHTNESS = get_brightness()
 RPM_MAX,SHIFT = load_rpm()
 
 # Environment Variables
-DEV = False
-PI = True
+DEV = True
+PI = False
 SYSTEM_VERSION = "2.4.0"
 
 # Global Variables
