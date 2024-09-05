@@ -1,46 +1,42 @@
 import can
 import logging
+import time
 
 # Set up logging to log to a file
 logging.basicConfig(filename='can.log', level=logging.INFO, format='%(message)s')
 
 CAN_INTERFACE = 'vcan0'  # Set your CAN interface here
 
-def decode_can_frame(frame):
-    can_id = frame.arbitration_id
-    data = frame.data
-
-    if can_id == 0x123:  # Example CAN ID
-        # Assuming data format: [speed (2 bytes), rpm (2 bytes)]
-        speed = (data[0] << 8) | data[1]
-        rpm = (data[2] << 8) | data[3]
-        print(f"Speed: {speed} km/h, RPM: {rpm}")
-        return f"Speed: {speed} km/h, RPM: {rpm}"
-    elif can_id == 0x456:  # Another CAN ID
-        # Decode another type of message
-        temperature = data[0]  # Assuming temperature in first byte
-        print(f"Temperature: {temperature} °C")
-        return f"Temperature: {temperature} °C"
-    else:
-        # Handle other CAN IDs
-        return None
-
 def main():
     try:
         # Create a CAN bus instance
         bus = can.interface.Bus(channel=CAN_INTERFACE, interface='socketcan')
 
+        # Variables for timestamp and timing calculations
+        timestamps = []
+        message_count = 20
+
         # Read CAN messages in a loop
-        while True:
+        while len(timestamps) < message_count:
             # Wait for a message
-            message = bus.recv()
+            message = bus.recv(timeout=0.01)  # Timeout to avoid blocking indefinitely
 
             if message is not None:
                 if message.arbitration_id > 0:
+                    # Record the timestamp
+                    now = time.time()
+                    timestamps.append(now)
+
                     # Print and log the message
                     log_message = f"CAN ID: 0x{message.arbitration_id:x} DLC: {message.dlc} Data: {message.data.hex()}"
                     print(log_message)
                     logging.info(log_message)
+
+        # Compute average time between messages
+        if len(timestamps) == message_count:
+            time_diffs = [timestamps[i] - timestamps[i - 1] for i in range(1, len(timestamps))]
+            average_time = sum(time_diffs) / len(time_diffs)
+            print(f"Average time between messages: {average_time:.6f} seconds")
 
     except KeyboardInterrupt:
         print("Program interrupted by user")

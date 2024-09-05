@@ -1,0 +1,4 @@
+1. Update version number and Global Envs in dash.py
+2. Pack up current Dash: `tar -cJvf Dash.tar.xz Dash` (Remove .txt from Data folder)
+3. Update readme with updates
+4. Create a new release on Github with correct release
