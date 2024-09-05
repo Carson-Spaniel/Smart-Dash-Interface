@@ -7,7 +7,7 @@ Most of the pictures still capture the overall design of the dash, but the readm
 
 ## Needs
 
-- A Bluetooth OBD-II adapter
+- A Bluetooth OBD-II adapter.
 
 ## Raspberry Pi Installation
 
