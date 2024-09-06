@@ -5,7 +5,7 @@ import time
 # Set up logging to log to a file
 logging.basicConfig(filename='can.log', level=logging.INFO, format='%(message)s')
 
-CAN_INTERFACE = 'vcan0'  # Set your CAN interface here
+CAN_INTERFACE = 'vcan0'
 
 def main():
     try:
@@ -16,8 +16,10 @@ def main():
         timestamps = []
         message_count = 20
 
+        forever = True
+
         # Read CAN messages in a loop
-        while len(timestamps) < message_count:
+        while len(timestamps) < message_count or forever:
             # Wait for a message
             message = bus.recv(timeout=0.01)  # Timeout to avoid blocking indefinitely
 
@@ -32,18 +34,17 @@ def main():
                     print(log_message)
                     logging.info(log_message)
 
-        # Compute average time between messages
-        if len(timestamps) == message_count:
-            time_diffs = [timestamps[i] - timestamps[i - 1] for i in range(1, len(timestamps))]
-            average_time = sum(time_diffs) / len(time_diffs)
-            print(f"Average time between messages: {average_time:.6f} seconds")
+            # Compute average time between messages
+            if len(timestamps) == message_count:
+                time_diffs = [timestamps[i] - timestamps[i - 1] for i in range(1, len(timestamps))]
+                average_time = sum(time_diffs) / len(time_diffs)
+                print(f"Average time between messages: {average_time:.6f} seconds")
 
     except KeyboardInterrupt:
         print("Program interrupted by user")
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
-        # Clean up on exit
         print("Exiting program")
 
 if __name__ == "__main__":
