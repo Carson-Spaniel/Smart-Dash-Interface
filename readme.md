@@ -30,21 +30,36 @@ Most of the pictures still capture the overall design of the dash, but the readm
   - Displays real-time vehicle data such as RPM, speed, voltage, fuel level, ambient temperature, and MPG.
   - Shift lights.
   - Clickable buttons to navigate to other pages.
-  
+
+- **Customization Page**
+  - Change font color.
+  - Change Background 1 color (RPM and Fuel level background).
+  - Change Background 2 color (Main background). 
+
+- **Shift Light Customiztion Page**
+  - Shift light toggle.
+  - Shift light color 1 (first color to appear in shift sequence)
+  - Shift light color 2 (second color to appear in shift sequence)
+  - Shift light color 3 (third color to appear in shift sequence)
+  - Shift light color 4 (fourth and blinking color to appear in shift sequence)
+  - Shift Padding (still working on a good description of this but pretty much it changes how close are far from the shift point the lights come on at)
+
 - **General Settings Page**:
 
   ![Settings Page Screenshot](https://github.com/Carson-Spaniel/Smart-Dash-Interface/blob/main/Screenshots/General%20Settings.png)
   - Option to flip the display vertically (to act as a Heads Up Display).
   - Brightness adjustment.
-  - Shift light toggle.
   - Delay readings: Slow down all readings to happen at the same time.
   - Optimize readings: Only read RPM and Fuel level data.
-  - Exit button (Shutdown button if not in DEV mode).
 
 - **RPM Settings Page**:
 
   ![RPM Settings Page Screenshot](https://github.com/Carson-Spaniel/Smart-Dash-Interface/blob/main/Screenshots/RPM%20Settings.png)
   - Allows adjustment of RPM_MAX and SHIFT values.
+
+- **System Settings Page**:
+  - Version.
+  - Wifi update: Be able to update the system when connected to wifi.
 
 - **Trouble Code Page**:
 
