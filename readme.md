@@ -36,7 +36,7 @@ Most of the pictures still capture the overall design of the dash, but the readm
   - Change Background 1 color (RPM and Fuel level background).
   - Change Background 2 color (Main background). 
 
-- **Shift Light Customiztion Page**
+- **Shift Light Customization Page**
   - Shift light toggle.
   - Shift light color 1 (first color to appear in shift sequence)
   - Shift light color 2 (second color to appear in shift sequence)
