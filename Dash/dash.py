@@ -60,6 +60,7 @@ if not DEV:
         print('Exiting...')
         exit()
 
+# Function for making the queries for everything needed in the dash
 def query():
     # Get global variables
     global CLEAR, CLEARED, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes
@@ -160,6 +161,7 @@ def main():
     swipe_start_y = 0
     swipe_threshold = 50  # Threshold for swipe detection (in pixels)
 
+    # Initialize colors
     font_index = 46
     background_1_index = 23
     background_2_index = 45
