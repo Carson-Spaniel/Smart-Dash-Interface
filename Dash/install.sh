@@ -113,6 +113,16 @@ select_bluetooth_device() {
 # Start installation
 log "Starting installation..."
 
+# Update package lists and install Bluetooth packages
+log "Updating package lists and installing Bluetooth packages..."
+sudo apt update >> $LOGFILE 2>&1
+if sudo apt install -y bluetooth pi-bluetooth bluez >> $LOGFILE 2>&1; then
+    log "Bluetooth packages installed successfully."
+else
+    log "Failed to install Bluetooth packages."
+    error_exit
+fi
+
 # Make sure boot.sh and boot.desktop are executable
 chmod +x boot.sh boot.desktop
 log "Made boot.sh and boot.desktop executable."

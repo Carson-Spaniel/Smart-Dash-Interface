@@ -2,3 +2,4 @@
 
 - Updated
   - Shift Light padding: Renamed to "Shift Starting RPM." Displays the point at which the lights start to turn on.
+  - Install script: Added a part to install bluetooth stuff.
