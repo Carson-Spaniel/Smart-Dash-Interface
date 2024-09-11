@@ -26,17 +26,23 @@ Most of the pictures still capture the overall design of the dash, but the readm
 
   ![Main Page Screenshot](https://github.com/Carson-Spaniel/Smart-Dash-Interface/blob/main/Screenshots/Main.png)
   
-  ![Main Page with Optimize On Screenshot](https://github.com/Carson-Spaniel/Smart-Dash-Interface/blob/main/Screenshots/Main%20with%20Optimize.png) (Optimize on)
+  ![Main Page with Optimize On Screenshot](https://github.com/Carson-Spaniel/Smart-Dash-Interface/blob/main/Screenshots/Optimize.png) (Optimize on)
   - Displays real-time vehicle data such as RPM, speed, voltage, fuel level, ambient temperature, and MPG.
   - Shift lights.
   - Clickable buttons to navigate to other pages.
 
 - **Customization Page**
+
+  ![Customization Settings Page Screenshot](https://github.com/Carson-Spaniel/Smart-Dash-Interface/blob/main/Screenshots/Customize.png)
+
   - Change font color.
   - Change Background 1 color (RPM and Fuel level background).
   - Change Background 2 color (Main background). 
 
 - **Shift Light Customization Page**
+
+  ![Shift Light Settings Page Screenshot](https://github.com/Carson-Spaniel/Smart-Dash-Interface/blob/main/Screenshots/Shift.png)
+
   - Shift light toggle.
   - Shift light color 1 (first color to appear in shift sequence)
   - Shift light color 2 (second color to appear in shift sequence)
@@ -46,7 +52,7 @@ Most of the pictures still capture the overall design of the dash, but the readm
 
 - **General Settings Page**:
 
-  ![Settings Page Screenshot](https://github.com/Carson-Spaniel/Smart-Dash-Interface/blob/main/Screenshots/General%20Settings.png)
+  ![General Settings Page Screenshot](https://github.com/Carson-Spaniel/Smart-Dash-Interface/blob/main/Screenshots/General.png)
   - Option to flip the display vertically (to act as a Heads Up Display).
   - Brightness adjustment.
   - Delay readings: Slow down all readings to happen at the same time.
@@ -54,16 +60,20 @@ Most of the pictures still capture the overall design of the dash, but the readm
 
 - **RPM Settings Page**:
 
-  ![RPM Settings Page Screenshot](https://github.com/Carson-Spaniel/Smart-Dash-Interface/blob/main/Screenshots/RPM%20Settings.png)
+  ![RPM Settings Page Screenshot](https://github.com/Carson-Spaniel/Smart-Dash-Interface/blob/main/Screenshots/RPM.png)
+
   - Allows adjustment of RPM_MAX and SHIFT values.
 
 - **System Settings Page**:
+
+  ![System Settings](https://github.com/Carson-Spaniel/Smart-Dash-Interface/blob/main/Screenshots/System.png)
+
   - Version.
   - Wifi update: Be able to update the system when connected to wifi.
 
 - **Trouble Code Page**:
 
-  ![Trouble Code Page Screenshot](https://github.com/Carson-Spaniel/Smart-Dash-Interface/blob/main/Screenshots/Trouble%20Codes.png)
+  ![Trouble Code Page Screenshot](https://github.com/Carson-Spaniel/Smart-Dash-Interface/blob/main/Screenshots/Trouble.png)
   - Allows for reading and clearing of Check Engine Light codes.
 
 - **Chevrolet Camaro Logo Animation**:
@@ -94,8 +104,7 @@ Most of the pictures still capture the overall design of the dash, but the readm
 - Feel free to customize fonts, colors, and layout as needed in the script.
 
 ## Upcoming
-1. Performance page: top speed tracking, 0-60 time tracking, more performance related things.
-2. Complete Readme overhaul: Update the read me to most accurate information.
+- Performance page: top speed tracking, 0-60 time tracking, more performance related things.
 
 ## Far Future
 - Raspberry Pi hotspot for wifi connection to phone for GPS data for GPS related features.
