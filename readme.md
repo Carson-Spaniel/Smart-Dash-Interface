@@ -36,19 +36,19 @@ Most of the pictures still capture the overall design of the dash, but the readm
   ![Customization Settings Page Screenshot](https://github.com/Carson-Spaniel/Smart-Dash-Interface/blob/main/Screenshots/Customize.png)
 
   - Change font color.
-  - Change Background 1 color (RPM and Fuel level background).
-  - Change Background 2 color (Main background). 
+  - Change Background 1 color: RPM and Fuel level background.
+  - Change Background 2 color: Main background. 
 
 - **Shift Light Customization Page**
 
   ![Shift Light Settings Page Screenshot](https://github.com/Carson-Spaniel/Smart-Dash-Interface/blob/main/Screenshots/Shift.png)
 
   - Shift light toggle.
-  - Shift light color 1 (first color to appear in shift sequence)
-  - Shift light color 2 (second color to appear in shift sequence)
-  - Shift light color 3 (third color to appear in shift sequence)
-  - Shift light color 4 (fourth and blinking color to appear in shift sequence)
-  - Shift Padding (still working on a good description of this but pretty much it changes how close are far from the shift point the lights come on at)
+  - Shift light color 1: First color to appear in shift sequence.
+  - Shift light color 2: Second color to appear in shift sequence.
+  - Shift light color 3: Third color to appear in shift sequence.
+  - Shift light color 4: Fourth and blinking color to appear in shift sequence.
+  - Shift Starting RPM: Where the lights start to turn on.
 
 - **General Settings Page**:
 

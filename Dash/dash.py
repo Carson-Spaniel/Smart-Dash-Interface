@@ -445,17 +445,17 @@ def main():
 
                         # Check for collision with left rectangle
                         elif mouseX < SCREEN_WIDTH * 0.5 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.5 and mouseY < SCREEN_HEIGHT*.8+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.8:
-                            shift_padding -= 10
+                            shift_padding += 10
 
-                            if shift_padding == 0:
-                                shift_padding = 10
+                            if shift_padding >= 210:
+                                shift_padding = 200
 
                         # Check for collision with right rectangle
                         elif mouseX < SCREEN_WIDTH * 0.7 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7 and mouseY < SCREEN_HEIGHT*.8+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.8:
-                            shift_padding += 10
+                            shift_padding -= 10
 
-                            if shift_padding == 1010:
-                                shift_padding = 1000
+                            if shift_padding <= 0:
+                                shift_padding = 10
 
                 skip = True
             elif event.type == pygame.MOUSEBUTTONUP:
@@ -583,19 +583,19 @@ def main():
 
                     # Check for collision with left rectangle
                     elif mouseX < SCREEN_WIDTH * 0.5 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.5 and mouseY < SCREEN_HEIGHT*.8+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.8:
-                        shift_padding -= 10
+                        shift_padding += 10
 
-                        if shift_padding == 0:
-                            shift_padding = 10
+                        if shift_padding >= 210:
+                            shift_padding = 200
 
                     # Check for collision with right rectangle
                     elif mouseX < SCREEN_WIDTH * 0.7 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7 and mouseY < SCREEN_HEIGHT*.8+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.8:
-                        shift_padding += 10
+                        shift_padding -= 10
 
-                        if shift_padding == 1010:
-                            shift_padding = 1000
+                        if shift_padding <= 0:
+                            shift_padding = 10
 
-                time.sleep(.05)
+                time.sleep(.01)
             skip = False
 
         with open("Data/info.txt", "w") as file:
@@ -951,8 +951,8 @@ def main():
 
                 draw_text(screen, "-", font_medium, BLACK, SCREEN_WIDTH * 0.55, SCREEN_HEIGHT*.85)
                 draw_text(screen, "+", font_medium, BLACK, SCREEN_WIDTH * 0.75, SCREEN_HEIGHT*.85)
-                draw_text(screen, f"{shift_padding}", font_small, FONT_COLOR, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.85)
-                draw_text(screen, "Shift RPM Padding", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.85)
+                draw_text(screen, f"{SHIFT - (14 * shift_padding)}", font_small, FONT_COLOR, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.85)
+                draw_text(screen, "Shift Starting RPM", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.85)
 
             elif pages[current_page[0]][current_page[1]] == "Off":
                 screen.fill(BLACK)
