@@ -6,3 +6,4 @@ wget -O Dash.tar.xz https://github.com/Carson-Spaniel/Smart-Dash-Interface/relea
 tar -xJvf Dash.tar.xz
 cd Dash/
 sudo ./install.sh
+sudo ./bluetooth.sh
