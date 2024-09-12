@@ -57,7 +57,6 @@ if not DEV:
         except Exception:
             print('An error occurred.')
     if not connect:
-        print('Exiting...')
         exit()
 
 # Function for making the queries for everything needed in the dash

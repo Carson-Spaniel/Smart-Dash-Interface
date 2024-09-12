@@ -62,7 +62,7 @@ log "Configuring startx to run at boot..."
 if grep -q 'startx' /home/pi/.bashrc; then
     log ".bashrc already configured."
 else
-    echo 'if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then startx -- -nocursor; fi' >> /home/pi/.bashrc
+    echo 'if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then cd /home/pi/Dash/ && startx ./boot.sh; fi' >> /home/pi/.bashrc
     log ".bashrc configured to start X at boot."
 fi
 
