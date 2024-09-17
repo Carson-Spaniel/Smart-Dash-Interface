@@ -14,10 +14,11 @@ RPM_MAX,SHIFT = load_rpm()
 
 # Environment Variables
 DEV = False
-PI = True
+PI = False
 SYSTEM_VERSION = "2.4.1"
 
 # Global Variables
+connect = False
 DELAY = 0
 OPTIMIZE = 0
 CLEARED = 0
@@ -36,7 +37,6 @@ exit_text = "Exiting..."
 
 # Attempt to connect to OBD-II Adapter
 if not DEV:
-    connect = False
     for i in range(3):
         try:
             print('\nAttempting to connect...\n')
@@ -56,8 +56,6 @@ if not DEV:
                 print("Could not connect to OBD-II adapter.")
         except Exception:
             print('An error occurred.')
-    if not connect:
-        exit()
 
 # Function for making the queries for everything needed in the dash
 def query():
@@ -228,8 +226,10 @@ def main():
         # Display Chevrolet logo
         display_logo(screen)
 
-        # Run Queries on Separate Thread
-        threading.Thread(target=query, daemon=True).start()
+        # If connected to car
+        if connect:
+            # Run Queries on Separate Thread
+            threading.Thread(target=query, daemon=True).start()
 
     while logging:
         FONT_COLOR = COLORS[font_index] # Default font color
@@ -877,7 +877,7 @@ def main():
             elif pages[current_page[0]][current_page[1]] == "Info":
                 draw_text(screen, "System Information", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
 
-                draw_text(screen, f"Version: {SYSTEM_VERSION}", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.2)
+                draw_text(screen, f"Version: {SYSTEM_VERSION}", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.15)
             
                 pygame.draw.rect(screen, RED, (SCREEN_WIDTH//2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
                 draw_text(screen, "Exit", font_small_clean, BLACK, SCREEN_WIDTH//2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
