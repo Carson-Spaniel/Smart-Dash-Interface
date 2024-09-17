@@ -100,9 +100,10 @@ def try_connect():
 
 # Function to constantly try to connect
 def connect_thread():
+    try_connect()
     while not connect:
-        try_connect()
         time.sleep(5)
+        try_connect()
     
     # Run Queries on Separate Thread
     threading.Thread(target=query, daemon=True).start()
