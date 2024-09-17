@@ -109,6 +109,12 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
 
 ## Versions
 
+### v2.5.0
+- Added
+  - Query check: checks to see if your car supports the command its about to call to reduce errors.
+- Updated
+  - OBD-II Connection: Made it so you can load into the dash without needing to connect. While not connected, it tries reconnecting every few seconds.
+
 ### v2.4.1
 - Updated
   - Shift Light padding: Renamed to "Shift Starting RPM." Displays the point at which the lights start to turn on.

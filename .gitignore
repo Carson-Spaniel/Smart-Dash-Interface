@@ -3,3 +3,4 @@ Dash/Data/*.txt
 cache/
 __pycache__/
 Experimental/*.log
+Experimental/*.json
