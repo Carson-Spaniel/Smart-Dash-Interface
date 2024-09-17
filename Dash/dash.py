@@ -18,6 +18,7 @@ PI = False
 SYSTEM_VERSION = "2.4.1"
 
 # Global Variables
+supported = []
 connect = False
 DELAY = 0
 OPTIMIZE = 0
@@ -53,6 +54,16 @@ def try_connect():
                 # Print a message indicating connection
                 if connection.is_connected():
                     print("Connected to OBD-II adapter. Turning on display.")
+                    supported_response = connection.query(obd.commands.PIDS_A)
+                    if supported_response.value:
+                        bit_array = supported_response.value  # this is a BitArray object
+                        binary_string = bit_array.bin  # convert the BitArray to a binary string
+
+                        # Loop through each bit and check if the PID is supported
+                        for i, bit in enumerate(binary_string):
+                            pid_number = i + 1  # PIDs start from 1
+                            if bit == '1':
+                                supported.append(f"0x{pid_number:02X}")
                     connect = True
                     break
                 else:
@@ -77,65 +88,71 @@ def query():
     # Made it these specific times so that all queries only line up every 9.1 seconds
     first_delay = .7
     second_delay = 1.3
-    while logging:
+    while logging and connect:
         current_time = time.time()
         try:
-            response_rpm = connection.query(obd.commands.RPM)
+            # Get RPM
+            if '0x0C' in supported:
+                response_rpm = connection.query(obd.commands.RPM)
+                if not response_rpm.is_null():
+                    rpm = int(round(response_rpm.value.magnitude,0))
 
-            # Setting the values
-            if not response_rpm.is_null():
-                rpm = int(round(response_rpm.value.magnitude,0))
+                # Attempt to clear CEL
+                if CLEAR:
+                    # TODO add a check to make sure engine is off
+                    if rpm == 0: # Only run if engine is off
+
+                        response_clear = connection.query(obd.commands.CLEAR_DTC)
+
+                        if not response_clear.is_null():
+                            CLEARED = 1 # Success
+                            CLEAR = False
+                        else:
+                            CLEARED = 2 # Error
+                    else:
+                        CLEARED = 3 # Engine needs to be off
             
             # Run every first_delay seconds or if DELAY is on
             if current_time - delay1 >= first_delay or DELAY:
                 delay1 = current_time
 
                 if not OPTIMIZE:
-                    response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
-                    response_maf = connection.query(obd.commands.MAF)      # Mass Air Flow
+                    # Get Speed and MPG
+                    if '0x0D' in supported and '0x10' in supported:
+                        response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
+                        response_maf = connection.query(obd.commands.MAF)      # Mass Air Flow
+                        if not response_speed.is_null() and not response_maf.is_null():
+                            speed = response_speed.value.to('mile/hour').magnitude
+                            maf = response_maf.value.to('gram/second').magnitude
+                            mpg = calculate_mpg(speed, maf)
 
-                    if not response_speed.is_null() and not response_maf.is_null():
-                        speed = response_speed.value.to('mile/hour').magnitude
-                        maf = response_maf.value.to('gram/second').magnitude
-                        mpg = calculate_mpg(speed, maf)
-
-                response_fuel_level = connection.query(obd.commands.FUEL_LEVEL)
-
-                if not response_fuel_level.is_null():
-                    fuel_level = response_fuel_level.value.magnitude
+                # Get fuel level
+                if '0x2F' in supported:
+                    response_fuel_level = connection.query(obd.commands.FUEL_LEVEL)
+                    if not response_fuel_level.is_null():
+                        fuel_level = response_fuel_level.value.magnitude
 
             # Run every second_delay second or if DELAY is on
             if not OPTIMIZE:
                 if current_time - delay2 >= second_delay or DELAY:
                     delay2 = current_time
 
-                    response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
-                    response_air_temp = connection.query(obd.commands.AMBIANT_AIR_TEMP)
+                    # Get voltage
+                    if '0x42' in supported:
+                        response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
+                        if not response_voltage.is_null():
+                            voltage = response_voltage.value.magnitude
+                    
+                    # Get air temperature
+                    if '0x46' in supported:
+                        response_air_temp = connection.query(obd.commands.AMBIANT_AIR_TEMP)
+                        if not response_air_temp.is_null():
+                            air_temp = response_air_temp.value.magnitude
 
-                    if not response_voltage.is_null():
-                        voltage = response_voltage.value.magnitude
-
-                    if not response_air_temp.is_null():
-                        air_temp = response_air_temp.value.magnitude
-
-                    # Gather CEL codes
+                    # Get CEL codes
                     response_cel = connection.query(obd.commands.GET_DTC)
                     if not response_cel.is_null():
                         codes = response_cel.value
-
-            # Attempt to clear CEL
-            if CLEAR:
-                if response_rpm.value.magnitude == 0: # Only run if engine is off
-
-                    response_clear = connection.query(obd.commands.CLEAR_DTC)
-
-                    if not response_clear.is_null():
-                        CLEARED = 1 # Success
-                        CLEAR = False
-                    else:
-                        CLEARED = 2 # Error
-                else:
-                    CLEARED = 3 # Engine needs to be off
 
             time.sleep(.1) # Increasing this will slow down queries
 
@@ -150,13 +167,14 @@ def main():
     global DELAY, OPTIMIZE, BRIGHTNESS, RPM_MAX, SHIFT, CLEARED, CLEAR, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes, logging, internal_clock, exit_text
 
     # Initialize variables
-    #pages = ["Main" , "Settings", "RPM", "Trouble"] #"Off"
     pages = [
         ["Main"],
         ["Custom", "Color1"],
         ["Settings", "RPM","Info"],
-        ["Trouble"]
+        ["Trouble"],
+        # ["Off"]
     ]
+    
     current_page = (0, 0)
     FLIP = False
     SHIFT_LIGHT = True
@@ -687,25 +705,32 @@ def main():
             if pages[current_page[0]][current_page[1]] == "RPM":
                 draw_text(screen, "RPM Settings", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
 
-                # Draw RPM section
-                draw_text(screen, "RPM", font_medium_clean, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4 + 20)
-                draw_text(screen, str(rpm), font_large, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 +20)
-                draw_text(screen, "Max", font_small_clean, FONT_COLOR, SCREEN_WIDTH*.28, SCREEN_HEIGHT // 2)
-                draw_text(screen, str(RPM_MAX), font_medium, FONT_COLOR, SCREEN_WIDTH*.28, SCREEN_HEIGHT // 2 +40)
-                draw_text(screen, "Shift", font_small_clean, FONT_COLOR, SCREEN_WIDTH*.72, SCREEN_HEIGHT // 2)
-                draw_text(screen, str(SHIFT), font_medium, FONT_COLOR, SCREEN_WIDTH*.72, SCREEN_HEIGHT // 2 +40)
+                if DEV or '0x0C' in supported:
+                    # Draw RPM section
+                    draw_text(screen, "RPM", font_medium_clean, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4 + 20)
+                    draw_text(screen, str(rpm), font_large, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 +20)
+                    draw_text(screen, "Max", font_small_clean, FONT_COLOR, SCREEN_WIDTH*.28, SCREEN_HEIGHT // 2)
+                    draw_text(screen, str(RPM_MAX), font_medium, FONT_COLOR, SCREEN_WIDTH*.28, SCREEN_HEIGHT // 2 +40)
+                    draw_text(screen, "Shift", font_small_clean, FONT_COLOR, SCREEN_WIDTH*.72, SCREEN_HEIGHT // 2)
+                    draw_text(screen, str(SHIFT), font_medium, FONT_COLOR, SCREEN_WIDTH*.72, SCREEN_HEIGHT // 2 +40)
 
-                pygame.draw.rect(screen, GREEN, (SCREEN_WIDTH * 0.2+25, SCREEN_HEIGHT*.3, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
-                pygame.draw.rect(screen, RED, (SCREEN_WIDTH * 0.2+25, SCREEN_HEIGHT-SCREEN_HEIGHT*.3, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
+                    pygame.draw.rect(screen, GREEN, (SCREEN_WIDTH * 0.2+25, SCREEN_HEIGHT*.3, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
+                    pygame.draw.rect(screen, RED, (SCREEN_WIDTH * 0.2+25, SCREEN_HEIGHT-SCREEN_HEIGHT*.3, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
 
-                draw_text(screen, "+", font_medium, BLACK, SCREEN_WIDTH * 0.2+25+SCREEN_WIDTH*.05, SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.05)
-                draw_text(screen, "-", font_medium, BLACK, SCREEN_WIDTH * 0.2+25+SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.05)
+                    draw_text(screen, "+", font_medium, BLACK, SCREEN_WIDTH * 0.2+25+SCREEN_WIDTH*.05, SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.05)
+                    draw_text(screen, "-", font_medium, BLACK, SCREEN_WIDTH * 0.2+25+SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.05)
 
-                pygame.draw.rect(screen, GREEN, (SCREEN_WIDTH * 0.7-25, SCREEN_HEIGHT*.3, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
-                pygame.draw.rect(screen, RED, (SCREEN_WIDTH * 0.7-25, SCREEN_HEIGHT-SCREEN_HEIGHT*.3, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
+                    pygame.draw.rect(screen, GREEN, (SCREEN_WIDTH * 0.7-25, SCREEN_HEIGHT*.3, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
+                    pygame.draw.rect(screen, RED, (SCREEN_WIDTH * 0.7-25, SCREEN_HEIGHT-SCREEN_HEIGHT*.3, SCREEN_WIDTH * 0.1, SCREEN_HEIGHT*.1))
 
-                draw_text(screen, "+", font_medium, BLACK, SCREEN_WIDTH * 0.7-25+SCREEN_WIDTH*.05, SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.05)
-                draw_text(screen, "-", font_medium, BLACK, SCREEN_WIDTH * 0.7-25+SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.05)
+                    draw_text(screen, "+", font_medium, BLACK, SCREEN_WIDTH * 0.7-25+SCREEN_WIDTH*.05, SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.05)
+                    draw_text(screen, "-", font_medium, BLACK, SCREEN_WIDTH * 0.7-25+SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.3+SCREEN_HEIGHT*.05)
+                
+                else:
+                    if not connect:
+                        draw_text(screen, "Not connected to car", font_medium_clean, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 +20)
+                    else:
+                        draw_text(screen, "RPM is not supported by car", font_medium_clean, FONT_COLOR, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 +20)
 
             elif pages[current_page[0]][current_page[1]] == "Main":
                 screen.fill(BACKGROUND_1_COLOR)
@@ -757,7 +782,6 @@ def main():
                 draw_rounded_rect(screen, BACKGROUND_2_COLOR, (SCREEN_WIDTH//2-((SCREEN_WIDTH*.89)//2), SCREEN_HEIGHT//2-((SCREEN_HEIGHT*.83)//2), SCREEN_WIDTH*.89, SCREEN_HEIGHT*.83), 90)
 
                 pygame.draw.rect(screen, BACKGROUND_2_COLOR, pygame.Rect(SCREEN_WIDTH//2-((SCREEN_WIDTH*.89)//2), SCREEN_HEIGHT//2-((SCREEN_HEIGHT*.83)//2), SCREEN_WIDTH*.89, SCREEN_HEIGHT*.83),  20, 90)
-
 
                 pygame.draw.rect(screen, BACKGROUND_2_COLOR, (0, SCREEN_HEIGHT*.25, SCREEN_WIDTH * .22, SCREEN_HEIGHT))
                 pygame.draw.rect(screen, BACKGROUND_2_COLOR, (SCREEN_WIDTH-SCREEN_WIDTH*.22, SCREEN_HEIGHT*.25, SCREEN_WIDTH, SCREEN_HEIGHT*.5))
