@@ -102,6 +102,7 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
 
 ## Upcoming
 - Performance page: top speed tracking, 0-60 time tracking, more performance related things.
+- Bluetooth setting: Add Bluetooth connection from the dash interface.
 
 ## Far Future
 - Raspberry Pi hotspot for wifi connection to phone for GPS data for GPS related features.
@@ -112,6 +113,8 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
 - Updated
   - Shift Light padding: Renamed to "Shift Starting RPM." Displays the point at which the lights start to turn on.
   - Install script: Added a part to install bluetooth stuff.
+- Added
+  - Bluetooth script: Run this to find bluetooth devices.
 
 ### v2.4.0
 - Added
