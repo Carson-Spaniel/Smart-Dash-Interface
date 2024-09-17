@@ -39,7 +39,7 @@ connection = None
 
 # Function to attempt to connect to OBD-II Adapter
 def try_connect():
-    global connect, connection
+    global connect, connection, supported
     if not DEV:
         for i in range(3):
             try:
@@ -54,21 +54,48 @@ def try_connect():
                 # Print a message indicating connection
                 if connection.is_connected():
                     print("Connected to OBD-II adapter. Turning on display.")
-                    supported_response = connection.query(obd.commands.PIDS_A)
-                    if supported_response.value:
-                        bit_array = supported_response.value  # this is a BitArray object
-                        binary_string = bit_array.bin  # convert the BitArray to a binary string
+
+                    supported = load_supported()
+
+                    if len(supported) == 0:
+                        # Query the supported PIDs for different ranges
+                        supported_response_a = connection.query(obd.commands.PIDS_A)
+                        supported_response_b = connection.query(obd.commands.PIDS_B)
+                        supported_response_c = connection.query(obd.commands.PIDS_C)
+
+                        # Initialize an empty string for the combined binary string
+                        combined_binary_string = ""
+
+                        # Convert each supported response to a binary string and concatenate
+                        if supported_response_a.value:
+                            bit_array_a = supported_response_a.value
+                            binary_string_a = ''.join(str(int(bit)) for bit in bit_array_a)
+                            combined_binary_string += binary_string_a  # Append A's binary string
+                        
+                        if supported_response_b.value:
+                            bit_array_b = supported_response_b.value
+                            binary_string_b = ''.join(str(int(bit)) for bit in bit_array_b)
+                            combined_binary_string += binary_string_b  # Append B's binary string
+                        
+                        if supported_response_c.value:
+                            bit_array_c = supported_response_c.value
+                            binary_string_c = ''.join(str(int(bit)) for bit in bit_array_c)
+                            combined_binary_string += binary_string_c  # Append C's binary string
 
                         # Loop through each bit and check if the PID is supported
-                        for i, bit in enumerate(binary_string):
+                        for i, bit in enumerate(combined_binary_string):
                             pid_number = i + 1  # PIDs start from 1
                             if bit == '1':
                                 supported.append(f"0x{pid_number:02X}")
+
+                        save_supported(supported)
+                    
                     connect = True
                     break
                 else:
                     print("Could not connect to OBD-II adapter.")
-            except Exception:
+            except Exception as e:
+                print(e)
                 print('An error occurred.')
 
 # Function to constantly try to connect
@@ -76,6 +103,9 @@ def connect_thread():
     while not connect:
         try_connect()
         time.sleep(5)
+    
+    # Run Queries on Separate Thread
+    threading.Thread(target=query, daemon=True).start()
 
 # Function for making the queries for everything needed in the dash
 def query():
@@ -250,13 +280,8 @@ def main():
         maf = 6
         voltage = 15.5
     else:
-        # If connected to car
-        if connect:
-            # Run Queries on Separate Thread
-            threading.Thread(target=query, daemon=True).start()
-        else:
-            # Keep trying to connect on Separate Thread
-            threading.Thread(target=connect_thread, daemon=True).start()
+        # Keep trying to connect on Separate Thread
+        threading.Thread(target=connect_thread, daemon=True).start()
 
         # Display Chevrolet logo
         display_logo(screen)
