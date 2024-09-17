@@ -34,28 +34,37 @@ codes = []
 logging = True
 internal_clock = 0
 exit_text = "Exiting..."
+connection = None
 
-# Attempt to connect to OBD-II Adapter
-if not DEV:
-    for i in range(3):
-        try:
-            print('\nAttempting to connect...\n')
+# Function to attempt to connect to OBD-II Adapter
+def try_connect():
+    global connect, connection
+    if not DEV:
+        for i in range(3):
+            try:
+                print('\nAttempting to connect...\n')
 
-            # The Bluetooth port for RFCOMM on Raspberry Pi
-            port = "/dev/rfcomm0"
-                
-            # Connect to the OBD-II adapter
-            connection = obd.OBD(portstr=port)
+                # The Bluetooth port for RFCOMM on Raspberry Pi
+                port = "/dev/rfcomm0"
+                    
+                # Connect to the OBD-II adapter
+                connection = obd.OBD(portstr=port)
 
-            # Print a message indicating connection
-            if connection.is_connected():
-                print("Connected to OBD-II adapter. Turning on display.")
-                connect = True
-                break
-            else:
-                print("Could not connect to OBD-II adapter.")
-        except Exception:
-            print('An error occurred.')
+                # Print a message indicating connection
+                if connection.is_connected():
+                    print("Connected to OBD-II adapter. Turning on display.")
+                    connect = True
+                    break
+                else:
+                    print("Could not connect to OBD-II adapter.")
+            except Exception:
+                print('An error occurred.')
+
+# Function to constantly try to connect
+def connect_thread():
+    while not connect:
+        try_connect()
+        time.sleep(5)
 
 # Function for making the queries for everything needed in the dash
 def query():
@@ -223,13 +232,16 @@ def main():
         maf = 6
         voltage = 15.5
     else:
-        # Display Chevrolet logo
-        display_logo(screen)
-
         # If connected to car
         if connect:
             # Run Queries on Separate Thread
             threading.Thread(target=query, daemon=True).start()
+        else:
+            # Keep trying to connect on Separate Thread
+            threading.Thread(target=connect_thread, daemon=True).start()
+
+        # Display Chevrolet logo
+        display_logo(screen)
 
     while logging:
         FONT_COLOR = COLORS[font_index] # Default font color
@@ -967,14 +979,12 @@ def main():
         clock.tick(FPS)
 
         interval = 0.1
-        if DEV:
-            interval += .0215
         internal_clock = round((internal_clock + interval) % .4, 1)
         time.sleep(interval)
 
     print(exit_text)
 
-    if not DEV:
+    if connect:
         # Close the connection
         connection.close()
 
