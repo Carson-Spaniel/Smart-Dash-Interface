@@ -111,7 +111,9 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
 
 ### v2.6.0
 - Added
-    - Backgrounds: you can now customize the background with different pictures.
+  - Backgrounds: you can now customize the background with different pictures.
+- Updated
+  - Queries: optimized queries to only run when needed to reduce CPU usage.
 
 ### v2.5.0
 - Added

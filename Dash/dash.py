@@ -38,6 +38,14 @@ exit_text = "Exiting..."
 connection = None
 current_page = (0, 0)
 
+pages = [
+    ["Main"],
+    ["Custom", "Color1"],
+    ["Settings", "RPM","Info"],
+    ["Trouble"],
+    # ["Off"]
+]
+
 # Function to attempt to connect to OBD-II Adapter
 def try_connect():
     global connect, connection, supported
@@ -123,68 +131,75 @@ def query():
     while logging and connect:
         current_time = time.time()
         try:
-            # Get RPM
-            if '0x0C' in supported:
-                response_rpm = connection.query(obd.commands.RPM)
-                if not response_rpm.is_null():
-                    rpm = int(round(response_rpm.value.magnitude,0))
+            if pages[current_page[0]][current_page[1]] == "Main" or pages[current_page[0]][current_page[1]] == "RPM":
+                # Get RPM
+                if '0x0C' in supported:
+                    response_rpm = connection.query(obd.commands.RPM)
+                    if not response_rpm.is_null():
+                        rpm = int(round(response_rpm.value.magnitude,0))
+                
+                # Run every first_delay seconds or if DELAY is on
+                if current_time - delay1 >= first_delay or DELAY:
+                    delay1 = current_time
 
-                # Attempt to clear CEL
-                if CLEAR:
-                    # TODO add a check to make sure engine is off
-                    if rpm == 0: # Only run if engine is off
+                    if not OPTIMIZE:
+                        # Get Speed and MPG
+                        if '0x0D' in supported and '0x10' in supported:
+                            response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
+                            response_maf = connection.query(obd.commands.MAF)      # Mass Air Flow
+                            if not response_speed.is_null() and not response_maf.is_null():
+                                speed = response_speed.value.to('mile/hour').magnitude
+                                maf = response_maf.value.to('gram/second').magnitude
+                                mpg = calculate_mpg(speed, maf)
 
-                        response_clear = connection.query(obd.commands.CLEAR_DTC)
+                    # Get fuel level
+                    if '0x2F' in supported:
+                        response_fuel_level = connection.query(obd.commands.FUEL_LEVEL)
+                        if not response_fuel_level.is_null():
+                            fuel_level = response_fuel_level.value.magnitude
 
-                        if not response_clear.is_null():
-                            CLEARED = 1 # Success
-                            CLEAR = False
-                        else:
-                            CLEARED = 2 # Error
-                    else:
-                        CLEARED = 3 # Engine needs to be off
-            
-            # Run every first_delay seconds or if DELAY is on
-            if current_time - delay1 >= first_delay or DELAY:
-                delay1 = current_time
-
+                # Run every second_delay second or if DELAY is on
                 if not OPTIMIZE:
-                    # Get Speed and MPG
-                    if '0x0D' in supported and '0x10' in supported:
-                        response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
-                        response_maf = connection.query(obd.commands.MAF)      # Mass Air Flow
-                        if not response_speed.is_null() and not response_maf.is_null():
-                            speed = response_speed.value.to('mile/hour').magnitude
-                            maf = response_maf.value.to('gram/second').magnitude
-                            mpg = calculate_mpg(speed, maf)
+                    if current_time - delay2 >= second_delay or DELAY:
+                        delay2 = current_time
 
-                # Get fuel level
-                if '0x2F' in supported:
-                    response_fuel_level = connection.query(obd.commands.FUEL_LEVEL)
-                    if not response_fuel_level.is_null():
-                        fuel_level = response_fuel_level.value.magnitude
+                        # Get voltage
+                        if '0x42' in supported:
+                            response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
+                            if not response_voltage.is_null():
+                                voltage = response_voltage.value.magnitude
+                        
+                        # Get air temperature
+                        if '0x46' in supported:
+                            response_air_temp = connection.query(obd.commands.AMBIANT_AIR_TEMP)
+                            if not response_air_temp.is_null():
+                                air_temp = response_air_temp.value.magnitude
 
-            # Run every second_delay second or if DELAY is on
-            if not OPTIMIZE:
-                if current_time - delay2 >= second_delay or DELAY:
-                    delay2 = current_time
+                        # Get CEL codes
+                        response_cel = connection.query(obd.commands.GET_DTC)
+                        if not response_cel.is_null():
+                            codes = response_cel.value
 
-                    # Get voltage
-                    if '0x42' in supported:
-                        response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
-                        if not response_voltage.is_null():
-                            voltage = response_voltage.value.magnitude
-                    
-                    # Get air temperature
-                    if '0x46' in supported:
-                        response_air_temp = connection.query(obd.commands.AMBIANT_AIR_TEMP)
-                        if not response_air_temp.is_null():
-                            air_temp = response_air_temp.value.magnitude
+            elif pages[current_page[0]][current_page[1]] == "Trouble":
+                # Get RPM
+                if '0x0C' in supported:
+                    response_rpm = connection.query(obd.commands.RPM)
+                    if not response_rpm.is_null():
+                        rpm = int(round(response_rpm.value.magnitude,0))
 
-                    # Get CEL codes
-                    response_cel = connection.query(obd.commands.GET_DTC)
-                    if not response_cel.is_null():
-                        codes = response_cel.value
+                    # Attempt to clear CEL
+                    if CLEAR:
+                        if rpm == 0: # Only run if engine is off
+
+                            response_clear = connection.query(obd.commands.CLEAR_DTC)
+
+                            if not response_clear.is_null():
+                                CLEARED = 1 # Success
+                                CLEAR = False
+                            else:
+                                CLEARED = 2 # Error
+                        else:
+                            CLEARED = 3 # Engine needs to be off
 
             time.sleep(.1) # Increasing this will slow down queries
 
@@ -199,14 +214,6 @@ def main():
     global DELAY, OPTIMIZE, BRIGHTNESS, RPM_MAX, SHIFT, CLEARED, CLEAR, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes, logging, internal_clock, exit_text, current_page
 
     # Initialize variables
-    pages = [
-        ["Main"],
-        ["Custom", "Color1"],
-        ["Settings", "RPM","Info"],
-        ["Trouble"],
-        # ["Off"]
-    ]
-    
     FLIP = False
     SHIFT_LIGHT = True
     mouse_button_down = False
@@ -1079,7 +1086,7 @@ def main():
         screen_2.blit(screen, (0, 0))
 
         if FLIP:
-            flipped_screen = pygame.transform.flip(screen, False, True)
+            flipped_screen = pygame.transform.flip(screen_2, False, True)
             screen_2.blit(flipped_screen, (0, 0))
 
         # Update the display
