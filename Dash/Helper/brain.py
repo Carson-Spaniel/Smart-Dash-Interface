@@ -1,6 +1,7 @@
 import pygame
 import math
 import time
+import os
 
 # Initialize Pygame
 pygame.init()
@@ -62,6 +63,7 @@ LIGHT_GRAY = (211, 211, 211)
 SLATE_GRAY = (112, 128, 144)
 DARK_GRAY = (169, 169, 169)
 SILVER = (192, 192, 192)
+DARK = (60, 60, 60)
 
 # All Colors List
 COLORS = [
@@ -73,7 +75,7 @@ COLORS = [
     SKY_BLUE, DEEP_SKY_BLUE, PURPLE, MAGENTA, VIOLET, ORCHID, 
     LAVENDER, PINK, HOT_PINK, DARK_PURPLE, INDIGO, MAROON, 
     BROWN, DARK_BROWN, SIENNA, SADDLE_BROWN, BLACK, WHITE, 
-    GRAY, LIGHT_GRAY, SLATE_GRAY, DARK_GRAY, SILVER
+    GRAY, LIGHT_GRAY, SLATE_GRAY, DARK_GRAY, SILVER, DARK
 ]
 
 # Fonts
@@ -212,7 +214,7 @@ def display_logo(screen):
     # Animation variables
     rotation_angle = 0
     scale = 0.6
-    animation_duration = 1
+    animation_duration = 3
     start_time = time.time()
 
     while time.time() - start_time < animation_duration:
@@ -232,7 +234,7 @@ def display_logo(screen):
 
         pygame.display.flip()
 
-        scale += 0.01
+        scale += 0.003
 
         pygame.time.Clock().tick(FPS)
     
@@ -275,7 +277,6 @@ def load_supported():
         print(f"Error loading supported PIDs from file: {e}")
     return supported
 
-
 # Function to save supported PIDs to file
 def save_supported(supported):
     try:
@@ -284,3 +285,30 @@ def save_supported(supported):
                 file.write(f"{pid}\n")
     except Exception as e:
         print(f"Error saving supported PIDs to file: {e}")
+
+# Function to tint an image
+def tint_image(image, tint_color):
+    # Create a copy of the image to avoid modifying the original
+    tinted_image = image.copy()
+    # Apply the tint by filling it with the background color using BLEND_RGB_MULT
+    tinted_image.fill(tint_color, special_flags=pygame.BLEND_RGB_MULT)
+    return tinted_image
+
+def find_images(directory):
+    # Accepted image file extensions
+    image_extensions = ('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp')
+
+    # List to store relative paths of image files
+    image_files = []
+
+    # Walk through the directory and its subdirectories
+    for root, _, files in os.walk(directory):
+        for file in files:
+            if file.lower().endswith(image_extensions):
+                # Get the relative path including the input directory
+                relative_path = os.path.relpath(os.path.join(root, file))
+                image_files.append(relative_path)
+
+    image_files.sort()
+    
+    return image_files

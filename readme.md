@@ -109,6 +109,10 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
 
 ## Versions
 
+### v2.6.0
+- Added
+    - Backgrounds: you can now customize the background with different pictures.
+
 ### v2.5.0
 - Added
   - Query check: checks to see if your car supports the command its about to call to reduce errors.

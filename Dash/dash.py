@@ -14,8 +14,8 @@ RPM_MAX,SHIFT = load_rpm()
 
 # Environment Variables
 DEV = False
-PI = False
-SYSTEM_VERSION = "2.5.0"
+PI = True
+SYSTEM_VERSION = "2.6.0"
 
 # Global Variables
 supported = []
@@ -211,6 +211,7 @@ def main():
     SHIFT_LIGHT = True
     mouse_button_down = False
     skip = True
+    changed_image = False
 
     swipe_start_x = 0
     swipe_start_y = 0
@@ -225,6 +226,10 @@ def main():
     shift_color_3 = 0
     shift_color_4 = 31
     shift_padding = 100
+    image_index = 0
+
+    # Find images
+    images = find_images("Images/backgrounds/")
 
     # Load the last visited page
     try:
@@ -250,6 +255,7 @@ def main():
             shift_color_3 = int(file.readline())
             shift_color_4 = int(file.readline())
             shift_padding = int(file.readline())
+            image_index = int(file.readline())
 
     except Exception:
         current_page = (0, 0)
@@ -264,12 +270,17 @@ def main():
         shift_color_3 = 0
         shift_color_4 = 31
         shift_padding = 100
+        image_index = 0
+
+    if image_index >= len(images):
+        image_index = 0
 
     # Load Pygame
     if not PI:
-        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        screen_2 = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     else:
-        screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
+        screen_2 = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
+    screen = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Smart Dash")
     clock = pygame.time.Clock()
 
@@ -285,12 +296,32 @@ def main():
         threading.Thread(target=connect_thread, daemon=True).start()
 
         # Display Chevrolet logo
-        display_logo(screen)
+        display_logo(screen_2)
+
+    # Load the image you want to display in place of the background color
+    background_image = pygame.image.load(images[image_index])
+    background_image = pygame.transform.scale(background_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
     while logging:
+        if changed_image:
+            # Load the image you want to display in place of the background color
+            background_image = pygame.image.load(images[image_index])
+            background_image = pygame.transform.scale(background_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
+            changed_image = False
+
         FONT_COLOR = COLORS[font_index] # Default font color
         BACKGROUND_1_COLOR = COLORS[background_1_index] # Default background 1 color
         BACKGROUND_2_COLOR = COLORS[background_2_index] # Default background 2 color
+
+        # Create a mask surface that will use the BACKGROUND_2_COLOR and become transparent
+        screen = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        screen.fill(BACKGROUND_2_COLOR)
+
+        # Set the color key to make BACKGROUND_2_COLOR transparent on the mask
+        screen.set_colorkey(BACKGROUND_2_COLOR)
+
+        # Tint the background image with BACKGROUND_2_COLOR
+        tinted_background = tint_image(background_image, BACKGROUND_2_COLOR)
 
         try:
             with open("Data/wifi.txt", "r") as file:
@@ -455,6 +486,16 @@ def main():
                         # Check for collision with right rectangle
                         elif mouseX < SCREEN_WIDTH * 0.7 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7 and mouseY < SCREEN_HEIGHT*.44+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.44:
                             background_2_index = (background_2_index + 1) % len(COLORS)
+
+                        # Check for collision with left rectangle
+                        elif mouseX < SCREEN_WIDTH * 0.5 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.5 and mouseY < SCREEN_HEIGHT*.56+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.56:
+                            image_index = (image_index - 1) % len(images)
+                            changed_image = True
+
+                        # Check for collision with right rectangle
+                        elif mouseX < SCREEN_WIDTH * 0.7 + SCREEN_WIDTH*.1 and mouseX > SCREEN_WIDTH * 0.7 and mouseY < SCREEN_HEIGHT*.56+SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT*.56:
+                            image_index = (image_index + 1) % len(images)
+                            changed_image = True
 
                     elif pages[current_page[0]][current_page[1]] == "Color1":
 
@@ -666,6 +707,7 @@ def main():
             file.write(f'\n{str(int(shift_color_3))}')
             file.write(f'\n{str(int(shift_color_4))}')
             file.write(f'\n{str(int(shift_padding))}')
+            file.write(f'\n{str(int(image_index))}')
         
         if DEV:
             # Set random variables for testing purposes
@@ -690,6 +732,7 @@ def main():
 
         # Clear the screen
         screen.fill(BACKGROUND_2_COLOR)
+        screen_2.fill(BACKGROUND_2_COLOR)
 
         # Draw page indicators (circles)
         circle_radius = 8
@@ -971,6 +1014,16 @@ def main():
                 draw_text(screen, f"{background_2_index+1}", font_small, BLACK if COLORS[background_2_index] != BLACK else WHITE, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
                 draw_text(screen, "Background Color 2", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
             
+                # Load the image you want to display in place of the background color
+                new_image = pygame.image.load(images[image_index])
+                new_image = pygame.transform.scale(new_image, (SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
+                screen.blit(new_image, (((SCREEN_WIDTH//2)+SCREEN_WIDTH*.1), SCREEN_HEIGHT*.56))
+
+                draw_text(screen, "<", font_medium, FONT_COLOR, SCREEN_WIDTH * 0.55, SCREEN_HEIGHT*.61)
+                draw_text(screen, ">", font_medium, FONT_COLOR, SCREEN_WIDTH * 0.75, SCREEN_HEIGHT*.61)
+                draw_text(screen, f"{image_index+1}", font_small, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.61)
+                draw_text(screen, "Background Image", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.61)
+
             elif pages[current_page[0]][current_page[1]] == "Color1":
                 draw_text(screen, "Shift Light Settings", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
 
@@ -1019,9 +1072,15 @@ def main():
         except IndexError:
             current_page = (current_page[0],0)
 
+        # Blit the tinted background image onto the screen first
+        screen_2.blit(tinted_background, (0, 0))
+
+        # # Then blit the mask surface onto the screen (with transparency)
+        screen_2.blit(screen, (0, 0))
+
         if FLIP:
             flipped_screen = pygame.transform.flip(screen, False, True)
-            screen.blit(flipped_screen, (0, 0))
+            screen_2.blit(flipped_screen, (0, 0))
 
         # Update the display
         pygame.display.flip()
