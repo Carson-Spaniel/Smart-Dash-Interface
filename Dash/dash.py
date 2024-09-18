@@ -14,7 +14,7 @@ RPM_MAX,SHIFT = load_rpm()
 
 # Environment Variables
 DEV = False
-PI = True
+PI = False
 SYSTEM_VERSION = "2.5.0"
 
 # Global Variables
@@ -36,6 +36,7 @@ logging = True
 internal_clock = 0
 exit_text = "Exiting..."
 connection = None
+current_page = (0, 0)
 
 # Function to attempt to connect to OBD-II Adapter
 def try_connect():
@@ -195,7 +196,7 @@ def query():
 # Main function for the Pygame interface
 def main():
     # Get global variables
-    global DELAY, OPTIMIZE, BRIGHTNESS, RPM_MAX, SHIFT, CLEARED, CLEAR, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes, logging, internal_clock, exit_text
+    global DELAY, OPTIMIZE, BRIGHTNESS, RPM_MAX, SHIFT, CLEARED, CLEAR, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes, logging, internal_clock, exit_text, current_page
 
     # Initialize variables
     pages = [
@@ -206,7 +207,6 @@ def main():
         # ["Off"]
     ]
     
-    current_page = (0, 0)
     FLIP = False
     SHIFT_LIGHT = True
     mouse_button_down = False
@@ -296,7 +296,6 @@ def main():
             with open("Data/wifi.txt", "r") as file:
                 wifi = int(file.readline())
         except Exception:
-            print("No wifi file.")
             wifi = 0
 
         for event in pygame.event.get():
