@@ -264,3 +264,23 @@ def calculate_mpg(speed, maf):
     mpg = speed / gph
 
     return round(mpg*10, 1)
+
+# Function to load supported PIDs from file
+def load_supported():
+    supported = []
+    try:
+        with open("Data/supported.txt", 'r') as file:
+            supported = file.read().splitlines()  # Load each PID as a list item
+    except Exception as e:
+        print(f"Error loading supported PIDs from file: {e}")
+    return supported
+
+
+# Function to save supported PIDs to file
+def save_supported(supported):
+    try:
+        with open("Data/supported.txt", 'w') as file:
+            for pid in supported:
+                file.write(f"{pid}\n")
+    except Exception as e:
+        print(f"Error saving supported PIDs to file: {e}")
