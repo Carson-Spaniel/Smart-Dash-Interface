@@ -131,7 +131,7 @@ def query():
     while logging and connect:
         current_time = time.time()
         try:
-            if pages[current_page[0]][current_page[1]] == "Main" or pages[current_page[0]][current_page[1]] == "RPM":
+            if pages[current_page[0]][current_page[1]] == "Main":
                 # Get RPM
                 if '0x0C' in supported:
                     response_rpm = connection.query(obd.commands.RPM)
@@ -180,7 +180,7 @@ def query():
                         if not response_cel.is_null():
                             codes = response_cel.value
 
-            elif pages[current_page[0]][current_page[1]] == "Trouble":
+            elif pages[current_page[0]][current_page[1]] == "Trouble" or pages[current_page[0]][current_page[1]] == "RPM":
                 # Get RPM
                 if '0x0C' in supported:
                     response_rpm = connection.query(obd.commands.RPM)
@@ -201,7 +201,7 @@ def query():
                         else:
                             CLEARED = 3 # Engine needs to be off
 
-            # time.sleep(.1) # Increasing this will slow down queries
+            time.sleep(.1) # Increasing this will slow down queries
 
         except Exception as e:
             print(f'An error occured: {e}')
@@ -697,7 +697,7 @@ def main():
                         if shift_padding <= 0:
                             shift_padding = 10
 
-                time.sleep(.1)
+                time.sleep(.01)
             skip = False
 
         with open("Data/info.txt", "w") as file:
@@ -1095,7 +1095,7 @@ def main():
 
         interval = 0.1
         internal_clock = round((internal_clock + interval) % .4, 1)
-        # time.sleep(interval)
+        time.sleep(interval)
 
     print(exit_text)
 

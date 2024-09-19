@@ -107,6 +107,10 @@ while true; do
             rm -rf "$TMP_DIR"
             continue
         fi
+
+        # Delete any .txt files in the temporary directory
+        echo "Deleting .txt files in the temporary directory" >> $logfile
+        find "$TMP_DIR" -type f -name "*.txt" -exec rm -f {} \; >> $logfile 2>&1
         
         # Calculate the size of the unpacked files
         unpacked_size=$(du -sm "$TMP_DIR" | cut -f1)
