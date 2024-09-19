@@ -14,7 +14,7 @@ RPM_MAX,SHIFT = load_rpm()
 
 # Environment Variables
 DEV = False
-PI = True
+PI = False
 SYSTEM_VERSION = "2.6.1"
 
 # Global Variables
@@ -697,7 +697,7 @@ def main():
                         if shift_padding <= 0:
                             shift_padding = 10
 
-                time.sleep(.01)
+                time.sleep(.1)
             skip = False
 
         with open("Data/info.txt", "w") as file:
