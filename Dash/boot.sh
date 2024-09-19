@@ -69,14 +69,14 @@ source env/bin/activate >> $logfile
 
 echo "----------Starting dash script----------" >> $logfile
 while true; do
-    echo "Starting dash.py"
+    echo "Starting dash.py" >> $logfile
     # Run your Python script in a loop
-    python3 ./dash.py >> $logfile
+    python3 ./dash.py >> $logfile 2>&1
 
     # Ensure logs are flushed properly
     sync
 
-    # Check if the script needs to be restarted
+    # Check if the script needs to be restarted or shut down
     if grep -q "Exiting..." $logfile; then
         echo "----------Ending dash script----------" >> $logfile
         sudo shutdown -h now
@@ -86,17 +86,28 @@ while true; do
         continue
     elif grep -q "Update System" $logfile; then
         echo "----------Updating through Wifi----------" >> $logfile
-        cd /home/pi/
+        cd /home/pi/ || { echo "Failed to change directory to /home/pi/" >> $logfile; continue; }
+
         # Download the update
-        rm wget-log*
-        wget -O Dash.tar.xz https://github.com/Carson-Spaniel/Smart-Dash-Interface/releases/latest/download/Dash.tar.xz
+        rm -f wget-log* || { echo "Failed to remove old wget logs" >> $logfile; continue; }
+        wget -O Dash.tar.xz https://github.com/Carson-Spaniel/Smart-Dash-Interface/releases/latest/download/Dash.tar.xz >> $logfile 2>&1
+        if [ $? -ne 0 ]; then
+            echo "Failed to download Dash.tar.xz" >> $logfile
+            continue
+        fi
         
         # Create a temporary directory
-        TMP_DIR=$(mktemp -d)
+        TMP_DIR=$(mktemp -d) || { echo "Failed to create temporary directory" >> $logfile; continue; }
         echo "Unpacking files into $TMP_DIR" >> $logfile
         
         # Unpack the tarball into the temporary directory
-        tar -xJvf Dash.tar.xz -C "$TMP_DIR"
+        tar -xJvf Dash.tar.xz -C "$TMP_DIR" >> $logfile 2>&1
+        if [ $? -ne 0 ]; then
+            echo "Failed to unpack Dash.tar.xz" >> $logfile
+            rm -f Dash.tar.xz
+            rm -rf "$TMP_DIR"
+            continue
+        fi
         
         # Calculate the size of the unpacked files
         unpacked_size=$(du -sm "$TMP_DIR" | cut -f1)
@@ -107,29 +118,44 @@ while true; do
             
             # Use rsync to merge the files from the temporary directory to the Dash directory
             echo "Merging files into /home/pi/Dash using rsync" >> $logfile
-            rsync -av --progress "$TMP_DIR/" /home/pi/Dash/
+            rsync -av --progress "$TMP_DIR/" /home/pi/Dash/ >> $logfile 2>&1
+            if [ $? -ne 0 ]; then
+                echo "Failed to merge files with rsync" >> $logfile
+                rm -f Dash.tar.xz
+                rm -rf "$TMP_DIR"
+                continue
+            fi
             
-            # Activate the virtual environment
+            # Activate the virtual environment and install requirements
             echo "Activating virtual environment" >> $logfile
             source /home/pi/Dash/env/bin/activate 2>>$logfile
-
-            # Installing requirements
-            log "Installing requirements"
-            if pip install -r /home/pi/Dash/requirements.txt 2>>$logfile; then
-                echo "Requirements installed." >> $logfile
-            else
-                echo "Failed to install requirements." >> $logfile
-                break
+            if [ $? -ne 0 ]; then
+                echo "Failed to activate virtual environment" >> $logfile
+                rm -f Dash.tar.xz
+                rm -rf "$TMP_DIR"
+                continue
             fi
+
+            echo "Installing requirements" >> $logfile
+            pip install -r /home/pi/Dash/requirements.txt >> $logfile 2>&1
+            if [ $? -ne 0 ]; then
+                echo "Failed to install requirements" >> $logfile
+                rm -f Dash.tar.xz
+                rm -rf "$TMP_DIR"
+                continue
+            fi
+
+            # Clean up temporary files
+            rm -f Dash.tar.xz
+            rm -rf "$TMP_DIR"
+            sudo reboot
+            continue
         else
             echo "Unpacked size ($unpacked_size MB) is less than expected. Update aborted." >> $logfile
+            rm -f Dash.tar.xz
+            rm -rf "$TMP_DIR"
+            continue
         fi
-
-        # Clean up temporary files
-        rm -f Dash.tar.xz
-        rm -rf "$TMP_DIR"
-        sudo reboot
-        continue
     else
         echo "No specific exit reason. Restarting dash.py." >> $logfile
         sleep 1
