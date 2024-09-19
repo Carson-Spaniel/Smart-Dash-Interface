@@ -15,7 +15,7 @@ RPM_MAX,SHIFT = load_rpm()
 # Environment Variables
 DEV = False
 PI = True
-SYSTEM_VERSION = "2.7.0"
+SYSTEM_VERSION = "2.7.1-beta"
 
 # Global Variables
 supported = []
@@ -201,7 +201,7 @@ def query():
                         else:
                             CLEARED = 3 # Engine needs to be off
 
-            time.sleep(.1) # Increasing this will slow down queries
+            time.sleep(.03) # Increasing this will slow down queries
 
         except Exception as e:
             print(f'An error occured: {e}')
@@ -1129,7 +1129,7 @@ def main():
         pygame.display.flip()
         clock.tick(FPS)
 
-        interval = 0.1
+        interval = 0.01
         internal_clock = round((internal_clock + interval) % .4, 1)
         time.sleep(interval)
 
