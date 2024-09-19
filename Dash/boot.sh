@@ -11,36 +11,52 @@ if [ ! -f "$WIFI_STATUS_FILE" ]; then
     echo "0" > "$WIFI_STATUS_FILE"  # Initialize the file with 0
 fi
 
+# Ensure the beta.txt file exists
+if [ ! -f "$BETA_FILE" ]; then
+    echo "0" > "$BETA_FILE"  # Initialize the file with 0
+fi
+
 # Function to constantly check Wi-Fi status by pinging an external server
 check_wifi_loop() {
+    WIFI_STATUS_FILE="/path/to/wifi_status.txt"
+    BETA_FILE="/path/to/beta_status.txt"
+    LAST_WIFI_STATUS=""
+    LAST_BETA_STATUS=""
+
     while true; do
         # Ping an external server (e.g., Google's DNS server) to check internet connectivity
         if ping -c 1 -W 2 8.8.8.8 > /dev/null 2>&1; then
-            # Internet is accessible, write 1 to the file
-            echo "1" > "$WIFI_STATUS_FILE"
+            # Internet is accessible, set current status
+            CURRENT_WIFI_STATUS="1"
+
+            # Check for pre-release only if the internet is available
+            pre_release_url=$(curl -s https://api.github.com/repos/Carson-Spaniel/Smart-Dash-Interface/releases?per_page=10 | jq -r '.[] | select(.prerelease == true) | .assets[] | select(.name == "Dash.tar.xz") | .browser_download_url' 2> /dev/null)
+            
+            if [ -n "$pre_release_url" ]; then
+                # Beta exists, set beta status
+                CURRENT_BETA_STATUS="1"
+            else
+                # Beta does not exist, set beta status
+                CURRENT_BETA_STATUS="0"
+            fi
         else
-            # Internet is not accessible, write 0 to the file
-            echo "0" > "$WIFI_STATUS_FILE"
+            # Internet is not accessible, set wifi and beta status to 0
+            CURRENT_WIFI_STATUS="0"
+            CURRENT_BETA_STATUS="0"
         fi
 
-        # Wait for 2 seconds before the next check (adjust as needed)
-        sleep 2
-    done
-}
-
-# Function to constantly if there is a beta out
-check_beta_loop() {
-    while true; do
-        if pre_release_url=$(curl -s https://api.github.com/repos/Carson-Spaniel/Smart-Dash-Interface/releases?per_page=1 | jq -r '.[] | select(.prerelease == true) | .assets[] | select(.name == "Dash.tar.xz") | .browser_download_url')
- > /dev/null 2>&1; then
-            # Beta exists, write 1 to the file
-            echo "1" > "$BETA_FILE"
-        else
-            # Beta does not exists, write 0 to the file
-            echo "0" > "$BETA_FILE"
+        # Only write to the files if the status has changed
+        if [ "$CURRENT_WIFI_STATUS" != "$LAST_WIFI_STATUS" ]; then
+            echo "$CURRENT_WIFI_STATUS" > "$WIFI_STATUS_FILE"
+            LAST_WIFI_STATUS="$CURRENT_WIFI_STATUS"
         fi
 
-        # Wait for 2 seconds before the next check (adjust as needed)
+        if [ "$CURRENT_BETA_STATUS" != "$LAST_BETA_STATUS" ]; then
+            echo "$CURRENT_BETA_STATUS" > "$BETA_FILE"
+            LAST_BETA_STATUS="$CURRENT_BETA_STATUS"
+        fi
+
+        # Wait for 2 seconds before the next Wi-Fi check, and increase GitHub check interval
         sleep 2
     done
 }
@@ -48,11 +64,6 @@ check_beta_loop() {
 # Start Wi-Fi checker only if not already running
 if ! pgrep -f check_wifi_loop > /dev/null; then
     check_wifi_loop &
-fi
-
-# Start beta checker only if not already running
-if ! pgrep -f check_beta_loop > /dev/null; then
-    check_beta_loop &
 fi
 
 echo "----------Starting boot.sh----------" > $logfile
@@ -181,18 +192,13 @@ while true; do
             continue
         fi
     elif grep -q "Test Update" $logfile; then
-        echo "----------Updating through Wifi----------" >> $logfile
+        echo "----------Updating to Pre-release through Wifi----------" >> $logfile
         cd /home/pi/ || { echo "Failed to change directory to /home/pi/" >> $logfile; continue; }
 
         # Download the update
         rm -f wget-log* || { echo "Failed to remove old wget logs" >> $logfile; continue; }
-        pre_release_url=$(curl -s https://api.github.com/repos/Carson-Spaniel/Smart-Dash-Interface/releases?per_page=1 | jq -r '.[] | select(.prerelease == true) | .assets[] | select(.name == "Dash.tar.xz") | .browser_download_url')
-        if [ -z "$pre_release_url" ]; then
-            echo "No pre-release found or asset not available" >> "$logfile"
-            continue
-        else
-            wget -O Dash.tar.xz "$pre_release_url" >> "$logfile" 2>&1
-        fi
+        pre_release_url=$(curl -s https://api.github.com/repos/Carson-Spaniel/Smart-Dash-Interface/releases?per_page=10 | jq -r '.[] | select(.prerelease == true) | .assets[] | select(.name == "Dash.tar.xz") | .browser_download_url')
+        wget -O Dash.tar.xz "$pre_release_url" >> "$logfile" 2>&1
 
         if [ $? -ne 0 ]; then
             echo "Failed to download Dash.tar.xz" >> $logfile
