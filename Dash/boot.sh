@@ -3,8 +3,8 @@
 logfile=/home/pi/Dash/bootup.log
 device=/home/pi/Dash/Data/device.txt
 
-# Path to the wifi.txt file
 WIFI_STATUS_FILE="/home/pi/Dash/Data/wifi.txt"
+BETA_FILE="/home/pi/Dash/Data/beta.txt"
 
 # Ensure the wifi.txt file exists
 if [ ! -f "$WIFI_STATUS_FILE" ]; then
@@ -28,9 +28,31 @@ check_wifi_loop() {
     done
 }
 
+# Function to constantly if there is a beta out
+check_beta_loop() {
+    while true; do
+        if pre_release_url=$(curl -s https://api.github.com/repos/Carson-Spaniel/Smart-Dash-Interface/releases?per_page=1 | jq -r '.[] | select(.prerelease == true) | .assets[] | select(.name == "Dash.tar.xz") | .browser_download_url')
+ > /dev/null 2>&1; then
+            # Beta exists, write 1 to the file
+            echo "1" > "$BETA_FILE"
+        else
+            # Beta does not exists, write 0 to the file
+            echo "0" > "$BETA_FILE"
+        fi
+
+        # Wait for 2 seconds before the next check (adjust as needed)
+        sleep 2
+    done
+}
+
 # Start Wi-Fi checker only if not already running
 if ! pgrep -f check_wifi_loop > /dev/null; then
     check_wifi_loop &
+fi
+
+# Start beta checker only if not already running
+if ! pgrep -f check_beta_loop > /dev/null; then
+    check_beta_loop &
 fi
 
 echo "----------Starting boot.sh----------" > $logfile
@@ -90,6 +112,88 @@ while true; do
         # Download the update
         rm -f wget-log* || { echo "Failed to remove old wget logs" >> $logfile; continue; }
         wget -O Dash.tar.xz https://github.com/Carson-Spaniel/Smart-Dash-Interface/releases/latest/download/Dash.tar.xz >> $logfile 2>&1
+        if [ $? -ne 0 ]; then
+            echo "Failed to download Dash.tar.xz" >> $logfile
+            continue
+        fi
+        
+        # Create a temporary directory
+        TMP_DIR=$(mktemp -d) || { echo "Failed to create temporary directory" >> $logfile; continue; }
+        echo "Unpacking files into $TMP_DIR" >> $logfile
+        
+        # Unpack the tarball into the temporary directory
+        tar -xJvf Dash.tar.xz -C "$TMP_DIR" >> $logfile 2>&1
+        if [ $? -ne 0 ]; then
+            echo "Failed to unpack Dash.tar.xz" >> $logfile
+            rm -f Dash.tar.xz
+            rm -rf "$TMP_DIR"
+            continue
+        fi
+
+        # Delete any .txt files in the temporary directory
+        echo "Deleting .txt files in the temporary directory" >> $logfile
+        find "$TMP_DIR/Dash/Data" -type f -name "*.txt" -exec rm -f {} \; >> $logfile 2>&1
+        
+        # Calculate the size of the unpacked files
+        unpacked_size=$(du -sm "$TMP_DIR" | cut -f1)
+        
+        # Check if the size exceeds 1 MB
+        if [ "$unpacked_size" -gt 1 ]; then
+            echo "Unpacked size ($unpacked_size MB) is greater than 1 MB. Proceeding with update." >> $logfile
+            
+            # Use rsync to merge the files from the temporary directory to the Dash directory
+            echo "Merging files into /home/pi/ using rsync" >> $logfile
+            rsync -av --progress "$TMP_DIR/" /home/pi/ >> $logfile 2>&1
+            if [ $? -ne 0 ]; then
+                echo "Failed to merge files with rsync" >> $logfile
+                rm -f Dash.tar.xz
+                rm -rf "$TMP_DIR"
+                continue
+            fi
+            
+            # Activate the virtual environment and install requirements
+            echo "Activating virtual environment" >> $logfile
+            source /home/pi/Dash/env/bin/activate 2>>$logfile
+            if [ $? -ne 0 ]; then
+                echo "Failed to activate virtual environment" >> $logfile
+                rm -f Dash.tar.xz
+                rm -rf "$TMP_DIR"
+                continue
+            fi
+
+            echo "Installing requirements" >> $logfile
+            pip install -r /home/pi/Dash/requirements.txt >> $logfile 2>&1
+            if [ $? -ne 0 ]; then
+                echo "Failed to install requirements" >> $logfile
+                rm -f Dash.tar.xz
+                rm -rf "$TMP_DIR"
+                continue
+            fi
+
+            # Clean up temporary files
+            rm -f Dash.tar.xz
+            rm -rf "$TMP_DIR"
+            continue
+        else
+            echo "Unpacked size ($unpacked_size MB) is less than expected. Update aborted." >> $logfile
+            rm -f Dash.tar.xz
+            rm -rf "$TMP_DIR"
+            continue
+        fi
+    elif grep -q "Test Update" $logfile; then
+        echo "----------Updating through Wifi----------" >> $logfile
+        cd /home/pi/ || { echo "Failed to change directory to /home/pi/" >> $logfile; continue; }
+
+        # Download the update
+        rm -f wget-log* || { echo "Failed to remove old wget logs" >> $logfile; continue; }
+        pre_release_url=$(curl -s https://api.github.com/repos/Carson-Spaniel/Smart-Dash-Interface/releases?per_page=1 | jq -r '.[] | select(.prerelease == true) | .assets[] | select(.name == "Dash.tar.xz") | .browser_download_url')
+        if [ -z "$pre_release_url" ]; then
+            echo "No pre-release found or asset not available" >> "$logfile"
+            continue
+        else
+            wget -O Dash.tar.xz "$pre_release_url" >> "$logfile" 2>&1
+        fi
+
         if [ $? -ne 0 ]; then
             echo "Failed to download Dash.tar.xz" >> $logfile
             continue

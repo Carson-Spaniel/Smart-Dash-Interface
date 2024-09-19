@@ -15,7 +15,7 @@ RPM_MAX,SHIFT = load_rpm()
 # Environment Variables
 DEV = False
 PI = True
-SYSTEM_VERSION = "2.6.2"
+SYSTEM_VERSION = "2.7.0"
 
 # Global Variables
 supported = []
@@ -201,7 +201,7 @@ def query():
                         else:
                             CLEARED = 3 # Engine needs to be off
 
-            time.sleep(.03) # Increasing this will slow down queries
+            time.sleep(.1) # Increasing this will slow down queries
 
         except Exception as e:
             print(f'An error occured: {e}')
@@ -345,6 +345,12 @@ def main():
         except Exception:
             wifi = 0
 
+        try:
+            with open("Data/beta.txt", "r") as file:
+                beta = int(file.readline())
+        except Exception:
+            beta = 0
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 logging = False
@@ -476,6 +482,12 @@ def main():
                             if wifi:
                                 logging = False
                                 exit_text = "Update System"
+
+                        # Check for collision with update rectangle
+                        elif mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.25 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT*.74 and mouseY > SCREEN_HEIGHT*.64:
+                            if wifi and beta:
+                                logging = False
+                                exit_text = "Test Update"
 
                     elif pages[current_page[0]][current_page[1]] == "Custom":
                         
@@ -1002,9 +1014,24 @@ def main():
                 draw_text(screen, "Exit", font_small_clean, BLACK, SCREEN_WIDTH//2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
 
                 pygame.draw.rect(screen, GREEN if wifi else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.05, SCREEN_HEIGHT*.32, SCREEN_WIDTH*.2, SCREEN_HEIGHT*.1))
-                draw_text(screen, "Update" if wifi else "Unavailable", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
+                draw_text(screen, "Update" if wifi else "No Wifi", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
                 draw_text(screen, "Update System", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
                 draw_text(screen, "" if wifi else "Connect to wifi in order to update the system", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2), SCREEN_HEIGHT*.52, SCREEN_WIDTH*.8)
+
+                beta_button_text = ""
+                beta_button_color = DARK_ORANGE
+                if wifi and beta:
+                    beta_button_text = "Test"
+                elif wifi:
+                    beta_button_text = "Unavailable"
+                    beta_button_color = RED
+                else:
+                    beta_button_text = "No Wifi"
+                    beta_button_color = RED
+
+                pygame.draw.rect(screen, beta_button_color, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.05, SCREEN_HEIGHT*.64, SCREEN_WIDTH*.2, SCREEN_HEIGHT*.1))
+                draw_text(screen, beta_button_text, font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.69)
+                draw_text(screen, "Test Pre-release", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.69)
 
             elif pages[current_page[0]][current_page[1]] == "Custom":
                 draw_text(screen, "Customization Settings", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
@@ -1102,7 +1129,7 @@ def main():
         pygame.display.flip()
         clock.tick(FPS)
 
-        interval = 0.01
+        interval = 0.1
         internal_clock = round((internal_clock + interval) % .4, 1)
         time.sleep(interval)
 
