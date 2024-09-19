@@ -305,13 +305,13 @@ def main():
         # Display Chevrolet logo
         display_logo(screen_2)
 
-    # Load the image you want to display in place of the background color
+    # Load the image you want to display
     background_image = pygame.image.load(images[image_index])
     background_image = pygame.transform.scale(background_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
     while logging:
         if changed_image:
-            # Load the image you want to display in place of the background color
+            # Load and change the new background
             background_image = pygame.image.load(images[image_index])
             background_image = pygame.transform.scale(background_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
             changed_image = False
@@ -1020,7 +1020,7 @@ def main():
                 draw_text(screen, f"{background_2_index+1}", font_small, BLACK if COLORS[background_2_index] != BLACK else WHITE, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
                 draw_text(screen, "Background Color 2", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
             
-                # Load the image you want to display in place of the background color
+                # Load the image you want to display
                 new_image = pygame.image.load(images[image_index])
                 new_image = pygame.transform.scale(new_image, (SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
                 screen.blit(new_image, (((SCREEN_WIDTH//2)+SCREEN_WIDTH*.1), SCREEN_HEIGHT*.56))
