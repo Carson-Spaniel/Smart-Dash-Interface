@@ -109,6 +109,10 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
 
 ## Versions
 
+### v2.6.1
+- Added
+  - Flashdrive updates: just put the Dash.tar.xz file onto a flashdrive and put it into the pi and you should be able to update.
+
 ### v2.6.0
 - Added
   - Backgrounds: you can now customize the background with different pictures.

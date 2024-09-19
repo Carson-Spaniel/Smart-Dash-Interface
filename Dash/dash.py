@@ -13,9 +13,9 @@ BRIGHTNESS = get_brightness()
 RPM_MAX,SHIFT = load_rpm()
 
 # Environment Variables
-DEV = True
-PI = False
-SYSTEM_VERSION = "2.6.0"
+DEV = False
+PI = True
+SYSTEM_VERSION = "2.6.1"
 
 # Global Variables
 supported = []
@@ -463,10 +463,10 @@ def main():
                             exit_text = "Exiting..."
                         
                         # Check for collision with update rectangle
-                        elif mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.21 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.09 and mouseY < SCREEN_HEIGHT*.42 and mouseY > SCREEN_HEIGHT*.32:
+                        elif mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.25 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT*.42 and mouseY > SCREEN_HEIGHT*.32:
                             if wifi:
                                 logging = False
-                                exit_text = "Wifi Update"
+                                exit_text = "Update"
 
                     elif pages[current_page[0]][current_page[1]] == "Custom":
                         
@@ -992,9 +992,10 @@ def main():
                 pygame.draw.rect(screen, RED, (SCREEN_WIDTH//2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
                 draw_text(screen, "Exit", font_small_clean, BLACK, SCREEN_WIDTH//2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
 
-                pygame.draw.rect(screen, GREEN if wifi else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.09, SCREEN_HEIGHT*.32, SCREEN_WIDTH*.12, SCREEN_HEIGHT*.1))
-                draw_text(screen, "Update" if wifi else "No Wifi", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
-                draw_text(screen, "Wifi Update", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
+                pygame.draw.rect(screen, GREEN if wifi else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.05, SCREEN_HEIGHT*.32, SCREEN_WIDTH*.2, SCREEN_HEIGHT*.1))
+                draw_text(screen, "Update" if wifi else "Unavailable", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
+                draw_text(screen, "Update System", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
+                draw_text(screen, "" if wifi else "Connect to wifi or insert a USB Flashdrive with the Dash.tar.xz in it in order to update the system", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2), SCREEN_HEIGHT*.52, SCREEN_WIDTH*.8)
 
             elif pages[current_page[0]][current_page[1]] == "Custom":
                 draw_text(screen, "Customization Settings", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
