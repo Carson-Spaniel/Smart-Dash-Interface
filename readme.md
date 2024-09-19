@@ -109,10 +109,6 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
 
 ## Versions
 
-### v2.7.0
-- Added
-  - Pre-release Testing: Now able to test pre-releases if they are available.
-
 ### v2.6.1
 - Updated
   - Wifi Updating: cleans its self up after downloading. Can revert if the download doesn't go correctly.  
