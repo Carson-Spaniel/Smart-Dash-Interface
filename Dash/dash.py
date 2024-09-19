@@ -13,8 +13,8 @@ BRIGHTNESS = get_brightness()
 RPM_MAX,SHIFT = load_rpm()
 
 # Environment Variables
-DEV = False
-PI = True
+DEV = True
+PI = False
 SYSTEM_VERSION = "2.6.0"
 
 # Global Variables
@@ -841,7 +841,6 @@ def main():
                 pygame.draw.rect(screen, rpm_color, (SCREEN_WIDTH * 0.01, 0, rpm_width, SCREEN_HEIGHT*.25))
                 pygame.draw.line(screen, shiftLineColor, (SCREEN_WIDTH-shift_line_x, 0), (SCREEN_WIDTH-shift_line_x, SCREEN_HEIGHT*.25), 5)
 
-                # screen.blit(curveOut, ((SCREEN_WIDTH - curveOut.get_width())//2, (SCREEN_HEIGHT - curveOut.get_height())//2))
                 pygame.draw.rect(screen, BACKGROUND_2_COLOR, pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT),  20, 120)
                 
                 pygame.draw.rect(screen, BACKGROUND_2_COLOR, pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT*.03))
