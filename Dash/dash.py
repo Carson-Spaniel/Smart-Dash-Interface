@@ -264,7 +264,8 @@ def main():
             shift_padding = int(file.readline())
             image_index = int(file.readline())
 
-    except Exception:
+    except Exception as e:
+        print(e)
         current_page = (0, 0)
         SHIFT_LIGHT = True
         DELAY = False
