@@ -14,8 +14,8 @@ RPM_MAX,SHIFT = load_rpm()
 
 # Environment Variables
 DEV = False
-PI = False
-SYSTEM_VERSION = "2.6.1"
+PI = True
+SYSTEM_VERSION = "2.6.2"
 
 # Global Variables
 supported = []
@@ -201,7 +201,7 @@ def query():
                         else:
                             CLEARED = 3 # Engine needs to be off
 
-            time.sleep(.1) # Increasing this will slow down queries
+            time.sleep(.03) # Increasing this will slow down queries
 
         except Exception as e:
             print(f'An error occured: {e}')
@@ -308,8 +308,17 @@ def main():
     # Load the image you want to display
     background_image = pygame.image.load(images[image_index])
     background_image = pygame.transform.scale(background_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
+    
+    # previous_time = time.time()
 
     while logging:
+        # current_time = time.time()
+        # elapsed_time = current_time - previous_time
+
+        # print(f"Time taken for this iteration: {elapsed_time:.2f} seconds")
+
+        # previous_time = current_time
+
         if changed_image:
             # Load and change the new background
             background_image = pygame.image.load(images[image_index])
@@ -697,7 +706,7 @@ def main():
                         if shift_padding <= 0:
                             shift_padding = 10
 
-                time.sleep(.01)
+                time.sleep(.1)
             skip = False
 
         with open("Data/info.txt", "w") as file:
@@ -1093,7 +1102,7 @@ def main():
         pygame.display.flip()
         clock.tick(FPS)
 
-        interval = 0.1
+        interval = 0.01
         internal_clock = round((internal_clock + interval) % .4, 1)
         time.sleep(interval)
 
