@@ -110,7 +110,7 @@ while true; do
 
         # Delete any .txt files in the temporary directory
         echo "Deleting .txt files in the temporary directory" >> $logfile
-        find "$TMP_DIR/Dash/data" -type f -name "*.txt" -exec rm -f {} \; >> $logfile 2>&1
+        find "$TMP_DIR/Dash/Data" -type f -name "*.txt" -exec rm -f {} \; >> $logfile 2>&1
         
         # Calculate the size of the unpacked files
         unpacked_size=$(du -sm "$TMP_DIR" | cut -f1)
