@@ -59,19 +59,18 @@ else
     exit 1
 fi
 
-echo "----------Moving to correct directory----------" >> $logfile
-# Move into correct folder
-cd /home/pi/Dash/
-
-echo "----------Activating virtual environment----------" >> $logfile
-# Activate the virtual environment
-source env/bin/activate >> $logfile
-
-echo "----------Starting dash script----------" >> $logfile
 while true; do
-    echo "Starting dash.py" >> $logfile
+    echo "----------Moving to correct directory----------" >> $logfile
+    # Move into correct folder
+    cd /home/pi/Dash/
+
+    echo "----------Activating virtual environment----------" >> $logfile
+    # Activate the virtual environment
+    source env/bin/activate >> $logfile
+
+    echo "----------Starting dash script----------" >> $logfile
     # Run your Python script in a loop
-    python3 ./dash.py >> $logfile 2>&1
+    python3 /home/pi/Dash/dash.py >> $logfile 2>&1
 
     # Ensure logs are flushed properly
     sync
@@ -117,8 +116,8 @@ while true; do
             echo "Unpacked size ($unpacked_size MB) is greater than 1 MB. Proceeding with update." >> $logfile
             
             # Use rsync to merge the files from the temporary directory to the Dash directory
-            echo "Merging files into /home/pi/Dash using rsync" >> $logfile
-            rsync -av --progress "$TMP_DIR/" /home/pi/Dash/ >> $logfile 2>&1
+            echo "Merging files into /home/pi/ using rsync" >> $logfile
+            rsync -av --progress "$TMP_DIR/" /home/pi/ >> $logfile 2>&1
             if [ $? -ne 0 ]; then
                 echo "Failed to merge files with rsync" >> $logfile
                 rm -f Dash.tar.xz
@@ -148,7 +147,6 @@ while true; do
             # Clean up temporary files
             rm -f Dash.tar.xz
             rm -rf "$TMP_DIR"
-            sudo reboot
             continue
         else
             echo "Unpacked size ($unpacked_size MB) is less than expected. Update aborted." >> $logfile
