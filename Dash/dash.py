@@ -201,7 +201,7 @@ def query():
                         else:
                             CLEARED = 3 # Engine needs to be off
 
-            time.sleep(.1) # Increasing this will slow down queries
+            # time.sleep(.1) # Increasing this will slow down queries
 
         except Exception as e:
             print(f'An error occured: {e}')
@@ -466,7 +466,7 @@ def main():
                         elif mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.25 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT*.42 and mouseY > SCREEN_HEIGHT*.32:
                             if wifi:
                                 logging = False
-                                exit_text = "Update"
+                                exit_text = "Update System"
 
                     elif pages[current_page[0]][current_page[1]] == "Custom":
                         
@@ -995,7 +995,7 @@ def main():
                 pygame.draw.rect(screen, GREEN if wifi else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.05, SCREEN_HEIGHT*.32, SCREEN_WIDTH*.2, SCREEN_HEIGHT*.1))
                 draw_text(screen, "Update" if wifi else "Unavailable", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
                 draw_text(screen, "Update System", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
-                draw_text(screen, "" if wifi else "Connect to wifi or insert a USB Flashdrive with the Dash.tar.xz in it in order to update the system", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2), SCREEN_HEIGHT*.52, SCREEN_WIDTH*.8)
+                draw_text(screen, "" if wifi else "Connect to wifi in order to update the system", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2), SCREEN_HEIGHT*.52, SCREEN_WIDTH*.8)
 
             elif pages[current_page[0]][current_page[1]] == "Custom":
                 draw_text(screen, "Customization Settings", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
@@ -1095,7 +1095,7 @@ def main():
 
         interval = 0.1
         internal_clock = round((internal_clock + interval) % .4, 1)
-        time.sleep(interval)
+        # time.sleep(interval)
 
     print(exit_text)
 
