@@ -13,9 +13,9 @@ BRIGHTNESS = get_brightness()
 RPM_MAX,SHIFT = load_rpm()
 
 # Environment Variables
-DEV = False
-PI = True
-SYSTEM_VERSION = "2.6.2"
+DEV = True
+PI = False
+SYSTEM_VERSION = "2.7.0"
 
 # Global Variables
 supported = []
@@ -41,8 +41,8 @@ current_page = (0, 0)
 pages = [
     ["Main"],
     ["Custom", "Color1"],
-    ["Settings", "RPM","Info"],
     ["Trouble"],
+    ["Settings", "RPM","Info"],
     # ["Off"]
 ]
 
@@ -232,8 +232,11 @@ def main():
     shift_color_2 = 8
     shift_color_3 = 0
     shift_color_4 = 31
+
     shift_padding = 100
     image_index = 0
+    experimental = False
+    ibf = False
 
     # Find images
     images = find_images("Images/backgrounds/")
@@ -310,15 +313,24 @@ def main():
     background_image = pygame.image.load(images[image_index])
     background_image = pygame.transform.scale(background_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
     
-    # previous_time = time.time()
+    # Experimental variables
+    previous_time = time.time()
+    elapsed_time = 0
+    experimental_added = False
 
     while logging:
-        # current_time = time.time()
-        # elapsed_time = current_time - previous_time
+        if experimental:
+            if ibf:
+                current_time = time.time()
+                elapsed_time = current_time - previous_time
+                previous_time = current_time
 
-        # print(f"Time taken for this iteration: {elapsed_time:.2f} seconds")
-
-        # previous_time = current_time
+            if not experimental_added:
+                pages.append(["Experimental"])
+                experimental_added = True
+        elif experimental_added:
+            pages.remove(["Experimental"])
+            experimental_added = False
 
         if changed_image:
             # Load and change the new background
@@ -473,10 +485,26 @@ def main():
                             exit_text = "Exiting..."
                         
                         # Check for collision with update rectangle
-                        elif mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.25 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT*.42 and mouseY > SCREEN_HEIGHT*.32:
+                        elif mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.25 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT*.3 and mouseY > SCREEN_HEIGHT*.2:
                             if wifi:
                                 logging = False
                                 exit_text = "Update System"
+
+                        # Check for collision with update rectangle
+                        elif mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.2 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1 and mouseY < SCREEN_HEIGHT*.42 and mouseY > SCREEN_HEIGHT*.32:
+                            if experimental:
+                                experimental = False
+                            else:
+                                experimental = True
+                    
+                    elif pages[current_page[0]][current_page[1]] == "Experimental":
+
+                        # Check for collision with optimize rectangle
+                        if mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.2 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1 and mouseY < SCREEN_HEIGHT*.3 and mouseY > SCREEN_HEIGHT*.2:
+                            if ibf:
+                                ibf = False
+                            else:
+                                ibf = True
 
                     elif pages[current_page[0]][current_page[1]] == "Custom":
                         
@@ -786,6 +814,9 @@ def main():
             pygame.draw.circle(screen, color, (circle_x, circle_y), circle_radius)
             circle_y += 2 * (circle_radius + circle_spacing)
 
+        if experimental and ibf:
+            draw_text(screen, f"{elapsed_time:.2f}", font_small_clean, FONT_COLOR, SCREEN_WIDTH*.96, SCREEN_HEIGHT*.96)
+
         try:
             if pages[current_page[0]][current_page[1]] == "RPM":
                 draw_text(screen, "RPM Settings", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
@@ -908,7 +939,8 @@ def main():
                         pygame.draw.circle(screen, FONT_COLOR, (circle_x, circle_y), circle_radius)
                         pygame.draw.circle(screen, BACKGROUND_2_COLOR, (circle_x, circle_y), circle_radius-3)
                         
-                        blink_pattern = (internal_clock == .1) or (internal_clock == .3)
+                        if rpm > SHIFT:
+                            blink_pattern = (internal_clock <= .03)
 
                         if rpm > SHIFT - (((len(light_colors)+2) - i) * shift_padding):
                             if rpm > SHIFT and blink_pattern:
@@ -921,6 +953,9 @@ def main():
                                 pygame.draw.circle(screen, color, (circle_x, circle_y), circle_radius)
                             
                         circle_x += 2 * (circle_radius + circle_spacing)
+
+                if experimental and ibf:
+                    draw_text(screen, f"{elapsed_time:.2f}", font_small_clean, FONT_COLOR, SCREEN_WIDTH*.96, SCREEN_HEIGHT*.96)
 
             elif pages[current_page[0]][current_page[1]] == "Settings":
                 draw_text(screen, "General Settings", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
@@ -1002,10 +1037,13 @@ def main():
                 pygame.draw.rect(screen, RED, (SCREEN_WIDTH//2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
                 draw_text(screen, "Exit", font_small_clean, BLACK, SCREEN_WIDTH//2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
 
-                pygame.draw.rect(screen, GREEN if wifi else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.05, SCREEN_HEIGHT*.32, SCREEN_WIDTH*.2, SCREEN_HEIGHT*.1))
-                draw_text(screen, "Update" if wifi else "No Wifi", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
-                draw_text(screen, "Update System", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
-                draw_text(screen, "" if wifi else "Connect to wifi in order to update the system", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2), SCREEN_HEIGHT*.52, SCREEN_WIDTH*.8)
+                pygame.draw.rect(screen, GREEN if wifi else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.05, SCREEN_HEIGHT*.2, SCREEN_WIDTH*.2, SCREEN_HEIGHT*.1))
+                draw_text(screen, "Update" if wifi else "No Wifi", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.25)
+                draw_text(screen, "Update System", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.25)
+
+                pygame.draw.rect(screen, GREEN if experimental else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.32, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
+                draw_text(screen, "On" if experimental else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
+                draw_text(screen, "Development Mode", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
 
             elif pages[current_page[0]][current_page[1]] == "Custom":
                 draw_text(screen, "Customization Settings", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
@@ -1028,7 +1066,7 @@ def main():
 
                 draw_text(screen, "<", font_medium, FONT_COLOR, SCREEN_WIDTH * 0.55, SCREEN_HEIGHT*.49)
                 draw_text(screen, ">", font_medium, FONT_COLOR, SCREEN_WIDTH * 0.75, SCREEN_HEIGHT*.49)
-                draw_text(screen, f"{background_2_index+1}", font_small, BLACK if COLORS[background_2_index] != BLACK else WHITE, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
+                draw_text(screen, f"{background_2_index+1}", font_small, FONT_COLOR, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
                 draw_text(screen, "Background Color 2", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
             
                 # Load the image you want to display
@@ -1083,16 +1121,24 @@ def main():
                 draw_text(screen, "+", font_medium, BLACK, SCREEN_WIDTH * 0.75, SCREEN_HEIGHT*.85)
                 draw_text(screen, f"{SHIFT - (14 * shift_padding)}", font_small, FONT_COLOR, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.85)
                 draw_text(screen, "Shift Starting RPM", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.85)
+            
+            elif pages[current_page[0]][current_page[1]] == "Experimental":
+                draw_text(screen, "Development Settings", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
+
+                pygame.draw.rect(screen, GREEN if ibf else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
+                draw_text(screen, "On" if ibf else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.25)
+                draw_text(screen, "Interval Betweeen Frames", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.25)
 
             elif pages[current_page[0]][current_page[1]] == "Off":
                 screen.fill(BLACK)
         except IndexError:
             current_page = (current_page[0],0)
 
-        # Blit the tinted background image onto the screen first
-        screen_2.blit(tinted_background, (0, 0))
+        if image_index:
+            # Blit the tinted background image onto the screen first
+            screen_2.blit(tinted_background, (0, 0))
 
-        # # Then blit the mask surface onto the screen (with transparency)
+        # Then blit the mask surface onto the screen (with transparency)
         screen_2.blit(screen, (0, 0))
 
         if FLIP:
@@ -1104,7 +1150,7 @@ def main():
         clock.tick(FPS)
 
         interval = 0.01
-        internal_clock = round((internal_clock + interval) % .4, 1)
+        internal_clock = round((internal_clock + interval) % .08, 2)
         time.sleep(interval)
 
     print(exit_text)
