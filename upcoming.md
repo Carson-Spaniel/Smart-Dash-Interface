@@ -2,5 +2,10 @@
 - Added
     - Development Mode: Going to have a page of settings that can help you fine tune your dash. Can be turned on in the system settings. 
     - Backgrounds: More backgrounds to choose from.
+    - Documentation: Large amounts of comments for each function.
+- Updated
+    - Code structure: Sorted most things into different functions and files making it easier to find where things are at.
+    - Rendering: Optimized code to render each frame faster.
+    - Blink pattern: Blinks based on time rather than internal clock.
 - Removed
     - Background: Removed background `6.jpg` because it was causing slow downs when loading each frame.
