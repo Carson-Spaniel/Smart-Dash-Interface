@@ -34,7 +34,8 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
 
   - Change font color.
   - Change Background 1 color: RPM and Fuel level background.
-  - Change Background 2 color: Main background. 
+  - Change Background 2 color: Main background.
+  - Change Background Image. 
 
 - **Shift Light Customization Page**
 
