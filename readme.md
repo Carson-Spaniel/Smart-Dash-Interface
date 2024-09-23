@@ -117,7 +117,7 @@ Feel free to fork the repository, open issues, or start a discussion. We encoura
 
 ## Versions
 
-### v2.7.0 [Unreleased]
+### v2.7.0
 - Added
   - Development Mode: Going to have a page of settings that can help you fine tune your dash. Can be turned on in the system settings. 
   - Backgrounds: More backgrounds to choose from.
