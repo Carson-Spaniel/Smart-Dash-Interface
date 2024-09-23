@@ -1,5 +1,6 @@
 import random
 import threading
+import obd
 from Helper.brain import *
 from Helper.pages import *
 from Helper.events import *
@@ -11,9 +12,9 @@ brightness = get_brightness()
 rpm_max,shift = load_rpm()
 
 # Environment Variables
-DEV = True
-PI = False
-SYSTEM_VERSION = "2.7.0"
+DEV = False
+PI = True
+SYSTEM_VERSION = "2.7.0-beta"
 
 # Global Variables
 supported = []
@@ -48,12 +49,93 @@ pages = [
     # ["Off"]
 ]
 
+def try_connect():
+    """
+    Attempts to establish a connection to the OBD-II adapter via Bluetooth, unless development mode is enabled.
+
+    Description:
+        - In development mode (`DEV=True`), the function skips the connection process, assuming simulated data is being used.
+        - If not in development mode (`DEV=False`), the function tries to connect to the OBD-II adapter using the "/dev/rfcomm0" port on a Raspberry Pi.
+        - Once connected, it checks if supported PIDs (Parameter IDs) are already loaded.
+        - If supported PIDs are not loaded, the function queries the OBD-II adapter for the supported PIDs (commands A, B, and C).
+        - The results from the adapter are converted into binary strings to identify supported PIDs, which are then saved for later use.
+        - The connection is retried up to 3 times if it fails.
+
+    Global Variables:
+        connect (bool): Indicates if the connection to the OBD-II adapter was successful.
+        connection (obd.OBD): The connection object representing the OBD-II connection.
+        supported (list): List of supported PIDs retrieved from the OBD-II adapter.
+
+    Exceptions:
+        - Catches and prints any exceptions that occur during the connection attempt.
+        - Prints an error message if the connection fails after multiple attempts.
+    """
+
+    global connect, connection, supported
+    if not DEV:
+        for i in range(3):
+            try:
+                print('\nAttempting to connect...\n')
+
+                # The Bluetooth port for RFCOMM on Raspberry Pi
+                port = "/dev/rfcomm0"
+                    
+                # Connect to the OBD-II adapter
+                connection = obd.OBD(portstr=port)
+
+                # Print a message indicating connection
+                if connection.is_connected():
+                    print("Connected to OBD-II adapter. Turning on display.")
+
+                    supported = load_supported()
+
+                    if len(supported) == 0:
+                        # Query the supported PIDs for different ranges
+                        supported_response_a = connection.query(obd.commands.PIDS_A)
+                        supported_response_b = connection.query(obd.commands.PIDS_B)
+                        supported_response_c = connection.query(obd.commands.PIDS_C)
+
+                        # Initialize an empty string for the combined binary string
+                        combined_binary_string = ""
+
+                        # Convert each supported response to a binary string and concatenate
+                        if supported_response_a.value:
+                            bit_array_a = supported_response_a.value
+                            binary_string_a = ''.join(str(int(bit)) for bit in bit_array_a)
+                            combined_binary_string += binary_string_a  # Append A's binary string
+                        
+                        if supported_response_b.value:
+                            bit_array_b = supported_response_b.value
+                            binary_string_b = ''.join(str(int(bit)) for bit in bit_array_b)
+                            combined_binary_string += binary_string_b  # Append B's binary string
+                        
+                        if supported_response_c.value:
+                            bit_array_c = supported_response_c.value
+                            binary_string_c = ''.join(str(int(bit)) for bit in bit_array_c)
+                            combined_binary_string += binary_string_c  # Append C's binary string
+
+                        # Loop through each bit and check if the PID is supported
+                        for i, bit in enumerate(combined_binary_string):
+                            pid_number = i + 1  # PIDs start from 1
+                            if bit == '1':
+                                supported.append(f"0x{pid_number:02X}")
+
+                        save_supported(supported)
+                    
+                    connect = True
+                    break
+                else:
+                    print("Could not connect to OBD-II adapter.")
+            except Exception as e:
+                print(e)
+                print('An error occurred.')
+
 # Function to constantly try to connect
 def connect_thread():
-    try_connect(DEV)
+    try_connect()
     while not connect:
         time.sleep(5)
-        try_connect(DEV)
+        try_connect()
     
     # Run Queries on Separate Thread
     threading.Thread(target=query, daemon=True).start()
