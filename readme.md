@@ -122,7 +122,6 @@ Feel free to fork the repository, open issues, or start a discussion. We encoura
   - Development Mode: Going to have a page of settings that can help you fine tune your dash. Can be turned on in the system settings. 
   - Backgrounds: More backgrounds to choose from.
   - Documentation: Large amounts of comments for each function.
-  - Experimental Features: Test out features that are still in testing. They are unstable, so it is not uncommon to see crashes.
 - Updated
   - Code structure: Sorted most things into different functions and files making it easier to find where things are at.
   - Rendering: Optimized code to render each frame faster.

@@ -499,16 +499,15 @@ def color_1_page(screen, FONT_COLOR, shift, shift_light, shift_color_1, shift_co
     draw_text(screen, f"{shift - (14 * shift_padding)}", font_small, FONT_COLOR, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.85)
     draw_text(screen, "Shift Starting RPM", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.85)
 
-def developmental_page(screen, FONT_COLOR, show_fps, experimental, query_times):
+def developmental_page(screen, FONT_COLOR, show_fps, query_times):
     """
-    Displays development settings, allowing the user to toggle FPS display.
+    Displays development settings, allowing the user to toggle FPS display  and see current average times each query is taking.
 
     Parameters:
         screen: The screen to draw on.
         FONT_COLOR: Color for the text.
         show_fps: Boolean indicating if FPS display is enabled.
-        experimental: Boolean indicating if experimental mode is enabled.
-        query_times: Dictionary of query times.
+        query_times: Dictionary of rolling average query times.
     """
         
     draw_text(screen, "Development Settings", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
@@ -518,11 +517,9 @@ def developmental_page(screen, FONT_COLOR, show_fps, experimental, query_times):
     draw_text(screen, "On" if show_fps else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.25)
     draw_text(screen, "Frames Per Second", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.25)
 
-    # Toggle experimental settings
-    pygame.draw.rect(screen, GREEN if experimental else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.32, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
-    draw_text(screen, "On" if experimental else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
-    draw_text(screen, "Experimental Mode", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
-
-    if experimental:
-        # Show experimental queries
-        draw_text(screen, f"Queries: {query_times}", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2), SCREEN_HEIGHT*.49, SCREEN_WIDTH*.5)
+    # Display query times
+    y_offset = SCREEN_HEIGHT * 0.4  # Starting Y position for query times
+    for query, data in query_times.items():
+        query_text = f"{query}: {data['average']:.4f} seconds"
+        draw_text(screen, query_text, font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, y_offset)
+        y_offset += SCREEN_HEIGHT * 0.06  # Move down for the next query
