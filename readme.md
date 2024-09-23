@@ -111,7 +111,7 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
 
 ## Versions
 
-### v2.7.0
+### v2.7.0 [Unreleased]
 - Added
   - Development Mode: Going to have a page of settings that can help you fine tune your dash. Can be turned on in the system settings. 
   - Backgrounds: More backgrounds to choose from.
