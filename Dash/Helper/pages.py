@@ -499,7 +499,7 @@ def color_1_page(screen, FONT_COLOR, shift, shift_light, shift_color_1, shift_co
     draw_text(screen, f"{shift - (14 * shift_padding)}", font_small, FONT_COLOR, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.85)
     draw_text(screen, "Shift Starting RPM", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.85)
 
-def developmental_page(screen, FONT_COLOR, show_fps):
+def developmental_page(screen, FONT_COLOR, show_fps, experimental, query_times):
     """
     Displays development settings, allowing the user to toggle FPS display.
 
@@ -507,6 +507,8 @@ def developmental_page(screen, FONT_COLOR, show_fps):
         screen: The screen to draw on.
         FONT_COLOR: Color for the text.
         show_fps: Boolean indicating if FPS display is enabled.
+        experimental: Boolean indicating if experimental mode is enabled.
+        query_times: Dictionary of query times.
     """
         
     draw_text(screen, "Development Settings", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
@@ -515,3 +517,12 @@ def developmental_page(screen, FONT_COLOR, show_fps):
     pygame.draw.rect(screen, GREEN if show_fps else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
     draw_text(screen, "On" if show_fps else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.25)
     draw_text(screen, "Frames Per Second", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.25)
+
+    # Toggle experimental settings
+    pygame.draw.rect(screen, GREEN if experimental else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.32, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
+    draw_text(screen, "On" if experimental else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
+    draw_text(screen, "Experimental Mode", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.37)
+
+    if experimental:
+        # Show experimental queries
+        draw_text(screen, f"Queries: {query_times}", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2), SCREEN_HEIGHT*.49, SCREEN_WIDTH*.5)

@@ -11,7 +11,7 @@ brightness = get_brightness()
 rpm_max,shift = load_rpm()
 
 # Environment Variables
-DEV = True
+DEV = False
 PI = False
 SYSTEM_VERSION = "2.7.0"
 
@@ -34,6 +34,11 @@ logging = True
 exit_text = "Exiting..."
 connection = None
 current_page = (0, 0)
+experimental = False
+query_times = {
+        'rpm': 0, 'speed': 0, 'fuel_level': 0, 
+        'voltage': 0, 'air_temp': 0, 'codes': 0
+    }
 
 pages = [
     ["Main"],
@@ -53,101 +58,206 @@ def connect_thread():
     # Run Queries on Separate Thread
     threading.Thread(target=query, daemon=True).start()
 
+# Function for calculating the execution time of queries
+def measure_time(query_func, *args):
+    start_time = time.time()
+    result = query_func(*args)
+    end_time = time.time()
+    exec_time = end_time - start_time
+    return result, exec_time
+
+# Function for calculating a rolling average
+def rolling_avg(old_avg, new_value, count):
+    return (old_avg * (count - 1) + new_value) / count
+
 # Function for making the queries for everything needed in the dash
 def query():
     # Get global variables
-    global clear, cleared, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes
+    global clear, cleared, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes, experimental, query_times
 
     delay1 = time.time()
     delay2 = time.time()
+
+    # Initial delay times are placeholders; they will adapt dynamically
+    first_delay = 1.0
+    second_delay = 1.0
+    
+    # Track how many times each query is executed to calculate rolling average
+    execution_counts = {key: 1 for key in query_times}
 
     # Made it these specific times so that all queries only line up every 9.1 seconds
     first_delay = .7
     second_delay = 1.3
     while logging and connect:
-        current_time = time.time()
-        try:
-            if pages[current_page[0]][current_page[1]] == "Main":
-                # Get RPM
-                if '0x0C' in supported:
-                    response_rpm = connection.query(obd.commands.RPM)
-                    if not response_rpm.is_null():
-                        rpm = int(round(response_rpm.value.magnitude,0))
-                
-                # Run every first_delay seconds or if delay is on
-                if current_time - delay1 >= first_delay or delay:
-                    delay1 = current_time
+        if not experimental:
+            first_delay = .7
+            second_delay = 1.3
+            current_time = time.time()
+            try:
+                if pages[current_page[0]][current_page[1]] == "Main":
+                    # Get RPM
+                    if '0x0C' in supported:
+                        response_rpm = connection.query(obd.commands.RPM)
+                        if not response_rpm.is_null():
+                            rpm = int(round(response_rpm.value.magnitude,0))
+                    
+                    # Run every first_delay seconds or if delay is on
+                    if current_time - delay1 >= first_delay or delay:
+                        delay1 = current_time
 
+                        if not optimize:
+                            # Get Speed and MPG
+                            if '0x0D' in supported and '0x10' in supported:
+                                response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
+                                response_maf = connection.query(obd.commands.MAF)      # Mass Air Flow
+                                if not response_speed.is_null() and not response_maf.is_null():
+                                    speed = response_speed.value.to('mile/hour').magnitude
+                                    maf = response_maf.value.to('gram/second').magnitude
+                                    mpg = calculate_mpg(speed, maf)
+
+                        # Get fuel level
+                        if '0x2F' in supported:
+                            response_fuel_level = connection.query(obd.commands.FUEL_LEVEL)
+                            if not response_fuel_level.is_null():
+                                fuel_level = response_fuel_level.value.magnitude
+
+                    # Run every second_delay second or if delay is on
                     if not optimize:
+                        if current_time - delay2 >= second_delay or delay:
+                            delay2 = current_time
+
+                            # Get voltage
+                            if '0x42' in supported:
+                                response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
+                                if not response_voltage.is_null():
+                                    voltage = response_voltage.value.magnitude
+                            
+                            # Get air temperature
+                            if '0x46' in supported:
+                                response_air_temp = connection.query(obd.commands.AMBIANT_AIR_TEMP)
+                                if not response_air_temp.is_null():
+                                    air_temp = response_air_temp.value.magnitude
+
+                            # Get CEL codes
+                            response_cel = connection.query(obd.commands.GET_DTC)
+                            if not response_cel.is_null():
+                                codes = response_cel.value
+
+                elif pages[current_page[0]][current_page[1]] == "Trouble" or pages[current_page[0]][current_page[1]] == "RPM":
+                    # Get RPM
+                    if '0x0C' in supported:
+                        response_rpm = connection.query(obd.commands.RPM)
+                        if not response_rpm.is_null():
+                            rpm = int(round(response_rpm.value.magnitude,0))
+
+                        # Attempt to clear CEL
+                        if clear:
+                            if rpm == 0: # Only run if engine is off
+
+                                response_clear = connection.query(obd.commands.CLEAR_DTC)
+
+                                if not response_clear.is_null():
+                                    cleared = 1 # Success
+                                    clear = False
+                                else:
+                                    cleared = 2 # Error
+                            else:
+                                cleared = 3 # Engine needs to be off
+
+                time.sleep(.03) # Increasing this will slow down queries
+
+            except Exception as e:
+                print(f'An error occured: {e}')
+                print('Restarting script')
+                exit()
+        else:
+            current_time = time.time()
+            try:
+                # Query only if "Main" page is active
+                if pages[current_page[0]][current_page[1]] == "Main":
+                    # Get RPM
+                    if '0x0C' in supported:
+                        response_rpm, rpm_time = measure_time(connection.query, obd.commands.RPM)
+                        query_times['rpm'] = rolling_avg(query_times['rpm'], rpm_time, execution_counts['rpm'])
+                        execution_counts['rpm'] += 1
+                        if not response_rpm.is_null():
+                            rpm = int(round(response_rpm.value.magnitude, 0))
+
+                    # Handle the first batch of queries (speed, MPG, fuel level)
+                    if current_time - delay1 >= first_delay:
+                        delay1 = current_time
+
                         # Get Speed and MPG
                         if '0x0D' in supported and '0x10' in supported:
-                            response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
-                            response_maf = connection.query(obd.commands.MAF)      # Mass Air Flow
+                            response_speed, speed_time = measure_time(connection.query, obd.commands.SPEED)
+                            response_maf, maf_time = measure_time(connection.query, obd.commands.MAF)
+                            query_times['speed'] = rolling_avg(query_times['speed'], speed_time + maf_time, execution_counts['speed'])
+                            execution_counts['speed'] += 1
+                            
                             if not response_speed.is_null() and not response_maf.is_null():
                                 speed = response_speed.value.to('mile/hour').magnitude
                                 maf = response_maf.value.to('gram/second').magnitude
                                 mpg = calculate_mpg(speed, maf)
 
-                    # Get fuel level
-                    if '0x2F' in supported:
-                        response_fuel_level = connection.query(obd.commands.FUEL_LEVEL)
-                        if not response_fuel_level.is_null():
-                            fuel_level = response_fuel_level.value.magnitude
+                        # Get fuel level
+                        if '0x2F' in supported:
+                            response_fuel_level, fuel_time = measure_time(connection.query, obd.commands.FUEL_LEVEL)
+                            query_times['fuel_level'] = rolling_avg(query_times['fuel_level'], fuel_time, execution_counts['fuel_level'])
+                            execution_counts['fuel_level'] += 1
+                            if not response_fuel_level.is_null():
+                                fuel_level = response_fuel_level.value.magnitude
 
-                # Run every second_delay second or if delay is on
-                if not optimize:
-                    if current_time - delay2 >= second_delay or delay:
+                    # Handle the second batch of queries (voltage, air temperature, CEL codes)
+                    if current_time - delay2 >= second_delay:
                         delay2 = current_time
 
                         # Get voltage
                         if '0x42' in supported:
-                            response_voltage = connection.query(obd.commands.CONTROL_MODULE_VOLTAGE)
+                            response_voltage, voltage_time = measure_time(connection.query, obd.commands.CONTROL_MODULE_VOLTAGE)
+                            query_times['voltage'] = rolling_avg(query_times['voltage'], voltage_time, execution_counts['voltage'])
+                            execution_counts['voltage'] += 1
                             if not response_voltage.is_null():
                                 voltage = response_voltage.value.magnitude
-                        
+
                         # Get air temperature
                         if '0x46' in supported:
-                            response_air_temp = connection.query(obd.commands.AMBIANT_AIR_TEMP)
+                            response_air_temp, air_temp_time = measure_time(connection.query, obd.commands.AMBIANT_AIR_TEMP)
+                            query_times['air_temp'] = rolling_avg(query_times['air_temp'], air_temp_time, execution_counts['air_temp'])
+                            execution_counts['air_temp'] += 1
                             if not response_air_temp.is_null():
                                 air_temp = response_air_temp.value.magnitude
 
                         # Get CEL codes
-                        response_cel = connection.query(obd.commands.GET_DTC)
+                        response_cel, codes_time = measure_time(connection.query, obd.commands.GET_DTC)
+                        query_times['codes'] = rolling_avg(query_times['codes'], codes_time, execution_counts['codes'])
+                        execution_counts['codes'] += 1
                         if not response_cel.is_null():
                             codes = response_cel.value
 
-            elif pages[current_page[0]][current_page[1]] == "Trouble" or pages[current_page[0]][current_page[1]] == "RPM":
-                # Get RPM
-                if '0x0C' in supported:
-                    response_rpm = connection.query(obd.commands.RPM)
-                    if not response_rpm.is_null():
-                        rpm = int(round(response_rpm.value.magnitude,0))
+                # Calculate the average time taken by the queries
+                avg_time_first_batch = query_times['speed'] + query_times['fuel_level']
+                avg_time_second_batch = query_times['voltage'] + query_times['air_temp'] + query_times['codes']
 
-                    # Attempt to clear CEL
-                    if clear:
-                        if rpm == 0: # Only run if engine is off
+                # Dynamically calculate delays based on the average query time, with a small buffer
+                first_delay = avg_time_first_batch * 1.2  # 20% buffer
+                second_delay = avg_time_second_batch * 1.2  # 20% buffer
 
-                            response_clear = connection.query(obd.commands.CLEAR_DTC)
+                # Ensure minimum delay values to prevent over-querying
+                first_delay = max(first_delay, 0.5)
+                second_delay = max(second_delay, 0.5)
 
-                            if not response_clear.is_null():
-                                cleared = 1 # Success
-                                clear = False
-                            else:
-                                cleared = 2 # Error
-                        else:
-                            cleared = 3 # Engine needs to be off
+                # Short sleep to avoid overloading the CPU
+                time.sleep(0.03)
 
-            time.sleep(.03) # Increasing this will slow down queries
-
-        except Exception as e:
-            print(f'An error occured: {e}')
-            print('Restarting script')
-            exit()
+            except Exception as e:
+                print(f'An error occurred: {e}')
+                print('Restarting script')
+                exit()
 
 # Main function for the Pygame interface
 def main():
     # Get global variables
-    global delay, optimize, brightness, rpm_max, shift, cleared, clear, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes, logging, exit_text, current_page
+    global delay, optimize, brightness, rpm_max, shift, cleared, clear, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes, logging, exit_text, current_page, experimental
 
     # Initialize variables
     FLIP = False
@@ -268,7 +378,7 @@ def main():
                         logging, exit_text, development_mode = info_event(mouseX, mouseY, wifi, logging, exit_text, development_mode)
                     
                     elif pages[current_page[0]][current_page[1]] == "Development":
-                        show_fps = development_event(mouseX, mouseY, show_fps)
+                        show_fps, experimental = development_event(mouseX, mouseY, show_fps, experimental)
 
                     elif pages[current_page[0]][current_page[1]] == "Custom":
                         font_index, background_1_index, background_2_index, image_index, changed_image = custom_event(mouseX, mouseY, images, font_index, background_1_index, background_2_index, image_index, changed_image)
@@ -362,7 +472,7 @@ def main():
             
             elif pages[current_page[0]][current_page[1]] == "Development":
                 page_guide(screen, screen_2, FONT_COLOR, BACKGROUND_2_COLOR, pages, current_page)
-                developmental_page(screen, FONT_COLOR, show_fps)
+                developmental_page(screen, FONT_COLOR, show_fps, experimental, query_times)
             
             elif pages[current_page[0]][current_page[1]] == "Off":
                 screen.fill(BLACK)
