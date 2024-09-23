@@ -202,7 +202,7 @@ def info_event(mouseX, mouseY, wifi, logging, exit_text, development_mode):
 
     return logging, exit_text, development_mode
 
-def development_event(mouseX, mouseY, show_fps, experimental):
+def development_event(mouseX, mouseY, show_fps):
     """
     Handle developmental feature toggling based on mouse clicks.
 
@@ -210,10 +210,9 @@ def development_event(mouseX, mouseY, show_fps, experimental):
         mouseX (int): X position of the mouse.
         mouseY (int): Y position of the mouse.
         show_fps (bool): Indicates if FPS should be displayed.
-        experimental (bool): Indicates if experimental should be displayed.
 
     Returns:
-        tuple: Updated show_fps and experimental status.
+        tuple: Updated show_fps status.
     """
 
     # Check for collision with optimize rectangle
@@ -223,14 +222,7 @@ def development_event(mouseX, mouseY, show_fps, experimental):
         else:
             show_fps = True
 
-    # Check for collision with optimize rectangle
-    elif mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.2 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1 and mouseY < SCREEN_HEIGHT*.42 and mouseY > SCREEN_HEIGHT*.32:
-        if experimental:
-            experimental = False
-        else:
-            experimental = True
-
-    return show_fps, experimental
+    return show_fps
 
 def custom_event(mouseX, mouseY, images, font_index, background_1_index, background_2_index, image_index, changed_image, holding = False):
     """

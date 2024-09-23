@@ -2,6 +2,12 @@
 
 This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inch display. It utilizes Pygame for graphics rendering and OBD-II for vehicle data retrieval.
 
+## Contributions
+
+We welcome and appreciate any contributions to improve the Smart Dash Interface! Whether it’s reporting issues, suggesting new features, or submitting pull requests, your input helps make the project better for everyone.
+
+Feel free to fork the repository, open issues, or start a discussion. We encourage collaboration and are excited to see what you bring to the project!
+
 ## Needs
 
 - A Bluetooth OBD-II adapter.
@@ -34,7 +40,8 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
 
   - Change font color.
   - Change Background 1 color: RPM and Fuel level background.
-  - Change Background 2 color: Main background. 
+  - Change Background 2 color: Main background.
+  - Change Background Image. 
 
 - **Shift Light Customization Page**
 
@@ -115,7 +122,6 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
   - Development Mode: Going to have a page of settings that can help you fine tune your dash. Can be turned on in the system settings. 
   - Backgrounds: More backgrounds to choose from.
   - Documentation: Large amounts of comments for each function.
-  - Experimental Features: Test out features that are still in testing. They are unstable, so it is not uncommon to see crashes.
 - Updated
   - Code structure: Sorted most things into different functions and files making it easier to find where things are at.
   - Rendering: Optimized code to render each frame faster.

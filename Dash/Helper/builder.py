@@ -7,7 +7,7 @@ pygame.init()
 SCREEN_WIDTH, SCREEN_HEIGHT = 800, 480
 
 # Frames rendered per second
-FPS = 45
+FPS = 30
 
 # Colors
 RED = (255, 0, 0)
