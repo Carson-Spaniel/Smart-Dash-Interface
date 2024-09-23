@@ -111,6 +111,19 @@ This Python script creates a Smart Dash Pygame interface for a landscape 4.3-inc
 
 ## Versions
 
+### v2.7.0
+- Added
+  - Development Mode: Going to have a page of settings that can help you fine tune your dash. Can be turned on in the system settings. 
+  - Backgrounds: More backgrounds to choose from.
+  - Documentation: Large amounts of comments for each function.
+  - Experimental Features: Test out features that are still in testing. They are unstable, so it is not uncommon to see crashes.
+- Updated
+  - Code structure: Sorted most things into different functions and files making it easier to find where things are at.
+  - Rendering: Optimized code to render each frame faster.
+  - Blink pattern: Blinks based on time rather than internal clock.
+- Removed
+  - Background: Removed background `6.jpg` because it was causing slow downs when loading each frame.
+
 ### v2.6.2
 - Updated
   - Queries: Speeding up queries.  
