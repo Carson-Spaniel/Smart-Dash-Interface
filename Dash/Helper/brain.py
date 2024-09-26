@@ -491,3 +491,94 @@ def write_info(current_page, shift_light, delay, optimize, font_index, backgroun
         file.write(f'\n{str(int(shift_color_4))}')
         file.write(f'\n{str(int(shift_padding))}')
         file.write(f'\n{str(int(image_index))}')
+
+last_blink_time = time.time()  # Initialize at the current time
+blink_on = True  # Initial state of the blink pattern
+
+def update_blink_pattern():
+    """
+    Update the blink pattern based on elapsed time.
+
+    Toggles the blink state (on/off) every 0.1 seconds.
+    """
+
+    global last_blink_time, blink_on
+
+    current_time = time.time()
+    elapsed_time = current_time - last_blink_time
+
+    # Blink on for 0.1 seconds and off for 0.1 seconds
+    if elapsed_time >= 0.1:  # Time to toggle
+        blink_on = not blink_on  # Toggle the blink state (on/off)
+        last_blink_time = current_time  # Reset the last blink time
+
+def draw_shift_light(screen, FONT_COLOR, BACKGROUND_2_COLOR, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding, rpm, shift):
+    circle_radius = 24
+    circle_spacing = 4
+
+    # Calculate total width for shift lights
+    total_circle_width = 12 * (2 * circle_radius + 2 * circle_spacing)
+
+    # Calculate starting position to center horizontally
+    start_x = (SCREEN_WIDTH - total_circle_width) // 2
+    circle_x = start_x + circle_radius + circle_spacing
+    circle_y = circle_radius + circle_spacing + SCREEN_HEIGHT * .17
+
+    # Colors for each light
+    light_colors = [COLORS[shift_color_1], COLORS[shift_color_1], COLORS[shift_color_1], COLORS[shift_color_1],
+                    COLORS[shift_color_2], COLORS[shift_color_2], COLORS[shift_color_2], COLORS[shift_color_2],
+                    COLORS[shift_color_3], COLORS[shift_color_3], COLORS[shift_color_3], COLORS[shift_color_3]]
+
+    update_blink_pattern()  # Update the blink pattern based on the time
+
+    # Draw each shift light
+    for i in range(len(light_colors)):
+        color = light_colors[i]
+
+        pygame.draw.circle(screen, FONT_COLOR, (circle_x, circle_y), circle_radius)
+        pygame.draw.circle(screen, BACKGROUND_2_COLOR, (circle_x, circle_y), circle_radius - 3)
+
+        # Logic for blinking shift lights based on RPM
+        if rpm > shift:
+            if blink_on:
+                pygame.draw.circle(screen, COLORS[shift_color_4], (circle_x, circle_y), circle_radius)
+            else:
+                pygame.draw.circle(screen, BACKGROUND_2_COLOR, (circle_x, circle_y), circle_radius)
+
+        if rpm > shift - (((len(light_colors) + 2) - i) * shift_padding):
+            if rpm > shift:
+                if blink_on:
+                    pygame.draw.circle(screen, COLORS[shift_color_4], (circle_x, circle_y), circle_radius)
+                else:
+                    pygame.draw.circle(screen, BACKGROUND_2_COLOR, (circle_x, circle_y), circle_radius)
+            elif rpm < shift and rpm > shift - 200:
+                pygame.draw.circle(screen, COLORS[shift_color_4], (circle_x, circle_y), circle_radius)
+            else:
+                pygame.draw.circle(screen, color, (circle_x, circle_y), circle_radius)
+
+        circle_x += 2 * (circle_radius + circle_spacing)
+
+def save_performance(top_speed):
+    with open("Data/Performance.txt", "w") as file:
+        file.write(f"{top_speed}")
+
+def load_performance():
+    try:
+        with open("Data/Performance.txt", "r") as file:
+            top_speed = float(file.readline())
+
+    except Exception as e:
+        print(e)
+        top_speed = 0
+
+    return top_speed
+
+def calculate_performance(speed, top_speed, track_top_speed):
+    if speed > top_speed:
+        top_speed = speed
+        save_performance(top_speed)
+
+    if speed > track_top_speed:
+        track_top_speed = speed
+    
+    return top_speed, track_top_speed

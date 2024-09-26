@@ -11,10 +11,13 @@ from collections import defaultdict
 brightness = get_brightness()
 
 # Load RPM
-rpm_max,shift = load_rpm()
+rpm_max, shift = load_rpm()
+
+# Load Performance Stats
+top_speed = load_performance()
 
 # Environment Variables
-DEV = False
+DEV = True
 PI = False
 SYSTEM_VERSION = "2.7.0"
 
@@ -44,6 +47,7 @@ query_times = defaultdict(lambda: {"average": None})
 
 pages = [
     ["Main"],
+    ["Performance"],
     ["Custom", "Color1"],
     ["Trouble"],
     ["Settings", "RPM","Info"],
@@ -282,6 +286,28 @@ def query():
                                 update_rolling_average("Clear_DTC", query_time)
                         else:
                             cleared = 3  # Engine needs to be off
+    
+            elif pages[current_page[0]][current_page[1]] == "Performance":
+                if '0x0C' in supported:
+                    if development_mode:
+                        start_time = time.time()  # Track start time
+                    response_rpm = connection.query(obd.commands.RPM)
+                    if not response_rpm.is_null():
+                        rpm = int(round(response_rpm.value.magnitude, 0))
+                    if development_mode:
+                        query_time = time.time() - start_time  # Calculate query time
+                        update_rolling_average("RPM_Performance", query_time)
+
+                # Get Speed
+                if '0x0D' in supported:
+                    if development_mode:
+                        start_time_speed = time.time()  # Start timer for speed query
+                    response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
+                    if not response_speed.is_null():
+                        speed = response_speed.value.to('mile/hour').magnitude
+                    if development_mode:
+                        query_time_speed = time.time() - start_time_speed  # Time taken for speed query
+                        update_rolling_average("Speed_Performance", query_time_speed)  # Update rolling average for speed
 
             time.sleep(.03)  # Increasing this will slow down queries
 
@@ -293,7 +319,7 @@ def query():
 # Main function for the Pygame interface
 def main():
     # Get global variables
-    global delay, optimize, brightness, rpm_max, shift, cleared, clear, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes, logging, exit_text, current_page, development_mode
+    global delay, optimize, brightness, rpm_max, shift, cleared, clear, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes, logging, exit_text, current_page, development_mode, top_speed
 
     # Initialize variables
     FLIP = False
@@ -301,6 +327,7 @@ def main():
     skip = True
     changed_image = False
     previous_info = []
+    track_top_speed = 0
 
     # Show development things in DEV mode
     if DEV:
@@ -509,6 +536,12 @@ def main():
             elif pages[current_page[0]][current_page[1]] == "Development":
                 page_guide(screen, screen_2, FONT_COLOR, BACKGROUND_2_COLOR, pages, current_page)
                 developmental_page(screen, FONT_COLOR, show_fps, query_times)
+
+            elif pages[current_page[0]][current_page[1]] == "Performance":
+                top_speed, track_top_speed = calculate_performance(speed, top_speed, track_top_speed)
+
+                page_guide(screen, screen_2, FONT_COLOR, BACKGROUND_2_COLOR, pages, current_page)
+                performance_page(screen, FONT_COLOR, BACKGROUND_2_COLOR, shift_light, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding, rpm, shift, speed, top_speed, track_top_speed)
             
             elif pages[current_page[0]][current_page[1]] == "Off":
                 screen.fill(BLACK)
