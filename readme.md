@@ -135,17 +135,17 @@ Feel free to fork the repository, open issues, or start a discussion. We encoura
 
 ### v2.6.1
 - Updated
-  - Wifi Updating: cleans its self up after downloading. Can revert if the download doesn't go correctly.  
+  - Wifi Updating: Cleans its self up after downloading. Can revert if the download doesn't go correctly.  
 
 ### v2.6.0
 - Added
-  - Backgrounds: you can now customize the background with different pictures.
+  - Backgrounds: You can now customize the background with different pictures.
 - Updated
-  - Queries: optimized queries to only run when needed to reduce CPU usage.
+  - Queries: Optimized queries to only run when needed to reduce CPU usage.
 
 ### v2.5.0
 - Added
-  - Query check: checks to see if your car supports the command its about to call to reduce errors.
+  - Query check: Checks to see if your car supports the command its about to call to reduce errors.
 - Updated
   - OBD-II Connection: Made it so you can load into the dash without needing to connect. While not connected, it tries reconnecting every few seconds.
 
@@ -158,7 +158,7 @@ Feel free to fork the repository, open issues, or start a discussion. We encoura
 
 ### v2.4.0
 - Added
-  - Shift Light Settings: can now change the colors of the shift light as well as adjust the "padding" which is how you control when the lights start turing on.
+  - Shift Light Settings: Can now change the colors of the shift light as well as adjust the "padding" which is how you control when the lights start turing on.
 
 ### v2.3.2
 - Updated
@@ -166,24 +166,24 @@ Feel free to fork the repository, open issues, or start a discussion. We encoura
 
 ### v2.3.1
 - Fixed
-  - Wifi Update: some problems associated with old code.
+  - Wifi Update: Some problems associated with old code.
   - Exiting: Shutdown was encountering an error.
 
 ### v2.3.0
 - Added
-  - Color Customization: can now change the colors of the font and backgrounds.
+  - Color Customization: Can now change the colors of the font and backgrounds.
 
 ### v2.2.0
 - Added
-  - Wifi Update: be able to update the device over wifi.
+  - Wifi Update: Be able to update the device over wifi.
 
 ### v2.1.2
 - Fixed
-  - Install script bug: wouldn't let you pick a number from the bluetooth list.
+  - Install script bug: Wouldn't let you pick a number from the bluetooth list.
 
 ### v2.1.1
 - Fixed
-  - Install scripts: trying to make it even easier with as little interaction as possible.
+  - Install scripts: Trying to make it even easier with as little interaction as possible.
 
 ### v2.1.0
 - Added
