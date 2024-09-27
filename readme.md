@@ -108,7 +108,7 @@ Feel free to fork the repository, open issues, or start a discussion. We encoura
 - Feel free to customize fonts, colors, and layout as needed in the script.
 
 ## Upcoming
-- Performance page: top speed tracking, 0-60 time tracking, more performance related things.
+- Performance page: top speed tracking, 0-60 time tracking, more performance related things. Will include a graph of Speed and RPM over Time.
 - Bluetooth setting: Add Bluetooth connection from the dash interface.
 - Update readme: Update the readme to the most current version.
 
