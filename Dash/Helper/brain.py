@@ -1,4 +1,3 @@
-import threading
 import time
 import matplotlib.pyplot as plt
 import os
@@ -580,57 +579,72 @@ def rgb_to_rgba(rgb_tuple):
     return tuple([x / 255.0 for x in rgb_tuple])
 
 # Function to create and save a graph from speed times and RPM
-def create_speed_graph(speed_times, FONT_COLOR, filename="speed_graph.png"):
-    # if not speed_times:
-    #     print("No data to plot.")
-    #     return
+def create_speed_time_graph(speed_times, FONT_COLOR, filename="speed_time_graph.png"):
+    # Convert the provided RGB colors to normalized RGBA format
+    FONT_COLOR = rgb_to_rgba(FONT_COLOR)
+    blue = rgb_to_rgba(BLUE)
 
-    # # Convert the provided RGB colors to normalized RGBA format
-    # FONT_COLOR = rgb_to_rgba(FONT_COLOR)
-    # blue = rgb_to_rgba(BLUE)
+    # Extract times, speeds, and RPMs
+    times, speeds, rpms = zip(*speed_times)
 
-    # # Extract times, speeds, and RPMs
-    # times, speeds, rpms = zip(*speed_times)
+    # Convert times to seconds relative to the first timestamp
+    relative_times = [t - times[0] for t in times]
 
-    # # Convert times to seconds relative to the first timestamp
-    # relative_times = [t - times[0] for t in times]
+    # Create a figure and a set of subplots with a secondary y-axis
+    fig, ax1 = plt.subplots(figsize=(10, 5))
 
-    # # Create a figure and a set of subplots with a secondary y-axis
-    # fig, ax1 = plt.subplots(figsize=(10, 5))
+    # Plot speed data with the primary y-axis (left)
+    ax1.plot(relative_times, speeds, marker='o', linestyle='-', color=FONT_COLOR, label='Speed')
+    ax1.set_xlabel('Time (seconds)', color=FONT_COLOR)
+    ax1.set_ylabel('Speed (MPH)', color=FONT_COLOR)
+    ax1.tick_params(axis='x', colors=FONT_COLOR)
+    ax1.tick_params(axis='y', colors=FONT_COLOR)
 
-    # # Plot speed data with the primary y-axis (left)
-    # ax1.plot(relative_times, speeds, marker='o', linestyle='-', color=FONT_COLOR, label='Speed')
-    # ax1.set_xlabel('Time (seconds)', color=FONT_COLOR)
-    # ax1.set_ylabel('Speed (MPH)', color=FONT_COLOR)
-    # ax1.tick_params(axis='x', colors=FONT_COLOR)
-    # ax1.tick_params(axis='y', colors=FONT_COLOR)
+    # Create a secondary y-axis for RPM
+    ax2 = ax1.twinx()
+    ax2.plot(relative_times, rpms, marker='.', linestyle='-', color=blue, label='RPM')
+    ax2.set_ylabel('RPM', color=blue)
+    ax2.tick_params(axis='y', colors=blue)
 
-    # # Create a secondary y-axis for RPM
-    # ax2 = ax1.twinx()
-    # ax2.plot(relative_times, rpms, marker='x', linestyle='-', color=blue, label='RPM')  # Adjust RPM line color as needed
-    # ax2.set_ylabel('RPM', color=blue)
-    # ax2.tick_params(axis='y', colors=blue)
+    # Plot the biggest circle for the top speed and RPM
+    max_speed = max(speeds)
+    max_rpm = max(rpms)
 
-    # # Plot the biggest circle for the top speed and RPM
-    # max_speed = max(speeds)
-    # max_rpm = max(rpms)
+    # Add a larger circle at the max speed and max RPM
+    ax1.scatter(relative_times[speeds.index(max_speed)], max_speed, s=200, color='green', edgecolor='black', label='Top Speed', zorder=5)
+    ax2.scatter(relative_times[rpms.index(max_rpm)], max_rpm, s=200, color='purple', edgecolor='black', label='Top RPM', zorder=5)
 
-    # # Add a larger circle at the max speed and max RPM
-    # ax1.scatter(relative_times[speeds.index(max_speed)], max_speed, s=200, color='green', edgecolor='black', label='Top Speed', zorder=5)  # s controls the size
-    # ax2.scatter(relative_times[rpms.index(max_rpm)], max_rpm, s=200, color='purple', edgecolor='black', label='Top RPM', zorder=5)
+    # Find the time at which speed reaches or exceeds 60 and 100
+    time_at_60 = None
+    time_at_100 = None
+    
+    for rel_time, speed in zip(relative_times, speeds):
+        if speed >= 60 and time_at_60 is None:
+            time_at_60 = rel_time
+        if speed >= 100 and time_at_100 is None:
+            time_at_100 = rel_time
+    
+    # Draw vertical lines at the times when speed first reaches 60 and 100
+    if time_at_60 is not None:
+        ax1.axvline(x=time_at_60, color='red', linestyle='--', label='60 MPH Reached')
+    if time_at_100 is not None:
+        ax1.axvline(x=time_at_100, color='red', linestyle='--', label='100 MPH Reached')
 
-    # # Customize the plot title and grid color
-    # plt.title('Speed and RPM Over Time', color=FONT_COLOR)
-    # ax1.grid(True, color=FONT_COLOR, linestyle='--', linewidth=0.5)
+    # Customize the plot title and grid color
+    plt.title('Speed and RPM Over Time', color=FONT_COLOR)
+    ax1.grid(True, color=FONT_COLOR, linestyle='--', linewidth=0.5)
 
-    # # Combine legends from both axes
-    # lines, labels = ax1.get_legend_handles_labels()
-    # lines2, labels2 = ax2.get_legend_handles_labels()
-    # ax1.legend(lines + lines2, labels + labels2, loc='upper left')
+    # Combine legends from both axes
+    lines, labels = ax1.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax1.legend(lines + lines2, labels + labels2, loc='upper left')
 
-    # # Save the plot to a file with a transparent background
-    # plt.savefig(filename, transparent=True, bbox_inches='tight')  # Use transparent=True for a transparent background
-    # plt.close()  # Close the figure to release memory
+    # Save the plot to a file with a transparent background
+    plt.savefig(filename, transparent=True, bbox_inches='tight')
+    plt.close()  # Close the figure to release memory
+
+# Function to create and save a speed-RPM graph
+def create_speed_rpm_graph(speed_times, FONT_COLOR, filename="speed_rpm_graph.png"):
     # Convert the provided RGB colors to normalized RGBA format
     FONT_COLOR = rgb_to_rgba(FONT_COLOR)
 
@@ -640,40 +654,115 @@ def create_speed_graph(speed_times, FONT_COLOR, filename="speed_graph.png"):
     # Create a new figure for RPM vs Speed
     plt.figure(figsize=(10, 5))
 
-    # Plot RPM vs Speed
+    # Plot RPM vs Speed using FONT_COLOR
     plt.scatter(speeds, rpms, color=FONT_COLOR, marker='o', label='RPM vs Speed', alpha=0.7)
-    
-    # Customize the plot
+
+    # Highlight the maximum RPM point
+    max_rpm = max(rpms)
+    max_speed = speeds[rpms.index(max_rpm)]
+    plt.scatter(max_speed, max_rpm, s=200, color=FONT_COLOR, edgecolor='black', label='Max RPM', zorder=5)
+
+    # Customize the plot with FONT_COLOR
     plt.xlabel('Speed (MPH)', color=FONT_COLOR)
     plt.ylabel('RPM', color=FONT_COLOR)
     plt.title('RPM vs Speed', color=FONT_COLOR)
     plt.grid(True, linestyle='--', linewidth=0.5, color=FONT_COLOR)
+    plt.tick_params(axis='x', colors=FONT_COLOR)
+    plt.tick_params(axis='y', colors=FONT_COLOR)
     plt.legend(loc='upper left')
 
     # Save the plot to a file with a transparent background
     plt.savefig(filename, transparent=True, bbox_inches='tight')
     plt.close()  # Close the figure to release memory
 
-def calculate_performance(FONT_COLOR, speed, top_speed, last_top_speed, tracking, speed_times, rpm):
+def calculate_performance(FONT_COLOR, speed, top_speed, last_top_speed, tracking, speed_times, rpm, elapsed_time):
     graph_made = False
+
+    # Initialize variables for tracking
+    if 'start_time' not in calculate_performance.__dict__:
+        calculate_performance.start_time = None
+    if 'zero_to_sixty_time' not in calculate_performance.__dict__:
+        calculate_performance.zero_to_sixty_time = None
+    if 'zero_to_hundred_time' not in calculate_performance.__dict__:
+        calculate_performance.zero_to_hundred_time = None
+    if 'eighth_mile_time' not in calculate_performance.__dict__:
+        calculate_performance.eighth_mile_time = None
+    if 'quarter_mile_time' not in calculate_performance.__dict__:
+        calculate_performance.quarter_mile_time = None
+
+    # Constants
+    eighth_mile_distance = 660  # feet
+    quarter_mile_distance = 1320  # feet
+
+    # Convert speed from MPH to FPS
+    speed_fps = speed * (5280 / 3600)
+
+    # Check for top speed
     if speed > top_speed:
         top_speed = speed
         save_performance(top_speed)
 
     if tracking:
+        if not speed_times:
+            # Reset tracking variables when speed_times is empty
+            calculate_performance.start_time = None
+            calculate_performance.zero_to_sixty_time = None
+            calculate_performance.zero_to_hundred_time = None
+            calculate_performance.eighth_mile_time = None
+            calculate_performance.quarter_mile_time = None
+            last_top_speed = 0
+
+        # Start the timer only if speed is greater than 0
+        if speed > 0 and calculate_performance.start_time is None:
+            calculate_performance.start_time = time.time()  # Set start time when speed > 0
+
         if speed > last_top_speed:
             last_top_speed = speed
-        # Append current time, speed, and RPM to speed_times
-        speed_times.append((time.time(), speed, rpm))
+
+        # Calculate elapsed time only if start_time is valid
+        elapsed_time = time.time() - calculate_performance.start_time if calculate_performance.start_time else None
+        
+        # Append elapsed time, speed, and RPM to speed_times
+        if elapsed_time:
+            speed_times.append((elapsed_time, speed, rpm))
+
+        # Check for 0-60 time
+        if speed >= 60 and calculate_performance.zero_to_sixty_time is None:
+            calculate_performance.zero_to_sixty_time = elapsed_time
+
+        # Check for 0-100 time
+        if speed >= 100 and calculate_performance.zero_to_hundred_time is None:
+            calculate_performance.zero_to_hundred_time = elapsed_time
+
+        # Calculate cumulative distance based on elapsed time and speed
+        if speed_fps > 0:
+            # Distance covered since the last speed update
+            distance_covered = speed_fps * elapsed_time
+            
+            # Check for 1/8 mile completion
+            if calculate_performance.eighth_mile_time is None:
+                if distance_covered >= eighth_mile_distance:
+                    calculate_performance.eighth_mile_time = elapsed_time
+
+            # Check for 1/4 mile completion
+            if calculate_performance.quarter_mile_time is None:
+                if distance_covered >= quarter_mile_distance:
+                    calculate_performance.quarter_mile_time = elapsed_time
+
     else:
         if speed_times:
             # Create a graph on a different thread, then reset speed_times
-            create_speed_graph(speed_times, FONT_COLOR)
-            last_top_speed = 0
+            create_speed_time_graph(speed_times, FONT_COLOR)
+            create_speed_rpm_graph(speed_times, FONT_COLOR)
             speed_times = []
             graph_made = True
 
-    return top_speed, last_top_speed, speed_times, graph_made
+    return (top_speed, last_top_speed, speed_times, graph_made, 
+            elapsed_time, 
+            calculate_performance.zero_to_sixty_time, 
+            calculate_performance.zero_to_hundred_time,
+            calculate_performance.eighth_mile_time,
+            calculate_performance.quarter_mile_time)
 
 # Define a helper function to load and display the graph
 def display_graph(screen, filename, position, width, height):

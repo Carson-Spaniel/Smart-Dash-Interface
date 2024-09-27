@@ -1,5 +1,7 @@
 import random
 import obd
+import threading
+import math
 from Helper.brain import *
 from Helper.pages import *
 from Helper.events import *
@@ -330,6 +332,7 @@ def main():
     tracking = False
     speed_times = []
     performance_graph_added = False
+    elapsed_time = None
 
     # Show development things in DEV mode
     if DEV:
@@ -366,6 +369,7 @@ def main():
         speed = 0
         maf = 6
         voltage = 15.5
+        current_gear = 0
     else:
         # Keep trying to connect on Separate Thread
         threading.Thread(target=connect_thread, daemon=True).start()
@@ -488,43 +492,50 @@ def main():
             write_info(current_page, shift_light, delay, optimize, font_index, background_1_index, background_2_index, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding, image_index)
             previous_info = new_info
 
-        top_speed, last_top_speed, speed_times, graph_made = calculate_performance(FONT_COLOR, speed, top_speed, last_top_speed, tracking, speed_times, rpm)
+        top_speed, last_top_speed, speed_times, graph_made, elapsed_time, zero_to_sixty_time, zero_to_hundred_time, eighth_mile_time, quarter_mile_time = calculate_performance(FONT_COLOR, speed, top_speed, last_top_speed, tracking, speed_times, rpm, elapsed_time)
 
         if graph_made:
             if not performance_graph_added:
-                pages[1].append("Performance_Graph")
+                pages[1].append("Speed_Time")
+                pages[1].append("Speed_RPM")
                 performance_graph_added = True
 
         if DEV:
-            max_speed = 160
+            # Define maximum speed
+            max_speed = 200
 
-            rpm = random.randint(max(0, rpm - 50), min(rpm + 60, rpm_max))
+            # Define gear ratios for 6 gears
+            gear_ratios = [4.00, 3.00, 2.00, 1.50, 1.20, 1.00]
+            
+            # Determine current gear ratio
+            current_ratio = gear_ratios[current_gear]
 
-            if rpm >= shift + random.randint(-500,500):
-                rpm = int(rpm * 0.25)
+            # RPM calculation with some randomness to simulate fluctuations
+            rpm = random.randint(max(0, rpm - 30), min(rpm + 30, rpm_max))
 
-            # Calculate the damping factor for RPM
-            damping_factor = (max_speed - speed) / max_speed
+            if tracking:
+                # Check if RPM exceeds shift point, shift up if possible
+                if rpm >= shift + random.randint(-5, 5) and current_gear < len(gear_ratios) - 1:
+                    current_gear += 1
+                    current_ratio = gear_ratios[current_gear]
+                    # Adjust RPM for new gear, simulating the effect of shifting
+                    rpm = int(rpm * current_ratio / gear_ratios[current_gear - 1])
 
-            # Adjust RPM based on damping factor
-            increment = random.uniform(10, 20)
-            rpm += increment * damping_factor * damping_factor * damping_factor
+                # Increment RPM logarithmically for smooth progression
+                rpm_increment = math.log(1 + rpm / 100) * 10  # Scaling factor to control growth rate
+                rpm = min(int(rpm + rpm_increment), rpm_max)  # Increment RPM with cap at max RPM
+
+                if rpm < rpm_max:
+                    # Calculate speed based on RPM and gear ratio
+                    speed_increment = (rpm / rpm_max) * (current_ratio / max(gear_ratios)) # Control speed increase rate
+                    speed += speed_increment # Always increase speed
+
+                    # Ensure speed does not exceed max_speed
+                    speed = min(speed, max_speed)
 
             # Ensure RPM does not exceed rpm_max
-            rpm = int(min(rpm, rpm_max))
+            rpm = min(rpm, rpm_max)
 
-            # Calculate RPM percent for further calculations
-            rpm_percent = rpm / rpm_max
-
-            if speed < max_speed:
-                # Calculate the speed increment
-                increment = random.uniform(-0.05, rpm_percent / 2)
-
-                # Apply a damping factor to reduce the increment as speed approaches max_speed
-                speed += increment * damping_factor/1.5
-
-                # Ensure speed does not exceed max_speed
-                speed = min(speed, max_speed)
             maf = round(maf,0)
             maf = random.randint(max(1,maf-1), min(maf+1,80))
             mpg = calculate_mpg(speed, maf)
@@ -577,11 +588,15 @@ def main():
 
             elif pages[current_page[0]][current_page[1]] == "Performance":
                 page_guide(screen, screen_2, FONT_COLOR, BACKGROUND_2_COLOR, pages, current_page)
-                performance_page(screen, FONT_COLOR, BACKGROUND_2_COLOR, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding, rpm, shift, top_speed, last_top_speed, tracking)            
+                performance_page(screen, FONT_COLOR, BACKGROUND_2_COLOR, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding, rpm, shift, top_speed, last_top_speed, tracking, elapsed_time, zero_to_sixty_time, zero_to_hundred_time, eighth_mile_time, quarter_mile_time)            
             
-            elif pages[current_page[0]][current_page[1]] == "Performance_Graph":
+            elif pages[current_page[0]][current_page[1]] == "Speed_Time":
                 page_guide(screen, screen_2, FONT_COLOR, BACKGROUND_2_COLOR, pages, current_page)
-                graph_page(screen)            
+                speed_time_graph_page(screen)
+
+            elif pages[current_page[0]][current_page[1]] == "Speed_RPM":
+                page_guide(screen, screen_2, FONT_COLOR, BACKGROUND_2_COLOR, pages, current_page)
+                speed_rpm_graph_page(screen)       
 
             elif pages[current_page[0]][current_page[1]] == "Off":
                 screen.fill(BLACK)

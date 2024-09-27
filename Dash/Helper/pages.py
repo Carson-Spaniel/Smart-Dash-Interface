@@ -460,17 +460,35 @@ def developmental_page(screen, FONT_COLOR, show_fps, query_times):
         draw_text(screen, query_text, font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, y_offset)
         y_offset += SCREEN_HEIGHT * 0.06  # Move down for the next query
 
-def performance_page(screen, FONT_COLOR, BACKGROUND_2_COLOR, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding, rpm, shift, top_speed, last_top_speed, tracking):
+def performance_page(screen, FONT_COLOR, BACKGROUND_2_COLOR, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding, rpm, shift, top_speed, last_top_speed, tracking, elapsed_time, zero_to_sixty_time, zero_to_hundred_time, eighth_mile_time, quarter_mile_time):
     draw_text(screen, "Top Speed", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.25, SCREEN_HEIGHT*.2)
     draw_text(screen, "Last Tracked Speed", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.25, SCREEN_HEIGHT*.2)
 
     draw_text(screen, f"{int(round(top_speed,0))} MPH", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.25, SCREEN_HEIGHT*.3)
     draw_text(screen, f"{int(round(last_top_speed,0))} MPH", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.25, SCREEN_HEIGHT*.3)
+    
+    if elapsed_time:
+        draw_text(screen, f"{elapsed_time:.2f}", font_medium_clean, FONT_COLOR, (SCREEN_WIDTH//2), SCREEN_HEIGHT*.4)
+    
+    if zero_to_sixty_time:
+        draw_text(screen, f"0-60 MPH: {zero_to_sixty_time:.2f}", font_medium_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.25, SCREEN_HEIGHT*.5)
+
+    if zero_to_hundred_time:
+        draw_text(screen, f"0-100 MPH: {zero_to_hundred_time:.2f}", font_medium_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.25, SCREEN_HEIGHT*.6)
+    
+    if eighth_mile_time:
+        draw_text(screen, f"1/8 Mile: {eighth_mile_time:.2f}", font_medium_clean, FONT_COLOR, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.25, SCREEN_HEIGHT*.5)
+
+    if quarter_mile_time:
+        draw_text(screen, f"1/4 Mile: {quarter_mile_time:.2f}", font_medium_clean, FONT_COLOR, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.25, SCREEN_HEIGHT*.6)
 
     draw_shift_light(screen, FONT_COLOR, BACKGROUND_2_COLOR, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding, rpm, shift, 0)
 
     pygame.draw.rect(screen, RED if tracking else GREEN, (SCREEN_WIDTH//2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
     draw_text(screen, "Start" if not tracking else "Stop", font_small_clean, BLACK, SCREEN_WIDTH//2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
 
-def graph_page(screen):
-    display_graph(screen, "speed_graph.png", (0, 0), SCREEN_WIDTH*.97, SCREEN_HEIGHT*.94)
+def speed_time_graph_page(screen):
+    display_graph(screen, "speed_time_graph.png", (0, 0), SCREEN_WIDTH*.97, SCREEN_HEIGHT*.94)
+
+def speed_rpm_graph_page(screen):
+    display_graph(screen, "speed_rpm_graph.png", (0, 0), SCREEN_WIDTH*.97, SCREEN_HEIGHT*.94)
