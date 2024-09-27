@@ -352,3 +352,25 @@ def color_1_event(mouseX, mouseY, shift_light, shift_color_1, shift_color_2, shi
             shift_padding = 10
 
     return shift_light, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding
+
+def performance_event(mouseX, mouseY, tracking):
+    """
+    Handle information events based on mouse clicks.
+
+    Parameters:
+        mouseX (int): X position of the mouse.
+        mouseY (int): Y position of the mouse.
+        tracking (bool): Indicates tracking status.
+
+    Returns:
+        bool: Updated tracking status.
+    """
+    
+    # Check for collision with exit rectangle
+    if mouseX < SCREEN_WIDTH//2 + SCREEN_WIDTH*.05 and mouseX > SCREEN_WIDTH//2 - SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.2:
+        if tracking:
+            tracking = False
+        else:
+            tracking = True
+    
+    return tracking

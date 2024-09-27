@@ -1,5 +1,4 @@
 import random
-import threading
 import obd
 from Helper.brain import *
 from Helper.pages import *
@@ -327,7 +326,10 @@ def main():
     skip = True
     changed_image = False
     previous_info = []
-    track_top_speed = 0
+    last_top_speed = 0
+    tracking = False
+    speed_times = []
+    performance_graph_added = False
 
     # Show development things in DEV mode
     if DEV:
@@ -448,6 +450,9 @@ def main():
                     
                     elif pages[current_page[0]][current_page[1]] == "Color1":
                         shift_light, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding = color_1_event(mouseX, mouseY, shift_light, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding)
+                    
+                    elif pages[current_page[0]][current_page[1]] == "Performance":
+                        tracking = performance_event(mouseX, mouseY, tracking)
 
                 skip = True
                 time.sleep(.1) # How long someone presses for a single click
@@ -483,10 +488,43 @@ def main():
             write_info(current_page, shift_light, delay, optimize, font_index, background_1_index, background_2_index, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding, image_index)
             previous_info = new_info
 
+        top_speed, last_top_speed, speed_times, graph_made = calculate_performance(FONT_COLOR, speed, top_speed, last_top_speed, tracking, speed_times, rpm)
+
+        if graph_made:
+            if not performance_graph_added:
+                pages[1].append("Performance_Graph")
+                performance_graph_added = True
+
         if DEV:
-            # Set random variables for testing purposes
-            rpm = random.randint(max(0,rpm-50), min(rpm+60,rpm_max))
-            speed = random.uniform(max(0,speed-10), min(speed+100,80))* 0.621371
+            max_speed = 160
+
+            rpm = random.randint(max(0, rpm - 50), min(rpm + 60, rpm_max))
+
+            if rpm >= shift + random.randint(-500,500):
+                rpm = int(rpm * 0.25)
+
+            # Calculate the damping factor for RPM
+            damping_factor = (max_speed - speed) / max_speed
+
+            # Adjust RPM based on damping factor
+            increment = random.uniform(10, 20)
+            rpm += increment * damping_factor * damping_factor * damping_factor
+
+            # Ensure RPM does not exceed rpm_max
+            rpm = int(min(rpm, rpm_max))
+
+            # Calculate RPM percent for further calculations
+            rpm_percent = rpm / rpm_max
+
+            if speed < max_speed:
+                # Calculate the speed increment
+                increment = random.uniform(-0.05, rpm_percent / 2)
+
+                # Apply a damping factor to reduce the increment as speed approaches max_speed
+                speed += increment * damping_factor/1.5
+
+                # Ensure speed does not exceed max_speed
+                speed = min(speed, max_speed)
             maf = round(maf,0)
             maf = random.randint(max(1,maf-1), min(maf+1,80))
             mpg = calculate_mpg(speed, maf)
@@ -538,11 +576,13 @@ def main():
                 developmental_page(screen, FONT_COLOR, show_fps, query_times)
 
             elif pages[current_page[0]][current_page[1]] == "Performance":
-                top_speed, track_top_speed = calculate_performance(speed, top_speed, track_top_speed)
-
                 page_guide(screen, screen_2, FONT_COLOR, BACKGROUND_2_COLOR, pages, current_page)
-                performance_page(screen, FONT_COLOR, BACKGROUND_2_COLOR, shift_light, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding, rpm, shift, speed, top_speed, track_top_speed)
+                performance_page(screen, FONT_COLOR, BACKGROUND_2_COLOR, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding, rpm, shift, top_speed, last_top_speed, tracking)            
             
+            elif pages[current_page[0]][current_page[1]] == "Performance_Graph":
+                page_guide(screen, screen_2, FONT_COLOR, BACKGROUND_2_COLOR, pages, current_page)
+                graph_page(screen)            
+
             elif pages[current_page[0]][current_page[1]] == "Off":
                 screen.fill(BLACK)
                 
