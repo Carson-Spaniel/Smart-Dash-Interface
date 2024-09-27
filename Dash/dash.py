@@ -502,16 +502,16 @@ def main():
 
         if DEV:
             # Define maximum speed
-            max_speed = 200
+            max_speed = 300
 
             # Define gear ratios for 6 gears
-            gear_ratios = [4.00, 3.00, 2.00, 1.50, 1.20, 1.00]
+            gear_ratios = [3.80, 2.10, 1.50, 1.20, 1.00, 0.80]
             
             # Determine current gear ratio
             current_ratio = gear_ratios[current_gear]
 
             # RPM calculation with some randomness to simulate fluctuations
-            rpm = random.randint(max(0, rpm - 30), min(rpm + 30, rpm_max))
+            rpm = random.randint(max(0, rpm - 10), min(rpm + 10, rpm_max))
 
             if tracking:
                 # Check if RPM exceeds shift point, shift up if possible
@@ -519,16 +519,17 @@ def main():
                     current_gear += 1
                     current_ratio = gear_ratios[current_gear]
                     # Adjust RPM for new gear, simulating the effect of shifting
-                    rpm = int(rpm * current_ratio / gear_ratios[current_gear - 1])
+                    rpm = int(rpm * (1 - (current_ratio/max(gear_ratios))))
 
                 # Increment RPM logarithmically for smooth progression
-                rpm_increment = math.log(1 + rpm / 100) * 10  # Scaling factor to control growth rate
+                rpm_increment = 10 * (current_ratio**2)
                 rpm = min(int(rpm + rpm_increment), rpm_max)  # Increment RPM with cap at max RPM
-
+                
                 if rpm < rpm_max:
-                    # Calculate speed based on RPM and gear ratio
-                    speed_increment = (rpm / rpm_max) * (current_ratio / max(gear_ratios)) # Control speed increase rate
-                    speed += speed_increment # Always increase speed
+                    speed_increment = (current_ratio / max(gear_ratios)) * .5
+
+                    # Increase speed
+                    speed += speed_increment
 
                     # Ensure speed does not exceed max_speed
                     speed = min(speed, max_speed)
