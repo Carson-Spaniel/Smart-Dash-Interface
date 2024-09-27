@@ -702,6 +702,10 @@ def calculate_performance(FONT_COLOR, speed, top_speed, last_top_speed, tracking
         top_speed = speed
         save_performance(top_speed)
 
+    # Keep track of the previous speed to detect downward trend
+    if 'previous_speed' not in calculate_performance.__dict__:
+        calculate_performance.previous_speed = speed
+
     if tracking:
         if not speed_times:
             # Reset tracking variables when speed_times is empty
@@ -748,6 +752,13 @@ def calculate_performance(FONT_COLOR, speed, top_speed, last_top_speed, tracking
             if calculate_performance.quarter_mile_time is None:
                 if distance_covered >= quarter_mile_distance:
                     calculate_performance.quarter_mile_time = elapsed_time
+
+        # Check for downward trend in speed
+        if speed > 10 and speed < calculate_performance.previous_speed:
+            tracking = False  # Stop tracking if speed is trending downwards
+
+        # Update previous speed for next iteration
+        calculate_performance.previous_speed = speed
 
     else:
         if speed_times:
