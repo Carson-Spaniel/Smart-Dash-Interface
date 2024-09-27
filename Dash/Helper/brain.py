@@ -581,55 +581,77 @@ def rgb_to_rgba(rgb_tuple):
 
 # Function to create and save a graph from speed times and RPM
 def create_speed_graph(speed_times, FONT_COLOR, filename="speed_graph.png"):
-    if not speed_times:
-        print("No data to plot.")
-        return
+    # if not speed_times:
+    #     print("No data to plot.")
+    #     return
 
+    # # Convert the provided RGB colors to normalized RGBA format
+    # FONT_COLOR = rgb_to_rgba(FONT_COLOR)
+    # blue = rgb_to_rgba(BLUE)
+
+    # # Extract times, speeds, and RPMs
+    # times, speeds, rpms = zip(*speed_times)
+
+    # # Convert times to seconds relative to the first timestamp
+    # relative_times = [t - times[0] for t in times]
+
+    # # Create a figure and a set of subplots with a secondary y-axis
+    # fig, ax1 = plt.subplots(figsize=(10, 5))
+
+    # # Plot speed data with the primary y-axis (left)
+    # ax1.plot(relative_times, speeds, marker='o', linestyle='-', color=FONT_COLOR, label='Speed')
+    # ax1.set_xlabel('Time (seconds)', color=FONT_COLOR)
+    # ax1.set_ylabel('Speed (MPH)', color=FONT_COLOR)
+    # ax1.tick_params(axis='x', colors=FONT_COLOR)
+    # ax1.tick_params(axis='y', colors=FONT_COLOR)
+
+    # # Create a secondary y-axis for RPM
+    # ax2 = ax1.twinx()
+    # ax2.plot(relative_times, rpms, marker='x', linestyle='-', color=blue, label='RPM')  # Adjust RPM line color as needed
+    # ax2.set_ylabel('RPM', color=blue)
+    # ax2.tick_params(axis='y', colors=blue)
+
+    # # Plot the biggest circle for the top speed and RPM
+    # max_speed = max(speeds)
+    # max_rpm = max(rpms)
+
+    # # Add a larger circle at the max speed and max RPM
+    # ax1.scatter(relative_times[speeds.index(max_speed)], max_speed, s=200, color='green', edgecolor='black', label='Top Speed', zorder=5)  # s controls the size
+    # ax2.scatter(relative_times[rpms.index(max_rpm)], max_rpm, s=200, color='purple', edgecolor='black', label='Top RPM', zorder=5)
+
+    # # Customize the plot title and grid color
+    # plt.title('Speed and RPM Over Time', color=FONT_COLOR)
+    # ax1.grid(True, color=FONT_COLOR, linestyle='--', linewidth=0.5)
+
+    # # Combine legends from both axes
+    # lines, labels = ax1.get_legend_handles_labels()
+    # lines2, labels2 = ax2.get_legend_handles_labels()
+    # ax1.legend(lines + lines2, labels + labels2, loc='upper left')
+
+    # # Save the plot to a file with a transparent background
+    # plt.savefig(filename, transparent=True, bbox_inches='tight')  # Use transparent=True for a transparent background
+    # plt.close()  # Close the figure to release memory
     # Convert the provided RGB colors to normalized RGBA format
     FONT_COLOR = rgb_to_rgba(FONT_COLOR)
-    blue = rgb_to_rgba(BLUE)
 
-    # Extract times, speeds, and RPMs
-    times, speeds, rpms = zip(*speed_times)
+    # Extract speeds and RPMs
+    _, speeds, rpms = zip(*speed_times)
 
-    # Convert times to seconds relative to the first timestamp
-    relative_times = [t - times[0] for t in times]
+    # Create a new figure for RPM vs Speed
+    plt.figure(figsize=(10, 5))
 
-    # Create a figure and a set of subplots with a secondary y-axis
-    fig, ax1 = plt.subplots(figsize=(10, 5))
-
-    # Plot speed data with the primary y-axis (left)
-    ax1.plot(relative_times, speeds, marker='o', linestyle='-', color=FONT_COLOR, label='Speed')
-    ax1.set_xlabel('Time (seconds)', color=FONT_COLOR)
-    ax1.set_ylabel('Speed (MPH)', color=FONT_COLOR)
-    ax1.tick_params(axis='x', colors=FONT_COLOR)
-    ax1.tick_params(axis='y', colors=FONT_COLOR)
-
-    # Create a secondary y-axis for RPM
-    ax2 = ax1.twinx()
-    ax2.plot(relative_times, rpms, marker='x', linestyle='-', color=blue, label='RPM')  # Adjust RPM line color as needed
-    ax2.set_ylabel('RPM', color=blue)
-    ax2.tick_params(axis='y', colors=blue)
-
-    # Plot the biggest circle for the top speed and RPM
-    max_speed = max(speeds)
-    max_rpm = max(rpms)
-
-    # Add a larger circle at the max speed and max RPM
-    ax1.scatter(relative_times[speeds.index(max_speed)], max_speed, s=200, color='green', edgecolor='black', label='Top Speed', zorder=5)  # s controls the size
-    ax2.scatter(relative_times[rpms.index(max_rpm)], max_rpm, s=200, color='purple', edgecolor='black', label='Top RPM', zorder=5)
-
-    # Customize the plot title and grid color
-    plt.title('Speed and RPM Over Time', color=FONT_COLOR)
-    ax1.grid(True, color=FONT_COLOR, linestyle='--', linewidth=0.5)
-
-    # Combine legends from both axes
-    lines, labels = ax1.get_legend_handles_labels()
-    lines2, labels2 = ax2.get_legend_handles_labels()
-    ax1.legend(lines + lines2, labels + labels2, loc='upper left')
+    # Plot RPM vs Speed
+    plt.scatter(speeds, rpms, color=FONT_COLOR, marker='o', label='RPM vs Speed', alpha=0.7)
+    
+    # Customize the plot
+    plt.xlabel('Speed (MPH)', color=FONT_COLOR)
+    plt.ylabel('RPM', color=FONT_COLOR)
+    plt.title('RPM vs Speed', color=FONT_COLOR)
+    plt.grid(True, linestyle='--', linewidth=0.5, color=FONT_COLOR)
+    plt.legend(loc='upper left')
 
     # Save the plot to a file with a transparent background
-    plt.savefig(filename, transparent=True, bbox_inches='tight')  # Use transparent=True for a transparent background
+    plt.savefig(filename, transparent=True, bbox_inches='tight')
     plt.close()  # Close the figure to release memory
 
 def calculate_performance(FONT_COLOR, speed, top_speed, last_top_speed, tracking, speed_times, rpm):
