@@ -526,7 +526,7 @@ def main():
                 rpm = min(int(rpm + rpm_increment), rpm_max)  # Increment RPM with cap at max RPM
                 
                 if rpm < rpm_max:
-                    speed_increment = (current_ratio / max(gear_ratios)) * .5
+                    speed_increment = (rpm/rpm_max)*(current_ratio / max(gear_ratios))
 
                     # Increase speed
                     speed += speed_increment
