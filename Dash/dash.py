@@ -333,6 +333,7 @@ def main():
     speed_times = []
     performance_graph_added = False
     elapsed_time = None
+    reset_performance = False
 
     # Show development things in DEV mode
     if DEV:
@@ -438,7 +439,7 @@ def main():
                         rpm_max, shift = rpm_event(mouseX, mouseY, rpm_max, shift)
 
                     elif pages[current_page[0]][current_page[1]] == "Settings":
-                        brightness, optimize, FLIP, delay = settings_event(mouseX, mouseY, brightness, optimize, FLIP, delay)
+                        brightness, optimize, FLIP, delay, reset_performance, top_speed = settings_event(mouseX, mouseY, brightness, optimize, FLIP, delay, reset_performance, top_speed)
 
                     elif pages[current_page[0]][current_page[1]] == "Trouble":
                         clear = trouble_event(mouseX, mouseY, clear)
@@ -474,7 +475,7 @@ def main():
                     rpm_max, shift = rpm_event(mouseX, mouseY, rpm_max, shift)
 
                 elif pages[current_page[0]][current_page[1]] == "Settings":
-                    brightness, optimize, FLIP, delay = settings_event(mouseX, mouseY, brightness, optimize, FLIP, delay, True)
+                    brightness, optimize, FLIP, delay, reset_performance, top_speed = settings_event(mouseX, mouseY, brightness, optimize, FLIP, delay, reset_performance, top_speed, True)
                 
                 elif pages[current_page[0]][current_page[1]] == "Custom":
                     font_index, background_1_index, background_2_index, image_index, changed_image = custom_event(mouseX, mouseY, images, font_index, background_1_index, background_2_index, image_index, changed_image, True)
@@ -493,6 +494,10 @@ def main():
             previous_info = new_info
 
         top_speed, last_top_speed, speed_times, graph_made, elapsed_time, zero_to_sixty_time, zero_to_hundred_time, eighth_mile_time, quarter_mile_time = calculate_performance(FONT_COLOR, speed, top_speed, last_top_speed, tracking, speed_times, rpm, elapsed_time)
+        
+        # Reset the flag
+        if top_speed:
+            reset_performance = False
 
         if graph_made:
             if not performance_graph_added:
@@ -565,7 +570,7 @@ def main():
 
             elif pages[current_page[0]][current_page[1]] == "Settings":
                 page_guide(screen, screen_2, FONT_COLOR, BACKGROUND_2_COLOR, pages, current_page)
-                settings_page(screen, FONT_COLOR, brightness, optimize, delay)
+                settings_page(screen, FONT_COLOR, BACKGROUND_2_COLOR, brightness, optimize, delay, reset_performance)
             
             elif pages[current_page[0]][current_page[1]] == "Trouble":
                 page_guide(screen, screen_2, FONT_COLOR, BACKGROUND_2_COLOR, pages, current_page)

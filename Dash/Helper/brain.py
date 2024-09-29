@@ -560,10 +560,33 @@ def draw_shift_light(screen, FONT_COLOR, BACKGROUND_2_COLOR, shift_color_1, shif
         circle_x += 2 * (circle_radius + circle_spacing)
 
 def save_performance(top_speed):
-    with open("Data/Performance.txt", "w") as file:
-        file.write(f"{top_speed}")
+    """
+    Saves performance stats to a file.
+
+    Args:
+        top_speed (float): Current top speed.
+
+    Description:
+        - Writes each performance stat to the "Data/Performance.txt" file.
+        - If an error occurs during the save operation, it prints an error message.
+    """
+    try:
+        with open("Data/Performance.txt", "w") as file:
+            file.write(f"{top_speed}")
+    except Exception as e:
+        print(f"Error saving performance stats to file: {e}")
 
 def load_performance():
+    """
+    Loads performance stats from a file.
+
+    Returns:
+        top_speed: A float of the current top speed.
+
+    Description:
+        - Reads the "Data/Performance.txt" file and loads each line as performance stat.
+        - If an error occurs while loading, it prints an error message and returns an placeholder values.
+    """
     try:
         with open("Data/Performance.txt", "r") as file:
             top_speed = float(file.readline())
@@ -576,6 +599,12 @@ def load_performance():
 
 # Function to convert RGB values to matplotlib-compatible RGBA format
 def rgb_to_rgba(rgb_tuple):
+    """
+    Converts RGB values to RGBA.
+
+    Returns:
+        list: RGBA values.
+    """
     return tuple([x / 255.0 for x in rgb_tuple])
 
 # Function to create and save a graph from speed times and RPM

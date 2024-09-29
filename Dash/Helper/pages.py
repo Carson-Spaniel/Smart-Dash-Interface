@@ -202,7 +202,7 @@ def main_page(screen, FONT_COLOR, BACKGROUND_1_COLOR, BACKGROUND_2_COLOR, fuel_l
     if shift_light:
         draw_shift_light(screen, FONT_COLOR, BACKGROUND_2_COLOR, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding, rpm, shift)
 
-def settings_page(screen, FONT_COLOR, brightness, optimize, delay):
+def settings_page(screen, FONT_COLOR, BACKGROUND_2_COLOR, brightness, optimize, delay, reset_performance):
     """
     Draws the settings page, allowing users to adjust brightness, optimization mode, and reading delay.
 
@@ -212,6 +212,7 @@ def settings_page(screen, FONT_COLOR, brightness, optimize, delay):
         brightness: Current brightness level (0-255).
         optimize: Boolean indicating if optimization mode is enabled.
         delay: Boolean indicating if reading delay is enabled.
+        reset_performance: Boolean to act as a flag if performance stats are reset.
     """
     
     draw_text(screen, "General Settings", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
@@ -238,6 +239,11 @@ def settings_page(screen, FONT_COLOR, brightness, optimize, delay):
     pygame.draw.rect(screen, GREEN if delay else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.44, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
     draw_text(screen, "On" if delay else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
     draw_text(screen, "Delay readings", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
+
+    # Reset Performance Page Stats
+    pygame.draw.rect(screen, BACKGROUND_2_COLOR if reset_performance else GREEN, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.56, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
+    draw_text(screen, "" if reset_performance else "Reset", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.61)
+    draw_text(screen, "" if reset_performance else "Reset Performance Stats", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.61)
 
 def trouble_page(screen, FONT_COLOR, codes, cleared):
     """
@@ -461,6 +467,30 @@ def developmental_page(screen, FONT_COLOR, show_fps, query_times):
         y_offset += SCREEN_HEIGHT * 0.06  # Move down for the next query
 
 def performance_page(screen, FONT_COLOR, BACKGROUND_2_COLOR, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding, rpm, shift, top_speed, last_top_speed, tracking, elapsed_time, zero_to_sixty_time, zero_to_hundred_time, eighth_mile_time, quarter_mile_time):
+    """
+    Draw the performance page to track different performance related stats.
+
+    Parameters:
+        screen: The screen to draw on.
+        FONT_COLOR: Color for the text.
+        BACKGROUND_2_COLOR: Background color for overlays.
+        shift_color_1: Index for the first shift light color.
+        shift_color_2: Index for the second shift light color.
+        shift_color_3: Index for the third shift light color.
+        shift_color_4: Index for the fourth shift light color.
+        shift_padding: Padding value affecting the shift RPM calculation.
+        rpm: Current RPM value.
+        shift: Shift threshold for the vehicle.
+        top_speed: Overall Top Speed.
+        last_top_speed: Top Speed of last tracked run.
+        tracking: Flag if currently tracking. 
+        elapsed_time: How long its been tracking.
+        zero_to_sixty_time: Current 0-60 time.
+        zero_to_hundred_time: Current 0-100 time.
+        eighth_mile_time: Current 1/8 Mile time.
+        quarter_mile_time: Current 1/4 Mile time.
+    """
+    
     draw_text(screen, "Top Speed", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.25, SCREEN_HEIGHT*.2)
     draw_text(screen, "Last Tracked Speed", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.25, SCREEN_HEIGHT*.2)
 
