@@ -493,7 +493,7 @@ def main():
             write_info(current_page, shift_light, delay, optimize, font_index, background_1_index, background_2_index, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding, image_index)
             previous_info = new_info
 
-        top_speed, last_top_speed, speed_times, graph_made, elapsed_time, zero_to_sixty_time, zero_to_hundred_time, eighth_mile_time, quarter_mile_time = calculate_performance(FONT_COLOR, speed, top_speed, last_top_speed, tracking, speed_times, rpm, elapsed_time)
+        top_speed, last_top_speed, speed_times, graph_made, elapsed_time, zero_to_sixty_time, zero_to_hundred_time = calculate_performance(FONT_COLOR, speed, top_speed, last_top_speed, tracking, speed_times, rpm, elapsed_time)
         
         # Reset the flag
         if top_speed:
@@ -594,7 +594,7 @@ def main():
 
             elif pages[current_page[0]][current_page[1]] == "Performance":
                 page_guide(screen, screen_2, FONT_COLOR, BACKGROUND_2_COLOR, pages, current_page)
-                performance_page(screen, FONT_COLOR, BACKGROUND_2_COLOR, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding, rpm, shift, top_speed, last_top_speed, tracking, elapsed_time, zero_to_sixty_time, zero_to_hundred_time, eighth_mile_time, quarter_mile_time)            
+                performance_page(screen, FONT_COLOR, BACKGROUND_2_COLOR, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding, rpm, shift, top_speed, last_top_speed, tracking, elapsed_time, zero_to_sixty_time, zero_to_hundred_time)            
             
             elif pages[current_page[0]][current_page[1]] == "Speed_Time":
                 page_guide(screen, screen_2, FONT_COLOR, BACKGROUND_2_COLOR, pages, current_page)

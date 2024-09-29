@@ -714,17 +714,6 @@ def calculate_performance(FONT_COLOR, speed, top_speed, last_top_speed, tracking
         calculate_performance.zero_to_sixty_time = None
     if 'zero_to_hundred_time' not in calculate_performance.__dict__:
         calculate_performance.zero_to_hundred_time = None
-    if 'eighth_mile_time' not in calculate_performance.__dict__:
-        calculate_performance.eighth_mile_time = None
-    if 'quarter_mile_time' not in calculate_performance.__dict__:
-        calculate_performance.quarter_mile_time = None
-
-    # Constants
-    eighth_mile_distance = 660  # feet
-    quarter_mile_distance = 1320  # feet
-
-    # Convert speed from MPH to FPS
-    speed_fps = speed * (5280 / 3600)
 
     # Check for top speed
     if speed > top_speed:
@@ -741,8 +730,6 @@ def calculate_performance(FONT_COLOR, speed, top_speed, last_top_speed, tracking
             calculate_performance.start_time = None
             calculate_performance.zero_to_sixty_time = None
             calculate_performance.zero_to_hundred_time = None
-            calculate_performance.eighth_mile_time = None
-            calculate_performance.quarter_mile_time = None
             last_top_speed = 0
 
         # Start the timer only if speed is greater than 0
@@ -767,21 +754,6 @@ def calculate_performance(FONT_COLOR, speed, top_speed, last_top_speed, tracking
         if speed >= 100 and calculate_performance.zero_to_hundred_time is None:
             calculate_performance.zero_to_hundred_time = elapsed_time
 
-        # Calculate cumulative distance based on elapsed time and speed
-        if speed_fps > 0:
-            # Distance covered since the last speed update
-            distance_covered = speed_fps * elapsed_time
-            
-            # Check for 1/8 mile completion
-            if calculate_performance.eighth_mile_time is None:
-                if distance_covered >= eighth_mile_distance:
-                    calculate_performance.eighth_mile_time = elapsed_time
-
-            # Check for 1/4 mile completion
-            if calculate_performance.quarter_mile_time is None:
-                if distance_covered >= quarter_mile_distance:
-                    calculate_performance.quarter_mile_time = elapsed_time
-
         # Check for downward trend in speed
         if speed > 10 and speed < calculate_performance.previous_speed:
             tracking = False  # Stop tracking if speed is trending downwards
@@ -800,9 +772,7 @@ def calculate_performance(FONT_COLOR, speed, top_speed, last_top_speed, tracking
     return (top_speed, last_top_speed, speed_times, graph_made, 
             elapsed_time, 
             calculate_performance.zero_to_sixty_time, 
-            calculate_performance.zero_to_hundred_time,
-            calculate_performance.eighth_mile_time,
-            calculate_performance.quarter_mile_time)
+            calculate_performance.zero_to_hundred_time)
 
 # Define a helper function to load and display the graph
 def display_graph(screen, filename, position, width, height):
