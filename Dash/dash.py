@@ -1,6 +1,7 @@
 import random
-import threading
 import obd
+import threading
+import math
 from Helper.brain import *
 from Helper.pages import *
 from Helper.events import *
@@ -11,10 +12,13 @@ from collections import defaultdict
 brightness = get_brightness()
 
 # Load RPM
-rpm_max,shift = load_rpm()
+rpm_max, shift = load_rpm()
+
+# Load Performance Stats
+top_speed = load_performance()
 
 # Environment Variables
-DEV = False
+DEV = True
 PI = False
 SYSTEM_VERSION = "2.7.0"
 
@@ -44,6 +48,7 @@ query_times = defaultdict(lambda: {"average": None})
 
 pages = [
     ["Main"],
+    ["Performance"],
     ["Custom", "Color1"],
     ["Trouble"],
     ["Settings", "RPM","Info"],
@@ -282,6 +287,28 @@ def query():
                                 update_rolling_average("Clear_DTC", query_time)
                         else:
                             cleared = 3  # Engine needs to be off
+    
+            elif pages[current_page[0]][current_page[1]] == "Performance":
+                if '0x0C' in supported:
+                    if development_mode:
+                        start_time = time.time()  # Track start time
+                    response_rpm = connection.query(obd.commands.RPM)
+                    if not response_rpm.is_null():
+                        rpm = int(round(response_rpm.value.magnitude, 0))
+                    if development_mode:
+                        query_time = time.time() - start_time  # Calculate query time
+                        update_rolling_average("RPM_Performance", query_time)
+
+                # Get Speed
+                if '0x0D' in supported:
+                    if development_mode:
+                        start_time_speed = time.time()  # Start timer for speed query
+                    response_speed = connection.query(obd.commands.SPEED)  # Vehicle speed
+                    if not response_speed.is_null():
+                        speed = response_speed.value.to('mile/hour').magnitude
+                    if development_mode:
+                        query_time_speed = time.time() - start_time_speed  # Time taken for speed query
+                        update_rolling_average("Speed_Performance", query_time_speed)  # Update rolling average for speed
 
             time.sleep(.03)  # Increasing this will slow down queries
 
@@ -293,7 +320,7 @@ def query():
 # Main function for the Pygame interface
 def main():
     # Get global variables
-    global delay, optimize, brightness, rpm_max, shift, cleared, clear, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes, logging, exit_text, current_page, development_mode
+    global delay, optimize, brightness, rpm_max, shift, cleared, clear, rpm, speed, maf, mpg, fuel_level, voltage, air_temp, codes, logging, exit_text, current_page, development_mode, top_speed
 
     # Initialize variables
     FLIP = False
@@ -301,6 +328,12 @@ def main():
     skip = True
     changed_image = False
     previous_info = []
+    last_top_speed = 0
+    tracking = False
+    speed_times = []
+    performance_graph_added = False
+    elapsed_time = None
+    reset_performance = False
 
     # Show development things in DEV mode
     if DEV:
@@ -337,6 +370,7 @@ def main():
         speed = 0
         maf = 6
         voltage = 15.5
+        current_gear = 0
     else:
         # Keep trying to connect on Separate Thread
         threading.Thread(target=connect_thread, daemon=True).start()
@@ -405,7 +439,7 @@ def main():
                         rpm_max, shift = rpm_event(mouseX, mouseY, rpm_max, shift)
 
                     elif pages[current_page[0]][current_page[1]] == "Settings":
-                        brightness, optimize, FLIP, delay = settings_event(mouseX, mouseY, brightness, optimize, FLIP, delay)
+                        brightness, optimize, FLIP, delay, reset_performance, top_speed = settings_event(mouseX, mouseY, brightness, optimize, FLIP, delay, reset_performance, top_speed)
 
                     elif pages[current_page[0]][current_page[1]] == "Trouble":
                         clear = trouble_event(mouseX, mouseY, clear)
@@ -421,6 +455,9 @@ def main():
                     
                     elif pages[current_page[0]][current_page[1]] == "Color1":
                         shift_light, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding = color_1_event(mouseX, mouseY, shift_light, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding)
+                    
+                    elif pages[current_page[0]][current_page[1]] == "Performance":
+                        tracking = performance_event(mouseX, mouseY, tracking)
 
                 skip = True
                 time.sleep(.1) # How long someone presses for a single click
@@ -438,7 +475,7 @@ def main():
                     rpm_max, shift = rpm_event(mouseX, mouseY, rpm_max, shift)
 
                 elif pages[current_page[0]][current_page[1]] == "Settings":
-                    brightness, optimize, FLIP, delay = settings_event(mouseX, mouseY, brightness, optimize, FLIP, delay, True)
+                    brightness, optimize, FLIP, delay, reset_performance, top_speed = settings_event(mouseX, mouseY, brightness, optimize, FLIP, delay, reset_performance, top_speed, True)
                 
                 elif pages[current_page[0]][current_page[1]] == "Custom":
                     font_index, background_1_index, background_2_index, image_index, changed_image = custom_event(mouseX, mouseY, images, font_index, background_1_index, background_2_index, image_index, changed_image, True)
@@ -456,10 +493,55 @@ def main():
             write_info(current_page, shift_light, delay, optimize, font_index, background_1_index, background_2_index, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding, image_index)
             previous_info = new_info
 
+        top_speed, last_top_speed, speed_times, graph_made, elapsed_time, zero_to_sixty_time, zero_to_hundred_time = calculate_performance(FONT_COLOR, speed, top_speed, last_top_speed, tracking, speed_times, rpm, elapsed_time)
+        
+        # Reset the flag
+        if top_speed:
+            reset_performance = False
+
+        if graph_made:
+            if not performance_graph_added:
+                pages[1].append("Speed_Time")
+                pages[1].append("Speed_RPM")
+                performance_graph_added = True
+
         if DEV:
-            # Set random variables for testing purposes
-            rpm = random.randint(max(0,rpm-50), min(rpm+60,rpm_max))
-            speed = random.uniform(max(0,speed-10), min(speed+100,80))* 0.621371
+            # Define maximum speed
+            max_speed = 300
+
+            # Define gear ratios for 6 gears
+            gear_ratios = [3.80, 2.10, 1.50, 1.20, 1.00, 0.80]
+            
+            # Determine current gear ratio
+            current_ratio = gear_ratios[current_gear]
+
+            # RPM calculation with some randomness to simulate fluctuations
+            rpm = random.randint(max(0, rpm - 10), min(rpm + 10, rpm_max))
+
+            if tracking:
+                # Check if RPM exceeds shift point, shift up if possible
+                if rpm >= shift + random.randint(-5, 5) and current_gear < len(gear_ratios) - 1:
+                    current_gear += 1
+                    current_ratio = gear_ratios[current_gear]
+                    # Adjust RPM for new gear, simulating the effect of shifting
+                    rpm = int(rpm * (1 - (current_ratio/max(gear_ratios))))
+
+                # Increment RPM logarithmically for smooth progression
+                rpm_increment = 10 * (current_ratio**2)
+                rpm = min(int(rpm + rpm_increment), rpm_max)  # Increment RPM with cap at max RPM
+                
+                if rpm < rpm_max:
+                    speed_increment = (rpm/rpm_max)*(current_ratio / max(gear_ratios))
+
+                    # Increase speed
+                    speed += speed_increment
+
+                    # Ensure speed does not exceed max_speed
+                    speed = min(speed, max_speed)
+
+            # Ensure RPM does not exceed rpm_max
+            rpm = min(rpm, rpm_max)
+
             maf = round(maf,0)
             maf = random.randint(max(1,maf-1), min(maf+1,80))
             mpg = calculate_mpg(speed, maf)
@@ -488,7 +570,7 @@ def main():
 
             elif pages[current_page[0]][current_page[1]] == "Settings":
                 page_guide(screen, screen_2, FONT_COLOR, BACKGROUND_2_COLOR, pages, current_page)
-                settings_page(screen, FONT_COLOR, brightness, optimize, delay)
+                settings_page(screen, FONT_COLOR, BACKGROUND_2_COLOR, brightness, optimize, delay, reset_performance)
             
             elif pages[current_page[0]][current_page[1]] == "Trouble":
                 page_guide(screen, screen_2, FONT_COLOR, BACKGROUND_2_COLOR, pages, current_page)
@@ -509,7 +591,19 @@ def main():
             elif pages[current_page[0]][current_page[1]] == "Development":
                 page_guide(screen, screen_2, FONT_COLOR, BACKGROUND_2_COLOR, pages, current_page)
                 developmental_page(screen, FONT_COLOR, show_fps, query_times)
+
+            elif pages[current_page[0]][current_page[1]] == "Performance":
+                page_guide(screen, screen_2, FONT_COLOR, BACKGROUND_2_COLOR, pages, current_page)
+                performance_page(screen, FONT_COLOR, BACKGROUND_2_COLOR, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding, rpm, shift, top_speed, last_top_speed, tracking, elapsed_time, zero_to_sixty_time, zero_to_hundred_time)            
             
+            elif pages[current_page[0]][current_page[1]] == "Speed_Time":
+                page_guide(screen, screen_2, FONT_COLOR, BACKGROUND_2_COLOR, pages, current_page)
+                speed_time_graph_page(screen)
+
+            elif pages[current_page[0]][current_page[1]] == "Speed_RPM":
+                page_guide(screen, screen_2, FONT_COLOR, BACKGROUND_2_COLOR, pages, current_page)
+                speed_rpm_graph_page(screen)       
+
             elif pages[current_page[0]][current_page[1]] == "Off":
                 screen.fill(BLACK)
                 

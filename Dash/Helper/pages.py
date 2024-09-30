@@ -1,27 +1,6 @@
 from .builder import *
-from .brain import draw_text, draw_rounded_rect
+from .brain import draw_text, draw_rounded_rect, draw_shift_light, display_graph
 from math import floor
-import time
-
-last_blink_time = time.time()  # Initialize at the current time
-blink_on = True  # Initial state of the blink pattern
-
-def update_blink_pattern():
-    """
-    Update the blink pattern based on elapsed time.
-
-    Toggles the blink state (on/off) every 0.1 seconds.
-    """
-
-    global last_blink_time, blink_on
-
-    current_time = time.time()
-    elapsed_time = current_time - last_blink_time
-
-    # Blink on for 0.1 seconds and off for 0.1 seconds
-    if elapsed_time >= 0.1:  # Time to toggle
-        blink_on = not blink_on  # Toggle the blink state (on/off)
-        last_blink_time = current_time  # Reset the last blink time
 
 def page_guide(screen, screen_2, FONT_COLOR, BACKGROUND_2_COLOR, pages, current_page):
     """
@@ -221,52 +200,9 @@ def main_page(screen, FONT_COLOR, BACKGROUND_1_COLOR, BACKGROUND_2_COLOR, fuel_l
 
     # Draw shift lights if enabled
     if shift_light:
-        circle_radius = 24
-        circle_spacing = 4
+        draw_shift_light(screen, FONT_COLOR, BACKGROUND_2_COLOR, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding, rpm, shift)
 
-        # Calculate total width for shift lights
-        total_circle_width = 12 * (2 * circle_radius + 2 * circle_spacing)
-
-        # Calculate starting position to center horizontally
-        start_x = (SCREEN_WIDTH - total_circle_width) // 2
-        circle_x = start_x + circle_radius + circle_spacing
-        circle_y = circle_radius + circle_spacing + SCREEN_HEIGHT * .17
-
-        # Colors for each light
-        light_colors = [COLORS[shift_color_1], COLORS[shift_color_1], COLORS[shift_color_1], COLORS[shift_color_1],
-                        COLORS[shift_color_2], COLORS[shift_color_2], COLORS[shift_color_2], COLORS[shift_color_2],
-                        COLORS[shift_color_3], COLORS[shift_color_3], COLORS[shift_color_3], COLORS[shift_color_3]]
-
-        update_blink_pattern()  # Update the blink pattern based on the time
-
-        # Draw each shift light
-        for i in range(len(light_colors)):
-            color = light_colors[i]
-
-            pygame.draw.circle(screen, FONT_COLOR, (circle_x, circle_y), circle_radius)
-            pygame.draw.circle(screen, BACKGROUND_2_COLOR, (circle_x, circle_y), circle_radius - 3)
-
-            # Logic for blinking shift lights based on RPM
-            if rpm > shift:
-                if blink_on:
-                    pygame.draw.circle(screen, COLORS[shift_color_4], (circle_x, circle_y), circle_radius)
-                else:
-                    pygame.draw.circle(screen, BACKGROUND_2_COLOR, (circle_x, circle_y), circle_radius)
-
-            if rpm > shift - (((len(light_colors) + 2) - i) * shift_padding):
-                if rpm > shift:
-                    if blink_on:
-                        pygame.draw.circle(screen, COLORS[shift_color_4], (circle_x, circle_y), circle_radius)
-                    else:
-                        pygame.draw.circle(screen, BACKGROUND_2_COLOR, (circle_x, circle_y), circle_radius)
-                elif rpm < shift and rpm > shift - 200:
-                    pygame.draw.circle(screen, COLORS[shift_color_4], (circle_x, circle_y), circle_radius)
-                else:
-                    pygame.draw.circle(screen, color, (circle_x, circle_y), circle_radius)
-
-            circle_x += 2 * (circle_radius + circle_spacing)
-
-def settings_page(screen, FONT_COLOR, brightness, optimize, delay):
+def settings_page(screen, FONT_COLOR, BACKGROUND_2_COLOR, brightness, optimize, delay, reset_performance):
     """
     Draws the settings page, allowing users to adjust brightness, optimization mode, and reading delay.
 
@@ -276,6 +212,7 @@ def settings_page(screen, FONT_COLOR, brightness, optimize, delay):
         brightness: Current brightness level (0-255).
         optimize: Boolean indicating if optimization mode is enabled.
         delay: Boolean indicating if reading delay is enabled.
+        reset_performance: Boolean to act as a flag if performance stats are reset.
     """
     
     draw_text(screen, "General Settings", font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, SCREEN_HEIGHT*.05)
@@ -302,6 +239,11 @@ def settings_page(screen, FONT_COLOR, brightness, optimize, delay):
     pygame.draw.rect(screen, GREEN if delay else RED, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.44, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
     draw_text(screen, "On" if delay else "Off", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
     draw_text(screen, "Delay readings", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.49)
+
+    # Reset Performance Page Stats
+    pygame.draw.rect(screen, BACKGROUND_2_COLOR if reset_performance else GREEN, (SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1, SCREEN_HEIGHT*.56, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
+    draw_text(screen, "" if reset_performance else "Reset", font_small_clean, BLACK, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.15, SCREEN_HEIGHT*.61)
+    draw_text(screen, "" if reset_performance else "Reset Performance Stats", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.15, SCREEN_HEIGHT*.61)
 
 def trouble_page(screen, FONT_COLOR, codes, cleared):
     """
@@ -523,3 +465,60 @@ def developmental_page(screen, FONT_COLOR, show_fps, query_times):
         query_text = f"{query}: {data['average']:.4f} seconds"
         draw_text(screen, query_text, font_small_clean, FONT_COLOR, SCREEN_WIDTH//2, y_offset)
         y_offset += SCREEN_HEIGHT * 0.06  # Move down for the next query
+
+def performance_page(screen, FONT_COLOR, BACKGROUND_2_COLOR, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding, rpm, shift, top_speed, last_top_speed, tracking, elapsed_time, zero_to_sixty_time, zero_to_hundred_time):
+    """
+    Draw the performance page to track different performance related stats.
+
+    Parameters:
+        screen: The screen to draw on.
+        FONT_COLOR: Color for the text.
+        BACKGROUND_2_COLOR: Background color for overlays.
+        shift_color_1: Index for the first shift light color.
+        shift_color_2: Index for the second shift light color.
+        shift_color_3: Index for the third shift light color.
+        shift_color_4: Index for the fourth shift light color.
+        shift_padding: Padding value affecting the shift RPM calculation.
+        rpm: Current RPM value.
+        shift: Shift threshold for the vehicle.
+        top_speed: Overall Top Speed.
+        last_top_speed: Top Speed of last tracked run.
+        tracking: Flag if currently tracking. 
+        elapsed_time: How long its been tracking.
+        zero_to_sixty_time: Current 0-60 time.
+        zero_to_hundred_time: Current 0-100 time.
+    """
+    
+    draw_text(screen, "Top Speed", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.25, SCREEN_HEIGHT*.2)
+    draw_text(screen, "Last Tracked Speed", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.25, SCREEN_HEIGHT*.2)
+
+    draw_text(screen, f"{int(round(top_speed,0))} MPH", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.25, SCREEN_HEIGHT*.3)
+    draw_text(screen, f"{int(round(last_top_speed,0))} MPH", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.25, SCREEN_HEIGHT*.3)
+    
+    if elapsed_time:
+        draw_text(screen, f"{elapsed_time:.2f}", font_medium_clean, FONT_COLOR, (SCREEN_WIDTH//2), SCREEN_HEIGHT*.4)
+    
+    if zero_to_sixty_time:
+        draw_text(screen, f"0-60 MPH: {zero_to_sixty_time:.2f}", font_medium_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.25, SCREEN_HEIGHT*.5)
+
+    if zero_to_hundred_time:
+        draw_text(screen, f"0-100 MPH: {zero_to_hundred_time:.2f}", font_medium_clean, FONT_COLOR, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.25, SCREEN_HEIGHT*.5)
+    
+    draw_shift_light(screen, FONT_COLOR, BACKGROUND_2_COLOR, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding, rpm, shift, 0)
+
+    pygame.draw.rect(screen, RED if tracking else GREEN, (SCREEN_WIDTH//2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
+    draw_text(screen, "Start" if not tracking else "Stop", font_small_clean, BLACK, SCREEN_WIDTH//2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
+
+def speed_time_graph_page(screen):
+    """
+    Display the speed/rpm vs time graph
+    """
+    
+    display_graph(screen, "speed_time_graph.png", (0, 0), SCREEN_WIDTH*.97, SCREEN_HEIGHT*.94)
+
+def speed_rpm_graph_page(screen):
+    """
+    Display the speed vs rpm graph
+    """
+
+    display_graph(screen, "speed_rpm_graph.png", (0, 0), SCREEN_WIDTH*.97, SCREEN_HEIGHT*.94)

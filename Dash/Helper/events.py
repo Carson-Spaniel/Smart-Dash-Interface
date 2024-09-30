@@ -1,5 +1,5 @@
 from .builder import *
-from .brain import increase_brightness, decrease_brightness, save_rpm
+from .brain import increase_brightness, decrease_brightness, save_rpm, save_performance
 
 def swipe_event(mouse_button_down, event, swipe_start_x, swipe_start_y, swipe_threshold, current_page, pages):
     """
@@ -97,7 +97,7 @@ def rpm_event(mouseX, mouseY, rpm_max, shift):
 
     return rpm_max, shift
 
-def settings_event(mouseX, mouseY, brightness, optimize, FLIP, delay, holding = False):
+def settings_event(mouseX, mouseY, brightness, optimize, FLIP, delay, reset_performance, top_speed, holding = False):
     """
     Handle settings adjustments based on mouse clicks.
 
@@ -108,6 +108,8 @@ def settings_event(mouseX, mouseY, brightness, optimize, FLIP, delay, holding = 
         optimize (bool): Current optimization setting.
         FLIP (bool): Current flip setting.
         delay (bool): Current delay setting.
+        reset_performance (bool): Flag if performance was reset.
+        top_speed (float): Current Top Speed.
         holding (bool): Indicates if the mouse button is held down.
 
     Returns:
@@ -144,7 +146,12 @@ def settings_event(mouseX, mouseY, brightness, optimize, FLIP, delay, holding = 
             else:
                 delay = True
 
-    return brightness, optimize, FLIP, delay
+        elif mouseX < SCREEN_WIDTH // 2 + SCREEN_WIDTH*.2 and mouseX > SCREEN_WIDTH // 2 + SCREEN_WIDTH*.1 and mouseY < SCREEN_HEIGHT*.66 and mouseY > SCREEN_HEIGHT*.56:
+            save_performance(0)
+            top_speed = 0
+            reset_performance = True
+
+    return brightness, optimize, FLIP, delay, reset_performance, top_speed
 
 def trouble_event(mouseX, mouseY, clear):
     """
@@ -352,3 +359,25 @@ def color_1_event(mouseX, mouseY, shift_light, shift_color_1, shift_color_2, shi
             shift_padding = 10
 
     return shift_light, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding
+
+def performance_event(mouseX, mouseY, tracking):
+    """
+    Handle information events based on mouse clicks.
+
+    Parameters:
+        mouseX (int): X position of the mouse.
+        mouseY (int): Y position of the mouse.
+        tracking (bool): Indicates tracking status.
+
+    Returns:
+        bool: Updated tracking status.
+    """
+    
+    # Check for collision with exit rectangle
+    if mouseX < SCREEN_WIDTH//2 + SCREEN_WIDTH*.05 and mouseX > SCREEN_WIDTH//2 - SCREEN_WIDTH*.05 and mouseY < SCREEN_HEIGHT-SCREEN_HEIGHT*.1 and mouseY > SCREEN_HEIGHT-SCREEN_HEIGHT*.2:
+        if tracking:
+            tracking = False
+        else:
+            tracking = True
+    
+    return tracking

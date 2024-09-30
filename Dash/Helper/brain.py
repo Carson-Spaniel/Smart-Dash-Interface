@@ -1,4 +1,5 @@
 import time
+import matplotlib.pyplot as plt
 import os
 from math import pi
 from .builder import *
@@ -491,3 +492,298 @@ def write_info(current_page, shift_light, delay, optimize, font_index, backgroun
         file.write(f'\n{str(int(shift_color_4))}')
         file.write(f'\n{str(int(shift_padding))}')
         file.write(f'\n{str(int(image_index))}')
+
+last_blink_time = time.time()  # Initialize at the current time
+blink_on = True  # Initial state of the blink pattern
+
+def update_blink_pattern():
+    """
+    Update the blink pattern based on elapsed time.
+
+    Toggles the blink state (on/off) every 0.1 seconds.
+    """
+
+    global last_blink_time, blink_on
+
+    current_time = time.time()
+    elapsed_time = current_time - last_blink_time
+
+    # Blink on for 0.1 seconds and off for 0.1 seconds
+    if elapsed_time >= 0.1:  # Time to toggle
+        blink_on = not blink_on  # Toggle the blink state (on/off)
+        last_blink_time = current_time  # Reset the last blink time
+
+def draw_shift_light(screen, FONT_COLOR, BACKGROUND_2_COLOR, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding, rpm, shift, shift_light_height=.17):
+    circle_radius = 24
+    circle_spacing = 4
+
+    # Calculate total width for shift lights
+    total_circle_width = 12 * (2 * circle_radius + 2 * circle_spacing)
+
+    # Calculate starting position to center horizontally
+    start_x = (SCREEN_WIDTH - total_circle_width) // 2
+    circle_x = start_x + circle_radius + circle_spacing
+    circle_y = circle_radius + circle_spacing + SCREEN_HEIGHT * shift_light_height
+
+    # Colors for each light
+    light_colors = [COLORS[shift_color_1], COLORS[shift_color_1], COLORS[shift_color_1], COLORS[shift_color_1],
+                    COLORS[shift_color_2], COLORS[shift_color_2], COLORS[shift_color_2], COLORS[shift_color_2],
+                    COLORS[shift_color_3], COLORS[shift_color_3], COLORS[shift_color_3], COLORS[shift_color_3]]
+
+    update_blink_pattern()  # Update the blink pattern based on the time
+
+    # Draw each shift light
+    for i in range(len(light_colors)):
+        color = light_colors[i]
+
+        pygame.draw.circle(screen, FONT_COLOR, (circle_x, circle_y), circle_radius)
+        pygame.draw.circle(screen, BACKGROUND_2_COLOR, (circle_x, circle_y), circle_radius - 3)
+
+        # Logic for blinking shift lights based on RPM
+        if rpm > shift:
+            if blink_on:
+                pygame.draw.circle(screen, COLORS[shift_color_4], (circle_x, circle_y), circle_radius)
+            else:
+                pygame.draw.circle(screen, BACKGROUND_2_COLOR, (circle_x, circle_y), circle_radius)
+
+        if rpm > shift - (((len(light_colors) + 2) - i) * shift_padding):
+            if rpm > shift:
+                if blink_on:
+                    pygame.draw.circle(screen, COLORS[shift_color_4], (circle_x, circle_y), circle_radius)
+                else:
+                    pygame.draw.circle(screen, BACKGROUND_2_COLOR, (circle_x, circle_y), circle_radius)
+            elif rpm < shift and rpm > shift - 200:
+                pygame.draw.circle(screen, COLORS[shift_color_4], (circle_x, circle_y), circle_radius)
+            else:
+                pygame.draw.circle(screen, color, (circle_x, circle_y), circle_radius)
+
+        circle_x += 2 * (circle_radius + circle_spacing)
+
+def save_performance(top_speed):
+    """
+    Saves performance stats to a file.
+
+    Args:
+        top_speed (float): Current top speed.
+
+    Description:
+        - Writes each performance stat to the "Data/Performance.txt" file.
+        - If an error occurs during the save operation, it prints an error message.
+    """
+    try:
+        with open("Data/Performance.txt", "w") as file:
+            file.write(f"{top_speed}")
+    except Exception as e:
+        print(f"Error saving performance stats to file: {e}")
+
+def load_performance():
+    """
+    Loads performance stats from a file.
+
+    Returns:
+        top_speed: A float of the current top speed.
+
+    Description:
+        - Reads the "Data/Performance.txt" file and loads each line as performance stat.
+        - If an error occurs while loading, it prints an error message and returns an placeholder values.
+    """
+    try:
+        with open("Data/Performance.txt", "r") as file:
+            top_speed = float(file.readline())
+
+    except Exception as e:
+        print(e)
+        top_speed = 0
+
+    return top_speed
+
+# Function to convert RGB values to matplotlib-compatible RGBA format
+def rgb_to_rgba(rgb_tuple):
+    """
+    Converts RGB values to RGBA.
+
+    Returns:
+        list: RGBA values.
+    """
+    return tuple([x / 255.0 for x in rgb_tuple])
+
+# Function to create and save a graph from speed times and RPM
+def create_speed_time_graph(speed_times, FONT_COLOR, filename="speed_time_graph.png"):
+    # Convert the provided RGB colors to normalized RGBA format
+    FONT_COLOR = rgb_to_rgba(FONT_COLOR)
+    blue = rgb_to_rgba(BLUE)
+
+    # Extract times, speeds, and RPMs
+    times, speeds, rpms = zip(*speed_times)
+
+    # Convert times to seconds relative to the first timestamp
+    relative_times = [t - times[0] for t in times]
+
+    # Create a figure and a set of subplots with a secondary y-axis
+    fig, ax1 = plt.subplots(figsize=(10, 5))
+
+    # Plot speed data with the primary y-axis (left)
+    ax1.plot(relative_times, speeds, marker='o', linestyle='-', color=FONT_COLOR, label='Speed')
+    ax1.set_xlabel('Time (seconds)', color=FONT_COLOR)
+    ax1.set_ylabel('Speed (MPH)', color=FONT_COLOR)
+    ax1.tick_params(axis='x', colors=FONT_COLOR)
+    ax1.tick_params(axis='y', colors=FONT_COLOR)
+
+    # Create a secondary y-axis for RPM
+    ax2 = ax1.twinx()
+    ax2.plot(relative_times, rpms, marker='.', linestyle='-', color=blue, label='RPM')
+    ax2.set_ylabel('RPM', color=blue)
+    ax2.tick_params(axis='y', colors=blue)
+
+    # Plot the biggest circle for the top speed and RPM
+    max_speed = max(speeds)
+    max_rpm = max(rpms)
+
+    # Add a larger circle at the max speed and max RPM
+    ax1.scatter(relative_times[speeds.index(max_speed)], max_speed, s=200, color='green', edgecolor='black', label='Top Speed', zorder=5)
+    ax2.scatter(relative_times[rpms.index(max_rpm)], max_rpm, s=200, color='purple', edgecolor='black', label='Top RPM', zorder=5)
+
+    # Find the time at which speed reaches or exceeds 60 and 100
+    time_at_60 = None
+    time_at_100 = None
+    
+    for rel_time, speed in zip(relative_times, speeds):
+        if speed >= 60 and time_at_60 is None:
+            time_at_60 = rel_time
+        if speed >= 100 and time_at_100 is None:
+            time_at_100 = rel_time
+    
+    # Draw vertical lines at the times when speed first reaches 60 and 100
+    if time_at_60 is not None:
+        ax1.axvline(x=time_at_60, color='red', linestyle='--', label='60 MPH Reached')
+    if time_at_100 is not None:
+        ax1.axvline(x=time_at_100, color='red', linestyle='--', label='100 MPH Reached')
+
+    # Customize the plot title and grid color
+    plt.title('Speed and RPM Over Time', color=FONT_COLOR)
+    ax1.grid(True, color=FONT_COLOR, linestyle='--', linewidth=0.5)
+
+    # Combine legends from both axes
+    lines, labels = ax1.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax1.legend(lines + lines2, labels + labels2, loc='upper left')
+
+    # Save the plot to a file with a transparent background
+    plt.savefig(filename, transparent=True, bbox_inches='tight')
+    plt.close()  # Close the figure to release memory
+
+# Function to create and save a speed-RPM graph
+def create_speed_rpm_graph(speed_times, FONT_COLOR, filename="speed_rpm_graph.png"):
+    # Convert the provided RGB colors to normalized RGBA format
+    FONT_COLOR = rgb_to_rgba(FONT_COLOR)
+
+    # Extract speeds and RPMs
+    _, speeds, rpms = zip(*speed_times)
+
+    # Create a new figure for RPM vs Speed
+    plt.figure(figsize=(10, 5))
+
+    # Plot RPM vs Speed using FONT_COLOR
+    plt.scatter(speeds, rpms, color=FONT_COLOR, marker='o', label='RPM vs Speed', alpha=0.7)
+
+    # Highlight the maximum RPM point
+    max_rpm = max(rpms)
+    max_speed = speeds[rpms.index(max_rpm)]
+    plt.scatter(max_speed, max_rpm, s=200, color=FONT_COLOR, edgecolor='black', label='Max RPM', zorder=5)
+
+    # Customize the plot with FONT_COLOR
+    plt.xlabel('Speed (MPH)', color=FONT_COLOR)
+    plt.ylabel('RPM', color=FONT_COLOR)
+    plt.title('RPM vs Speed', color=FONT_COLOR)
+    plt.grid(True, linestyle='--', linewidth=0.5, color=FONT_COLOR)
+    plt.tick_params(axis='x', colors=FONT_COLOR)
+    plt.tick_params(axis='y', colors=FONT_COLOR)
+    plt.legend(loc='upper left')
+
+    # Save the plot to a file with a transparent background
+    plt.savefig(filename, transparent=True, bbox_inches='tight')
+    plt.close()  # Close the figure to release memory
+
+def calculate_performance(FONT_COLOR, speed, top_speed, last_top_speed, tracking, speed_times, rpm, elapsed_time):
+    graph_made = False
+
+    # Initialize variables for tracking
+    if 'start_time' not in calculate_performance.__dict__:
+        calculate_performance.start_time = None
+    if 'zero_to_sixty_time' not in calculate_performance.__dict__:
+        calculate_performance.zero_to_sixty_time = None
+    if 'zero_to_hundred_time' not in calculate_performance.__dict__:
+        calculate_performance.zero_to_hundred_time = None
+
+    # Check for top speed
+    if speed > top_speed:
+        top_speed = speed
+        save_performance(top_speed)
+
+    # Keep track of the previous speed to detect downward trend
+    if 'previous_speed' not in calculate_performance.__dict__:
+        calculate_performance.previous_speed = speed
+
+    if tracking:
+        if not speed_times:
+            # Reset tracking variables when speed_times is empty
+            calculate_performance.start_time = None
+            calculate_performance.zero_to_sixty_time = None
+            calculate_performance.zero_to_hundred_time = None
+            last_top_speed = 0
+
+        # Start the timer only if speed is greater than 0
+        if speed > 0 and calculate_performance.start_time is None:
+            calculate_performance.start_time = time.time()  # Set start time when speed > 0
+
+        if speed > last_top_speed:
+            last_top_speed = speed
+
+        # Calculate elapsed time only if start_time is valid
+        elapsed_time = time.time() - calculate_performance.start_time if calculate_performance.start_time else None
+        
+        # Append elapsed time, speed, and RPM to speed_times
+        if elapsed_time:
+            speed_times.append((elapsed_time, speed, rpm))
+
+        # Check for 0-60 time
+        if speed >= 60 and calculate_performance.zero_to_sixty_time is None:
+            calculate_performance.zero_to_sixty_time = elapsed_time
+
+        # Check for 0-100 time
+        if speed >= 100 and calculate_performance.zero_to_hundred_time is None:
+            calculate_performance.zero_to_hundred_time = elapsed_time
+
+        # Check for downward trend in speed
+        if speed > 10 and speed < calculate_performance.previous_speed:
+            tracking = False  # Stop tracking if speed is trending downwards
+
+        # Update previous speed for next iteration
+        calculate_performance.previous_speed = speed
+
+    else:
+        if speed_times:
+            # Create a graph on a different thread, then reset speed_times
+            create_speed_time_graph(speed_times, FONT_COLOR)
+            create_speed_rpm_graph(speed_times, FONT_COLOR)
+            speed_times = []
+            graph_made = True
+
+    return (top_speed, last_top_speed, speed_times, graph_made, 
+            elapsed_time, 
+            calculate_performance.zero_to_sixty_time, 
+            calculate_performance.zero_to_hundred_time)
+
+# Define a helper function to load and display the graph
+def display_graph(screen, filename, position, width, height):
+    if os.path.exists(filename):
+        # Load the image
+        graph_image = pygame.image.load(filename)
+
+        # Scale the image to the full screen size
+        graph_image = pygame.transform.scale(graph_image, (width, height))
+
+        # Draw the image on the screen, filling it completely
+        screen.blit(graph_image, position)
+    else:
+        print(f"Graph file {filename} does not exist.")
