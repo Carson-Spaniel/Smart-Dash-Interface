@@ -111,6 +111,7 @@ Feel free to fork the repository, open issues, or start a discussion. We encoura
 - Performance page: top speed tracking, 0-60 time tracking, more performance related things. Will include a graph of Speed and RPM over Time.
 - Bluetooth setting: Add Bluetooth connection from the dash interface.
 - Update readme: Update the readme to the most current version.
+- Main displays: Add different looks for the main page.
 
 ## Far Future
 - Raspberry Pi hotspot for wifi connection to phone for GPS data for GPS related features.
