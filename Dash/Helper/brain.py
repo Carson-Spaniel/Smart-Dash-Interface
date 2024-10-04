@@ -755,6 +755,7 @@ def calculate_performance(FONT_COLOR, speed, top_speed, last_top_speed, tracking
             calculate_performance.zero_to_hundred_time = elapsed_time
 
         # Check for downward trend in speed
+        # TODO change this to better suit the time tracking rather than all situations
         if speed > 10 and speed < calculate_performance.previous_speed:
             tracking = False  # Stop tracking if speed is trending downwards
 
