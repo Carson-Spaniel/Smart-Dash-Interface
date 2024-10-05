@@ -489,23 +489,29 @@ def performance_page(screen, FONT_COLOR, BACKGROUND_2_COLOR, shift_color_1, shif
         zero_to_hundred_time: Current 0-100 time.
     """
     
+    # Draw top speeds
     draw_text(screen, "Top Speed", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.25, SCREEN_HEIGHT*.2)
     draw_text(screen, "Last Tracked Speed", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.25, SCREEN_HEIGHT*.2)
 
     draw_text(screen, f"{int(round(top_speed,0))} MPH", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.25, SCREEN_HEIGHT*.3)
     draw_text(screen, f"{int(round(last_top_speed,0))} MPH", font_small_clean, FONT_COLOR, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.25, SCREEN_HEIGHT*.3)
     
+    # Draw elapsed time
     if elapsed_time:
         draw_text(screen, f"{elapsed_time:.2f}", font_medium_clean, FONT_COLOR, (SCREEN_WIDTH//2), SCREEN_HEIGHT*.4)
     
+    # Draw 0-60 time
     if zero_to_sixty_time:
         draw_text(screen, f"0-60 MPH: {zero_to_sixty_time:.2f}", font_medium_clean, FONT_COLOR, (SCREEN_WIDTH//2)-SCREEN_WIDTH*.25, SCREEN_HEIGHT*.5)
 
+    # Draw 0-100 time
     if zero_to_hundred_time:
         draw_text(screen, f"0-100 MPH: {zero_to_hundred_time:.2f}", font_medium_clean, FONT_COLOR, (SCREEN_WIDTH//2)+SCREEN_WIDTH*.25, SCREEN_HEIGHT*.5)
     
+    # Draw shift light
     draw_shift_light(screen, FONT_COLOR, BACKGROUND_2_COLOR, shift_color_1, shift_color_2, shift_color_3, shift_color_4, shift_padding, rpm, shift, 0)
 
+    # Draw tracking button
     pygame.draw.rect(screen, RED if tracking else GREEN, (SCREEN_WIDTH//2 - SCREEN_WIDTH*.05, SCREEN_HEIGHT-SCREEN_HEIGHT*.2, SCREEN_WIDTH*.1, SCREEN_HEIGHT*.1))
     draw_text(screen, "Start" if not tracking else "Stop", font_small_clean, BLACK, SCREEN_WIDTH//2, SCREEN_HEIGHT-SCREEN_HEIGHT*.15)
 
