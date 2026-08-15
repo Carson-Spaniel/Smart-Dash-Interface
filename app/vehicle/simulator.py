@@ -219,7 +219,7 @@ class VehicleSimulator(QObject):
         if speed <= 0 or mpg <= 0:
             return
 
-        fuel_consumed = speed / mpg * delta_time / 3600.0 * 20.0
+        # fuel_consumed = speed / mpg * delta_time / 3600.0 * 20.0
 
         # self._fuel_level -= fuel_consumed
         self._fuel_level -= 0.05
