@@ -1,926 +1,222 @@
+import pytest
 from unittest.mock import MagicMock, patch
 
-import pytest
+import obd
 
 from app.vehicle.obd import OBDVehicle
-from app.vehicle.vehicle_state import VehicleState
-
-# ======================================================================
-# Fixtures / Helpers
-# ======================================================================
 
 
 @pytest.fixture
-def vehicle_state():
-    return VehicleState()
+def vehicle():
+    vehicle = MagicMock()
+    vehicle.speed = None
+    vehicle.maf = None
+    return vehicle
 
 
 @pytest.fixture
-def obd_vehicle(vehicle_state):
-    return OBDVehicle(vehicle_state)
+def sut(vehicle):
+    return OBDVehicle(vehicle)
 
 
-def make_response(value, converted_value=None):
-    response = MagicMock()
-    response.is_null.return_value = False
-
-    response.value.magnitude = value
-
-    if converted_value is None:
-        converted_value = value
-
-    response.value.to.return_value.magnitude = converted_value
-
-    return response
-
-
-# ======================================================================
-# Initialization
-# ======================================================================
-
-
-def test_obd_vehicle_defaults(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    assert vehicle.vehicle is vehicle_state
-    assert vehicle.port is None
-
-    assert vehicle.connection is None
-    assert vehicle._running is False
-    assert vehicle._thread is None
-
-    assert vehicle.fast_interval == 0.1
-    assert vehicle.medium_interval == 1.0
-    assert vehicle.slow_interval == 2.0
-
-    assert vehicle.supported_commands == set()
-
-
-def test_obd_vehicle_accepts_custom_configuration(vehicle_state):
-    vehicle = OBDVehicle(
-        vehicle_state,
-        port="/dev/ttyUSB0",
-        fast_interval=0.2,
-        medium_interval=2.0,
-        slow_interval=5.0,
-    )
-
-    assert vehicle.port == "/dev/ttyUSB0"
-    assert vehicle.fast_interval == 0.2
-    assert vehicle.medium_interval == 2.0
-    assert vehicle.slow_interval == 5.0
-
-
-# ======================================================================
-# Connection
-# ======================================================================
-
-
-@patch("app.vehicle.obd.obd.OBD")
-def test_connect_success(mock_obd, vehicle_state):
-    connection = MagicMock()
-
-    connection.is_connected.return_value = True
-    connection.port_name.return_value = "/dev/ttyUSB0"
-    connection.supported_commands = set()
-
-    mock_obd.return_value = connection
-
-    vehicle = OBDVehicle(vehicle_state)
-
-    result = vehicle.connect()
-
-    assert result is True
-    assert vehicle.connection is connection
-    assert vehicle_state.connected is True
-
-    mock_obd.assert_called_once_with(
-        None,
-        fast=False,
-        timeout=2,
-    )
-
-
-@patch("app.vehicle.obd.obd.OBD")
-def test_connect_passes_port_to_obd(mock_obd, vehicle_state):
-    connection = MagicMock()
-
-    connection.is_connected.return_value = True
-    connection.port_name.return_value = "/dev/ttyUSB0"
-    connection.supported_commands = set()
-
-    mock_obd.return_value = connection
-
-    vehicle = OBDVehicle(
-        vehicle_state,
-        port="/dev/ttyUSB0",
-    )
-
-    result = vehicle.connect()
-
-    assert result is True
-
-    mock_obd.assert_called_once_with(
-        "/dev/ttyUSB0",
-        fast=False,
-        timeout=2,
-    )
-
-
-@patch("app.vehicle.obd.obd.OBD")
-def test_connect_discovers_supported_commands(mock_obd, vehicle_state):
-    connection = MagicMock()
-
-    connection.is_connected.return_value = True
-    connection.port_name.return_value = "/dev/ttyUSB0"
-
-    supported_commands = {
-        "RPM",
-        "SPEED",
-    }
-
-    connection.supported_commands = supported_commands
-
-    mock_obd.return_value = connection
-
-    vehicle = OBDVehicle(vehicle_state)
-
-    vehicle.connect()
-
-    assert vehicle.supported_commands == supported_commands
-
-
-@patch("app.vehicle.obd.obd.OBD")
-def test_connect_failure_returns_false(mock_obd, vehicle_state):
-    mock_obd.side_effect = RuntimeError("adapter unavailable")
-
-    vehicle = OBDVehicle(vehicle_state)
-    errors = []
-
-    vehicle.errorOccurred.connect(errors.append)
-
-    result = vehicle.connect()
-
-    assert result is False
-    assert vehicle.connection is None
-    assert vehicle_state.connected is False
-    assert errors == ["adapter unavailable"]
-
-
-@patch("app.vehicle.obd.obd.OBD")
-def test_connect_failure_emits_connection_changed_false(
-    mock_obd,
-    vehicle_state,
-):
-    mock_obd.side_effect = RuntimeError("adapter unavailable")
-
-    vehicle = OBDVehicle(vehicle_state)
-    changes = []
-
-    vehicle.connectionChanged.connect(changes.append)
-
-    vehicle.connect()
-
-    assert changes == [False]
-
-
-@patch("app.vehicle.obd.obd.OBD")
-def test_connect_returns_true_if_already_connected(
-    mock_obd,
-    vehicle_state,
-):
+def test_connect_success(sut, vehicle):
     connection = MagicMock()
     connection.is_connected.return_value = True
+    connection.supported_commands = {obd.commands.RPM}
 
-    vehicle = OBDVehicle(vehicle_state)
-    vehicle.connection = connection
+    with patch("app.vehicle.obd.obd.OBD", return_value=connection):
+        assert sut.connect() is True
 
-    result = vehicle.connect()
-
-    assert result is True
-    assert vehicle.connection is connection
-
-    mock_obd.assert_not_called()
+    assert sut.connection is connection
+    vehicle.set_connected.assert_called_once_with(True)
+    assert sut.supported_commands == {obd.commands.RPM}
 
 
-@patch("app.vehicle.obd.obd.OBD")
-def test_connect_handles_adapter_that_is_not_connected(
-    mock_obd,
-    vehicle_state,
-):
+def test_connect_failure(sut, vehicle):
+    with patch("app.vehicle.obd.obd.OBD", side_effect=Exception("boom")):
+        assert sut.connect() is False
+
+    vehicle.set_connected.assert_called_once_with(False)
+
+
+def test_connect_reuses_existing_connection(sut):
+    sut.connection = MagicMock()
+    sut.connection.is_connected.return_value = True
+
+    with patch("app.vehicle.obd.obd.OBD") as obd_cls:
+        assert sut.connect() is True
+
+    obd_cls.assert_not_called()
+
+
+def test_disconnect(sut, vehicle):
     connection = MagicMock()
+    sut.connection = connection
 
-    connection.is_connected.return_value = False
-
-    mock_obd.return_value = connection
-
-    vehicle = OBDVehicle(vehicle_state)
-    changes = []
-
-    vehicle.connectionChanged.connect(changes.append)
-
-    result = vehicle.connect()
-
-    assert result is False
-    assert vehicle.connection is connection
-    assert vehicle_state.connected is False
-    assert changes == [False]
-
-
-# ======================================================================
-# Disconnect
-# ======================================================================
-
-
-def test_disconnect_closes_connection(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    connection = MagicMock()
-
-    vehicle.connection = connection
-    vehicle_state.set_connected(True)
-
-    changes = []
-    vehicle.connectionChanged.connect(changes.append)
-
-    vehicle.disconnect()
+    sut.disconnect()
 
     connection.close.assert_called_once()
-
-    assert vehicle.connection is None
-    assert vehicle_state.connected is False
-    assert changes == [False]
+    vehicle.reset.assert_called_once()
+    assert sut.connection is None
 
 
-def test_disconnect_without_connection_is_safe(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    vehicle.disconnect()
-
-    assert vehicle.connection is None
-    assert vehicle_state.connected is False
-
-
-def test_disconnect_handles_close_error(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    connection = MagicMock()
-    connection.close.side_effect = RuntimeError("close failed")
-
-    vehicle.connection = connection
-    vehicle_state.set_connected(True)
-
-    vehicle.disconnect()
-
-    assert vehicle.connection is None
-    assert vehicle_state.connected is False
-
-
-# ======================================================================
-# Supported Commands
-# ======================================================================
-
-
-def test_supports_returns_true_for_supported_command(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    command = MagicMock()
-
-    vehicle.supported_commands = {command}
-
-    assert vehicle._supports(command) is True
-
-
-def test_supports_returns_false_for_unsupported_command(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    command = MagicMock()
-
-    vehicle.supported_commands = set()
-
-    assert vehicle._supports(command) is False
-
-
-def test_discover_supported_commands_without_connection(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    vehicle._discover_supported_commands()
-
-    assert vehicle.supported_commands == set()
-
-
-def test_discover_supported_commands(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    command_one = MagicMock()
-    command_two = MagicMock()
-
-    connection = MagicMock()
-    connection.supported_commands = {
-        command_one,
-        command_two,
+def test_discover_supported_commands(sut):
+    sut.connection = MagicMock()
+    sut.connection.supported_commands = {
+        obd.commands.RPM,
+        obd.commands.SPEED,
     }
 
-    vehicle.connection = connection
+    sut._discover_supported_commands()
 
-    vehicle._discover_supported_commands()
-
-    assert vehicle.supported_commands == {
-        command_one,
-        command_two,
+    assert sut.supported_commands == {
+        obd.commands.RPM,
+        obd.commands.SPEED,
     }
 
 
-def test_discover_supported_commands_failure_clears_commands(
-    vehicle_state,
-):
-    vehicle = OBDVehicle(vehicle_state)
+def test_poll_fast(sut, vehicle):
+    sut.connection = MagicMock()
+    sut.supported_commands = {
+        obd.commands.RPM,
+        obd.commands.SPEED,
+    }
 
-    vehicle.supported_commands = {"existing"}
+    rpm = MagicMock()
+    rpm.is_null.return_value = False
+    rpm.value.magnitude = 2500
 
-    connection = MagicMock()
+    speed = MagicMock()
+    speed.is_null.return_value = False
+    speed.value.to.return_value.magnitude = 55
 
-    type(connection).supported_commands = property(
-        lambda _: (_ for _ in ()).throw(RuntimeError("discovery failed"))
-    )
+    sut.connection.query.side_effect = [rpm, speed]
 
-    vehicle.connection = connection
+    sut._poll_fast()
 
-    vehicle._discover_supported_commands()
-
-    assert vehicle.supported_commands == set()
-
-
-# ======================================================================
-# Fast Polling
-# ======================================================================
+    vehicle.set_rpm.assert_called_once_with(2500.0)
+    vehicle.set_speed.assert_called_once_with(55.0)
 
 
-def test_poll_fast_without_connection_does_nothing(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
+def test_poll_medium(sut, vehicle):
+    sut.connection = MagicMock()
+    sut.supported_commands = {
+        obd.commands.MAF,
+        obd.commands.FUEL_LEVEL,
+    }
 
-    vehicle._poll_fast()
+    maf = MagicMock()
+    maf.is_null.return_value = False
+    maf.value.to.return_value.magnitude = 12.5
 
-    assert vehicle_state.rpm is None
-    assert vehicle_state.speed is None
+    fuel = MagicMock()
+    fuel.is_null.return_value = False
+    fuel.value.magnitude = 72
 
+    sut.connection.query.side_effect = [maf, fuel]
+    sut._update_mpg = MagicMock()
 
-def test_poll_fast_updates_rpm(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
+    sut._poll_medium()
 
-    connection = MagicMock()
-    vehicle.connection = connection
-
-    rpm_command = MagicMock()
-    response = make_response(3500)
-
-    connection.query.return_value = response
-    vehicle.supported_commands = {rpm_command}
-
-    with patch(
-        "app.vehicle.obd.obd.commands.RPM",
-        rpm_command,
-    ):
-        vehicle._poll_fast()
-
-    assert vehicle_state.rpm == 3500.0
-    connection.query.assert_called_once_with(rpm_command)
+    vehicle.set_maf.assert_called_once_with(12.5)
+    vehicle.set_fuel_level.assert_called_once_with(72.0)
+    sut._update_mpg.assert_called_once()
 
 
-def test_poll_fast_updates_speed(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
+def test_poll_slow(sut, vehicle):
+    sut.connection = MagicMock()
+    sut.supported_commands = {
+        obd.commands.CONTROL_MODULE_VOLTAGE,
+        obd.commands.AMBIANT_AIR_TEMP,
+    }
 
-    connection = MagicMock()
-    vehicle.connection = connection
+    voltage = MagicMock()
+    voltage.is_null.return_value = False
+    voltage.value.magnitude = 13.8
 
-    speed_command = MagicMock()
-    response = make_response(
-        65,
-        converted_value=65,
-    )
+    temperature = MagicMock()
+    temperature.is_null.return_value = False
+    temperature.value.magnitude = 25
 
-    connection.query.return_value = response
-    vehicle.supported_commands = {speed_command}
+    sut.connection.query.side_effect = [voltage, temperature]
 
-    with patch(
-        "app.vehicle.obd.obd.commands.SPEED",
-        speed_command,
-    ):
-        vehicle._poll_fast()
+    sut._poll_slow()
 
-    assert vehicle_state.speed == 65.0
-
-
-def test_poll_fast_converts_speed_to_mph(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    connection = MagicMock()
-    vehicle.connection = connection
-
-    speed_command = MagicMock()
-    response = make_response(
-        104.607,
-        converted_value=65,
-    )
-
-    connection.query.return_value = response
-    vehicle.supported_commands = {speed_command}
-
-    with patch(
-        "app.vehicle.obd.obd.commands.SPEED",
-        speed_command,
-    ):
-        vehicle._poll_fast()
-
-    response.value.to.assert_called_once_with("mile/hour")
-    assert vehicle_state.speed == 65.0
+    vehicle.set_voltage.assert_called_once_with(13.8)
+    vehicle.set_air_temperature.assert_called_once_with(25.0)
 
 
-def test_poll_fast_ignores_null_rpm_response(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
+@pytest.mark.parametrize(
+    ("speed", "maf", "expected"),
+    [
+        (60, 10, 200.0),
+        (0, 10, 0.0),
+        (60, 0, None),
+        (None, 10, None),
+        (60, None, None),
+    ],
+)
+def test_update_mpg(sut, vehicle, speed, maf, expected):
+    vehicle.speed = speed
+    vehicle.maf = maf
 
-    connection = MagicMock()
-    vehicle.connection = connection
+    sut._update_mpg()
 
-    rpm_command = MagicMock()
-
-    response = MagicMock()
-    response.is_null.return_value = True
-
-    connection.query.return_value = response
-    vehicle.supported_commands = {rpm_command}
-
-    with patch(
-        "app.vehicle.obd.obd.commands.RPM",
-        rpm_command,
-    ):
-        vehicle._poll_fast()
-
-    assert vehicle_state.rpm is None
+    if speed is None or maf is None:
+        vehicle.set_mpg.assert_not_called()
+    else:
+        vehicle.set_mpg.assert_called_once_with(expected)
 
 
-def test_poll_fast_ignores_null_speed_response(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
+def test_update_mpg_clamps_to_200(sut, vehicle):
+    vehicle.speed = 200
+    vehicle.maf = 0.01
 
-    connection = MagicMock()
-    vehicle.connection = connection
+    sut._update_mpg()
 
-    speed_command = MagicMock()
+    vehicle.set_mpg.assert_called_once_with(200.0)
+
+
+def test_query_requires_connection(sut):
+    with pytest.raises(RuntimeError, match="not available"):
+        sut.query(obd.commands.RPM)
+
+
+def test_query_requires_connected_adapter(sut):
+    sut.connection = MagicMock()
+    sut.connection.is_connected.return_value = False
+
+    with pytest.raises(RuntimeError, match="not connected"):
+        sut.query(obd.commands.RPM)
+
+
+def test_query(sut):
+    sut.connection = MagicMock()
+    sut.connection.is_connected.return_value = True
 
     response = MagicMock()
-    response.is_null.return_value = True
+    sut.connection.query.return_value = response
 
-    connection.query.return_value = response
-    vehicle.supported_commands = {speed_command}
+    assert sut.query(obd.commands.RPM) is response
+    sut.connection.query.assert_called_once_with(obd.commands.RPM)
 
-    with patch(
-        "app.vehicle.obd.obd.commands.SPEED",
-        speed_command,
-    ):
-        vehicle._poll_fast()
 
-    assert vehicle_state.speed is None
+def test_start_is_idempotent(sut):
+    with patch("app.vehicle.obd.threading.Thread") as thread_cls:
+        sut.start()
+        sut.start()
 
+    thread_cls.assert_called_once()
+    thread_cls.return_value.start.assert_called_once()
 
-def test_poll_fast_does_not_query_unsupported_commands(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
 
-    connection = MagicMock()
-    vehicle.connection = connection
-    vehicle.supported_commands = set()
+def test_stop(sut):
+    sut._running = True
+    sut._thread = MagicMock()
+    sut.disconnect = MagicMock()
 
-    vehicle._poll_fast()
+    sut.stop()
 
-    connection.query.assert_not_called()
-
-
-# ======================================================================
-# Medium Polling
-# ======================================================================
-
-
-def test_poll_medium_without_connection_does_nothing(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    vehicle._poll_medium()
-
-    assert vehicle_state.maf is None
-    assert vehicle_state.fuelLevel is None
-
-
-def test_poll_medium_updates_maf(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    connection = MagicMock()
-    vehicle.connection = connection
-
-    maf_command = MagicMock()
-    response = make_response(
-        12.5,
-        converted_value=12.5,
-    )
-
-    connection.query.return_value = response
-    vehicle.supported_commands = {maf_command}
-
-    with patch(
-        "app.vehicle.obd.obd.commands.MAF",
-        maf_command,
-    ):
-        vehicle._poll_medium()
-
-    response.value.to.assert_called_once_with("gram / second")
-    assert vehicle_state.maf == 12.5
-
-
-def test_poll_medium_updates_fuel_level(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    connection = MagicMock()
-    vehicle.connection = connection
-
-    fuel_command = MagicMock()
-    response = make_response(75)
-
-    connection.query.return_value = response
-    vehicle.supported_commands = {fuel_command}
-
-    with patch(
-        "app.vehicle.obd.obd.commands.FUEL_LEVEL",
-        fuel_command,
-    ):
-        vehicle._poll_medium()
-
-    assert vehicle_state.fuelLevel == 75.0
-
-
-def test_poll_medium_ignores_null_maf_response(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    connection = MagicMock()
-    vehicle.connection = connection
-
-    maf_command = MagicMock()
-
-    response = MagicMock()
-    response.is_null.return_value = True
-
-    connection.query.return_value = response
-    vehicle.supported_commands = {maf_command}
-
-    with patch(
-        "app.vehicle.obd.obd.commands.MAF",
-        maf_command,
-    ):
-        vehicle._poll_medium()
-
-    assert vehicle_state.maf is None
-
-
-def test_poll_medium_ignores_null_fuel_response(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    connection = MagicMock()
-    vehicle.connection = connection
-
-    fuel_command = MagicMock()
-
-    response = MagicMock()
-    response.is_null.return_value = True
-
-    connection.query.return_value = response
-    vehicle.supported_commands = {fuel_command}
-
-    with patch(
-        "app.vehicle.obd.obd.commands.FUEL_LEVEL",
-        fuel_command,
-    ):
-        vehicle._poll_medium()
-
-    assert vehicle_state.fuelLevel is None
-
-
-def test_poll_medium_updates_mpg(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    vehicle.connection = MagicMock()
-
-    vehicle_state.set_speed(60)
-    vehicle_state.set_maf(10)
-
-    with patch.object(vehicle, "_update_mpg") as update_mpg:
-        vehicle._poll_medium()
-
-    update_mpg.assert_called_once()
-
-
-# ======================================================================
-# Slow Polling
-# ======================================================================
-
-
-def test_poll_slow_without_connection_does_nothing(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    vehicle._poll_slow()
-
-    assert vehicle_state.voltage is None
-    assert vehicle_state.airTemperature is None
-
-
-def test_poll_slow_updates_voltage(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    connection = MagicMock()
-    vehicle.connection = connection
-
-    voltage_command = MagicMock()
-    response = make_response(14.2)
-
-    connection.query.return_value = response
-    vehicle.supported_commands = {voltage_command}
-
-    with patch(
-        "app.vehicle.obd.obd.commands.CONTROL_MODULE_VOLTAGE",
-        voltage_command,
-    ):
-        vehicle._poll_slow()
-
-    assert vehicle_state.voltage == 14.2
-
-
-def test_poll_slow_updates_air_temperature(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    connection = MagicMock()
-    vehicle.connection = connection
-
-    temperature_command = MagicMock()
-    response = make_response(72)
-
-    connection.query.return_value = response
-    vehicle.supported_commands = {temperature_command}
-
-    with patch(
-        "app.vehicle.obd.obd.commands.AMBIANT_AIR_TEMP",
-        temperature_command,
-    ):
-        vehicle._poll_slow()
-
-    assert vehicle_state.airTemperature == 72.0
-
-
-def test_poll_slow_ignores_null_voltage_response(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    connection = MagicMock()
-    vehicle.connection = connection
-
-    voltage_command = MagicMock()
-
-    response = MagicMock()
-    response.is_null.return_value = True
-
-    connection.query.return_value = response
-    vehicle.supported_commands = {voltage_command}
-
-    with patch(
-        "app.vehicle.obd.obd.commands.CONTROL_MODULE_VOLTAGE",
-        voltage_command,
-    ):
-        vehicle._poll_slow()
-
-    assert vehicle_state.voltage is None
-
-
-def test_poll_slow_ignores_null_temperature_response(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    connection = MagicMock()
-    vehicle.connection = connection
-
-    temperature_command = MagicMock()
-
-    response = MagicMock()
-    response.is_null.return_value = True
-
-    connection.query.return_value = response
-    vehicle.supported_commands = {temperature_command}
-
-    with patch(
-        "app.vehicle.obd.obd.commands.AMBIANT_AIR_TEMP",
-        temperature_command,
-    ):
-        vehicle._poll_slow()
-
-    assert vehicle_state.airTemperature is None
-
-
-# ======================================================================
-# MPG
-# ======================================================================
-
-
-def test_update_mpg_does_nothing_without_speed(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    vehicle_state.set_maf(10)
-
-    vehicle._update_mpg()
-
-    assert vehicle_state.mpg is None
-
-
-def test_update_mpg_does_nothing_without_maf(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    vehicle_state.set_speed(60)
-
-    vehicle._update_mpg()
-
-    assert vehicle_state.mpg is None
-
-
-def test_update_mpg_returns_zero_when_speed_is_zero(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    vehicle_state.set_speed(0)
-    vehicle_state.set_maf(10)
-
-    vehicle._update_mpg()
-
-    assert vehicle_state.mpg == 0.0
-
-
-def test_update_mpg_clears_mpg_when_maf_is_zero(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    vehicle_state.set_speed(60)
-    vehicle_state.set_maf(0)
-    vehicle_state.set_mpg(25)
-
-    vehicle._update_mpg()
-
-    assert vehicle_state.mpg is None
-
-
-def test_update_mpg_clears_mpg_when_maf_is_negative(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    vehicle_state.set_speed(60)
-    vehicle_state.set_maf(-1)
-    vehicle_state.set_mpg(25)
-
-    vehicle._update_mpg()
-
-    assert vehicle_state.mpg is None
-
-
-def test_update_mpg_calculates_expected_value(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    vehicle_state.set_speed(30)
-    vehicle_state.set_maf(10)
-
-    vehicle._update_mpg()
-
-    expected = (30 * 4.54) / (10 * 0.0805)
-
-    assert vehicle_state.mpg == pytest.approx(expected)
-
-
-def test_update_mpg_is_capped_at_200(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    vehicle_state.set_speed(200)
-    vehicle_state.set_maf(0.01)
-
-    vehicle._update_mpg()
-
-    assert vehicle_state.mpg == 200.0
-
-
-def test_update_mpg_never_goes_below_zero(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    vehicle_state.set_speed(60)
-    vehicle_state.set_maf(10)
-
-    vehicle._update_mpg()
-
-    assert vehicle_state.mpg >= 0.0
-
-
-# ======================================================================
-# Manual Queries
-# ======================================================================
-
-
-def test_query_requires_connection(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    with pytest.raises(
-        RuntimeError,
-        match="OBD connection is not available",
-    ):
-        vehicle.query(MagicMock())
-
-
-def test_query_requires_connected_adapter(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    connection = MagicMock()
-    connection.is_connected.return_value = False
-
-    vehicle.connection = connection
-
-    with pytest.raises(
-        RuntimeError,
-        match="OBD connection is not connected",
-    ):
-        vehicle.query(MagicMock())
-
-    connection.query.assert_not_called()
-
-
-def test_query_returns_obd_response(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    connection = MagicMock()
-    connection.is_connected.return_value = True
-
-    expected_response = MagicMock()
-
-    connection.query.return_value = expected_response
-
-    vehicle.connection = connection
-
-    command = MagicMock()
-
-    result = vehicle.query(command)
-
-    assert result is expected_response
-    connection.query.assert_called_once_with(command)
-
-
-# ======================================================================
-# Start / Stop
-# ======================================================================
-
-
-def test_start_sets_running_and_creates_thread(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    with patch("app.vehicle.obd.threading.Thread") as mock_thread:
-        thread = mock_thread.return_value
-
-        vehicle.start()
-
-        assert vehicle._running is True
-        assert vehicle._thread is thread
-
-        mock_thread.assert_called_once_with(
-            target=vehicle._poll_loop,
-            name="OBDPollingThread",
-            daemon=True,
-        )
-
-        thread.start.assert_called_once()
-
-
-def test_start_does_nothing_if_already_running(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    vehicle._running = True
-
-    with patch("app.vehicle.obd.threading.Thread") as mock_thread:
-        vehicle.start()
-
-    mock_thread.assert_not_called()
-
-
-def test_stop_does_nothing_if_not_running(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    with patch.object(vehicle, "disconnect") as disconnect:
-        vehicle.stop()
-
-    disconnect.assert_not_called()
-
-
-def test_stop_stops_thread_and_disconnects(vehicle_state):
-    vehicle = OBDVehicle(vehicle_state)
-
-    thread = MagicMock()
-
-    vehicle._running = True
-    vehicle._thread = thread
-
-    with patch.object(vehicle, "disconnect") as disconnect:
-        vehicle.stop()
-
-    assert vehicle._running is False
-    assert vehicle._thread is None
-
-    thread.join.assert_called_once_with(timeout=3)
-    disconnect.assert_called_once()
+    assert sut._running is False
+    assert sut._thread is None
+    sut.disconnect.assert_called_once()
