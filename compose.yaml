@@ -1,0 +1,8 @@
+services:
+  smart-dash:
+    build: .
+
+    environment:
+      VEHICLE_MODE: simulator
+
+    restart: unless-stopped

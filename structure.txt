@@ -1,0 +1,127 @@
+Smart-Dash-Interface/
+│
+├── app/
+│   ├── __init__.py
+│   ├── main.py
+│   │
+│   ├── vehicle/
+│   │   ├── __init__.py
+│   │   ├── obd.py
+│   │   ├── simulator.py
+│   │   └── vehicle_state.py
+│   │
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── diagnostics.py
+│   │   └── trip.py
+│   │
+│   └── ui/
+│       ├── __init__.py
+│       └── qml/
+│           ├── Main.qml
+│           ├── Dashboard.qml
+│           ├── Settings.qml
+│           ├── Diagnostics.qml
+│           └── components/
+│               ├── Tachometer.qml
+│               ├── Speedometer.qml
+│               ├── FuelGauge.qml
+│               └── ShiftLights.qml
+│
+├── tests/
+│   ├── __init__.py
+│   └── test_vehicle_state.py
+│
+├── Dockerfile
+├── compose.yaml
+├── pyproject.toml
+├── README.md
+└── .gitignore
+
+
+
+
+
+
+
+app/
+│
+├── vehicle/
+│   │
+│   ├── obd.py
+│   │      └── Talks to car
+│   │
+│   ├── simulator.py
+│   │      └── Pretends to be car
+│   │
+│   └── vehicle_state.py
+│          └── Current vehicle data
+│
+├── services/
+│   │
+│   ├── diagnostics.py
+│   │      └── DTCs / CEL
+│   │
+│   └── trip.py
+│          └── MPG / distance / performance
+│
+└── ui/
+    └── qml/
+           └── Dashboard
+
+
+
+app/ui/qml/
+├── Main.qml
+├── Dashboard.qml
+├── Settings.qml
+├── Diagnostics.qml
+├── RpmSettings.qml
+├── Customization.qml
+├── ShiftLightSettings.qml
+├── DevelopmentSettings.qml
+├── SystemInformation.qml
+│
+└── components/
+    ├── Tachometer.qml
+    ├── Speedometer.qml
+    ├── FuelGauge.qml
+    ├── RpmBar.qml
+    ├── ShiftLights.qml
+    ├── SettingRow.qml
+    ├── SettingButton.qml
+    └── PageIndicator.qml
+
+
+
+                         Main.qml
+                            │
+                  ┌─────────┴─────────┐
+                  │                   │
+              StackView          Navigation
+                  │
+      ┌───────────┼────────────────────────┐
+      │           │                        │
+      ▼           ▼                        ▼
+ Dashboard    RpmSettings              Settings
+      │
+      ├── RpmBar
+      ├── ShiftLights
+      ├── FuelGauge
+      ├── Speedometer
+      └── Tachometer
+
+
+
+
+                 VehicleState
+                     │
+        ┌────────────┼─────────────┐
+        │            │             │
+        ▼            ▼             ▼
+       RPM         Speed          Fuel
+        │            │             │
+        └────────────┼─────────────┘
+                     │
+                     ▼
+                   QML
