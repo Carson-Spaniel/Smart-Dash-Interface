@@ -69,10 +69,10 @@ class SettingsManager(QObject):
         self._shift_lights_enabled = True
 
         # Indexes into the QML color palette.
-        self._shift_light_color_1 = 0
-        self._shift_light_color_2 = 1
-        self._shift_light_color_3 = 2
-        self._shift_light_color_4 = 3
+        self._shift_light_color_1 = 12
+        self._shift_light_color_2 = 8
+        self._shift_light_color_3 = 4
+        self._shift_light_color_4 = 0
 
         # RPM distance between each shift light.
         #
@@ -91,10 +91,10 @@ class SettingsManager(QObject):
         # ============================================================
 
         # Indexes into ColorPalette.colors.
-        self._font1_color_index = 45
-        self._font2_color_index = 46
-        self._background1_color_index = 50
-        self._background2_color_index = 51
+        self._font1_color_index = 46
+        self._font2_color_index = 47
+        self._background1_color_index = 49
+        self._background2_color_index = 50
 
         # Background image selection.
         self._background_image_index = 0

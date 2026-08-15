@@ -10,13 +10,15 @@ description = "OBD-II smart dashboard interface"
 requires-python = ">=3.12"
 
 dependencies = [
-    "PySide6>=6.8",
+    "PySide6-Essentials>=6.8",
+    "PySide6-Addons>=6.8",
     "obd>=0.7.2",
 ]
 
 
 [project.optional-dependencies]
 dev = [
+    "PySide6>=6.8",
     "pytest>=8.0",
     "pytest-qt>=4.4",
     "ruff>=0.8",
@@ -28,8 +30,34 @@ dev = [
 smart-dash = "app.main:main"
 
 
+# ============================================================
+# Python packages
+# ============================================================
+
 [tool.setuptools.packages.find]
+where = ["."]
 include = ["app*"]
+
+
+# ============================================================
+# Package data
+# ============================================================
+#
+# Include all QML files and the qmldir files used by Qt QML
+# modules/singletons when the application is installed.
+#
+
+[tool.setuptools.package-data]
+app = [
+    "ui/qml/*.qml",
+    "ui/qml/**/*.qml",
+    "ui/qml/**/*.js",
+    "ui/qml/**/*.png",
+    "ui/qml/**/*.jpg",
+    "ui/qml/**/*.jpeg",
+    "ui/qml/**/*.svg",
+    "ui/qml/**/qmldir",
+]
 
 
 # ============================================================
@@ -62,16 +90,16 @@ exclude = [
 
 [tool.ruff.lint]
 select = [
-    "E",      # pycodestyle errors
-    "W",      # pycodestyle warnings
-    "F",      # Pyflakes
-    "I",      # import sorting
-    "B",      # flake8-bugbear
-    "UP",     # pyupgrade
+    "E",
+    "W",
+    "F",
+    "I",
+    "B",
+    "UP",
 ]
 
 ignore = [
-    "E501",   # line length handled by Ruff formatter
+    "E501",
 ]
 
 
