@@ -1,7 +1,7 @@
-import pytest
 from unittest.mock import MagicMock, patch
 
 import obd
+import pytest
 
 from app.vehicle.obd import OBDVehicle
 
