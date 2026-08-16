@@ -153,11 +153,7 @@ Item {
                         return root.color2
                     }
 
-                    if (index < 10) {
-                        return root.color3
-                    }
-
-                    return root.color4
+                    return root.color3
                 }
 
                 // ===================================================
