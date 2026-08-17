@@ -35,30 +35,19 @@ Item {
         font.bold: true
     }
 
-    // ================================================================
-    // Current RPM Label
-    // ================================================================
+    // ===============================================================
+    // RPM
+    // ===============================================================
 
     Text {
         anchors.horizontalCenter: parent.horizontalCenter
 
-        y: parent.height * 0.25
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.verticalCenterOffset: -20
 
-        text: "RPM"
+        width: parent.width * 0.60
 
-        color: Theme.font2
-
-        font.pixelSize: 24
-    }
-
-    // ================================================================
-    // Current RPM
-    // ================================================================
-
-    Text {
-        anchors.horizontalCenter: parent.horizontalCenter
-
-        y: parent.height * 0.40
+        horizontalAlignment: Text.AlignHCenter
 
         text: {
             var rpm = Number(vehicle.rpm)
@@ -66,13 +55,33 @@ Item {
             if (!isFinite(rpm))
                 return "----"
 
-            return Math.round(rpm).toString().padStart(4, " ")
+            return Math.round(rpm)
+                   .toString()
+                   .padStart(4, " ")
         }
 
         color: Theme.font1
 
-        font.pixelSize: 72
+        font.pixelSize: 250
+
         font.bold: true
+    }
+
+
+    // ===============================================================
+    // RPM LABEL
+    // ===============================================================
+
+    Text {
+        anchors.horizontalCenter: parent.horizontalCenter
+
+        y: parent.height * 0.62
+
+        text: "RPM"
+
+        color: Theme.font2
+
+        font.pixelSize: 30
     }
 
     // ================================================================
@@ -80,31 +89,40 @@ Item {
     // ================================================================
 
     Column {
+        id: maxRpmText
+
         anchors.left: parent.left
-        anchors.leftMargin: parent.width * 0.20
+        anchors.leftMargin: parent.width * 0.05
 
-        y: parent.height * 0.48
+        anchors.verticalCenter: parent.verticalCenter
 
-        spacing: 8
+        width: parent.width * 0.20
 
-        Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-
-            text: "MAX"
-
-            color: Theme.font2
-
-            font.pixelSize: 18
-        }
+        spacing: 4
 
         Text {
-            anchors.horizontalCenter: parent.horizontalCenter
+            width: parent.width
+
+            horizontalAlignment: Text.AlignHCenter
 
             text: settings.rpmMax
 
             color: Theme.font1
 
-            font.pixelSize: 32
+            font.pixelSize: 100
+            font.bold: true
+        }
+
+        Text {
+            width: parent.width
+
+            horizontalAlignment: Text.AlignHCenter
+
+            text: "MAX"
+
+            color: Theme.font2
+
+            font.pixelSize: 30
         }
     }
 
@@ -113,31 +131,40 @@ Item {
     // ================================================================
 
     Column {
+        id: shiftPointText
+
         anchors.right: parent.right
-        anchors.rightMargin: parent.width * 0.20
+        anchors.rightMargin: parent.width * 0.05
 
-        y: parent.height * 0.48
+        anchors.verticalCenter: parent.verticalCenter
 
-        spacing: 8
+        width: parent.width * 0.20
 
-        Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-
-            text: "SHIFT"
-
-            color: Theme.font2
-
-            font.pixelSize: 18
-        }
+        spacing: 4
 
         Text {
-            anchors.horizontalCenter: parent.horizontalCenter
+            width: parent.width
+
+            horizontalAlignment: Text.AlignHCenter
 
             text: settings.rpmShift
 
             color: Theme.font1
 
-            font.pixelSize: 32
+            font.pixelSize: 100
+            font.bold: true
+        }
+
+        Text {
+            width: parent.width
+
+            horizontalAlignment: Text.AlignHCenter
+
+            text: "SHIFT"
+
+            color: Theme.font2
+
+            font.pixelSize: 30
         }
     }
 
@@ -146,20 +173,21 @@ Item {
     // ================================================================
 
     Rectangle {
-        x: parent.width * 0.20
-        y: parent.height * 0.68
+        x: (maxRpmText.x) + (maxRpmText.width/2) - (width / 2)
+        y: parent.height * 0.25
 
         width: parent.width * 0.10
         height: parent.height * 0.10
 
         color: ColorPalette.softGreen
+        radius: 10
 
         Text {
             anchors.centerIn: parent
 
             text: "+"
 
-            color: "#000000"
+            color: ColorPalette.black
 
             font.pixelSize: 32
         }
@@ -181,20 +209,21 @@ Item {
     // ================================================================
 
     Rectangle {
-        x: parent.width * 0.20
-        y: parent.height * 0.82
+        x: (maxRpmText.x) + (maxRpmText.width/2) - (width / 2)
+        y: parent.height * 0.75 - height
 
         width: parent.width * 0.10
         height: parent.height * 0.10
 
         color: ColorPalette.crimson
+        radius: 10
 
         Text {
             anchors.centerIn: parent
 
             text: "-"
 
-            color: "#000000"
+            color: ColorPalette.black
 
             font.pixelSize: 32
         }
@@ -216,20 +245,21 @@ Item {
     // ================================================================
 
     Rectangle {
-        x: parent.width * 0.70
-        y: parent.height * 0.68
+        x: (shiftPointText.x) + (shiftPointText.width/2) - (width / 2)
+        y: parent.height * 0.25
 
         width: parent.width * 0.10
         height: parent.height * 0.10
 
         color: ColorPalette.softGreen
+        radius: 10
 
         Text {
             anchors.centerIn: parent
 
             text: "+"
 
-            color: "#000000"
+            color: ColorPalette.black
 
             font.pixelSize: 32
         }
@@ -251,20 +281,21 @@ Item {
     // ================================================================
 
     Rectangle {
-        x: parent.width * 0.70
-        y: parent.height * 0.82
+        x: (shiftPointText.x) + (shiftPointText.width/2) - (width / 2)
+        y: parent.height * 0.75 - height
 
         width: parent.width * 0.10
         height: parent.height * 0.10
 
         color: ColorPalette.crimson
+        radius: 10
 
         Text {
             anchors.centerIn: parent
 
             text: "-"
 
-            color: "#000000"
+            color: ColorPalette.black
 
             font.pixelSize: 32
         }
@@ -286,11 +317,6 @@ Item {
     // ===============================================================
 
     PageIndicator {
-        anchors.horizontalCenter: parent.horizontalCenter
-
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 8
-
         pageCount: root.pageCount
         currentPage: root.pageIndex
     }

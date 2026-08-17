@@ -13,7 +13,7 @@ Item {
     Rectangle {
         anchors.fill: parent
 
-        color: "#101010"
+        color: Theme.background1
     }
 
     Text {
@@ -179,11 +179,6 @@ Item {
     // ===============================================================
 
     PageIndicator {
-        anchors.horizontalCenter: parent.horizontalCenter
-
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 8
-
         pageCount: root.pageCount
         currentPage: root.pageIndex
     }

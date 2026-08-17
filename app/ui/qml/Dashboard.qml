@@ -99,11 +99,11 @@ Item {
 
         y: 0
 
-        width: 4
+        width: 10
 
-        height: parent.height * 0.2
+        height: parent.height * 0.5
 
-        color: ColorPalette.danger
+        color: vehicle.rpm >= settingsManager.rpmShift ? Theme.background1 : ColorPalette.red
     }
 
 
@@ -613,7 +613,7 @@ Item {
         anchors.leftMargin: parent.width * 0.04
 
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: parent.height * 0.032
+        anchors.bottomMargin: parent.height * 0.031
 
         text: {
             var fuel = Number(vehicle.fuelLevel)

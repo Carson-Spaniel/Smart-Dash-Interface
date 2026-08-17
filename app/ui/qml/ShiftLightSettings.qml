@@ -352,11 +352,6 @@ Item {
     // ===============================================================
 
     PageIndicator {
-        anchors.horizontalCenter: parent.horizontalCenter
-
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 8
-
         pageCount: root.pageCount
         currentPage: root.pageIndex
     }

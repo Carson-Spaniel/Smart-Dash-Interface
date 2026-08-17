@@ -6,7 +6,11 @@ Item {
     property int pageCount: 1
     property int currentPage: 0
 
-    width: pageCount * 24
+    anchors.horizontalCenter: parent.horizontalCenter
+    anchors.bottom: parent.bottom
+    anchors.bottomMargin: 8
+
+    width: (pageCount-1) * 16
     height: 16
 
     Row {

@@ -12,112 +12,139 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: "#101010"
+        color: Theme.background1
     }
 
-    Text {
-        anchors.top: parent.top
-        anchors.topMargin: parent.height * 0.05
-
-        anchors.horizontalCenter: parent.horizontalCenter
-
+    TitleItem {
         text: "General Settings"
-
-        color: Theme.font1
-
-        font.pixelSize: 28
-        font.bold: true
     }
 
     // ===============================================================
     // Brightness
     // ===============================================================
-
-    Text {
-        x: parent.width * 0.20
-        y: parent.height * 0.25
-
-        text: "Brightness"
-
-        color: Theme.font1
-
-        font.pixelSize: 22
-    }
-
-    Text {
-        x: parent.width * 0.65
-        y: parent.height * 0.25
-
-        text: Math.round(
+    PlusMinusLineItem {
+        label: "Brightness"
+        valueText: Math.round(
             root.brightness / 255 * 100
         ) + "%"
-
-        color: Theme.font1
-
-        font.pixelSize: 22
-    }
-
-    Rectangle {
-        x: parent.width * 0.50
-        y: parent.height * 0.20
-
-        width: parent.width * 0.10
-        height: parent.height * 0.10
-
-        color: "#ff3030"
-
-        Text {
-            anchors.centerIn: parent
-
-            text: "-"
-
-            color: "black"
-
-            font.pixelSize: 30
+        onLeftClicked: {
+            root.brightness = Math.max(
+                0,
+                root.brightness - 15
+            )
         }
-
-        MouseArea {
-            anchors.fill: parent
-
-            onClicked: {
-                root.brightness = Math.max(
-                    0,
-                    root.brightness - 15
-                )
-            }
+        onRightClicked: {
+            root.brightness = Math.min(
+                255,
+                root.brightness + 15
+            )
         }
     }
-
-    Rectangle {
-        x: parent.width * 0.70
-        y: parent.height * 0.20
-
-        width: parent.width * 0.10
-        height: parent.height * 0.10
-
-        color: "#00d26a"
-
-        Text {
-            anchors.centerIn: parent
-
-            text: "+"
-
-            color: "black"
-
-            font.pixelSize: 30
+    PlusMinusLineItem {
+        label: "Brightness"
+        valueText: Math.round(
+            root.brightness / 255 * 100
+        ) + "%"
+        onLeftClicked: {
+            root.brightness = Math.max(
+                0,
+                root.brightness - 15
+            )
         }
-
-        MouseArea {
-            anchors.fill: parent
-
-            onClicked: {
-                root.brightness = Math.min(
-                    255,
-                    root.brightness + 15
-                )
-            }
+        onRightClicked: {
+            root.brightness = Math.min(
+                255,
+                root.brightness + 15
+            )
         }
+        y: parent.height * .2
     }
+
+    // Text {
+    //     x: parent.width * 0.20
+    //     y: parent.height * 0.25
+
+    //     text: "Brightness"
+
+    //     color: Theme.font1
+
+    //     font.pixelSize: 22
+    // }
+
+    // Text {
+    //     x: parent.width * 0.65
+    //     y: parent.height * 0.25
+
+    //     text: Math.round(
+    //         root.brightness / 255 * 100
+    //     ) + "%"
+
+    //     color: Theme.font1
+
+    //     font.pixelSize: 22
+    // }
+
+    // Rectangle {
+    //     x: parent.width * 0.50
+    //     y: parent.height * 0.20
+
+    //     width: parent.width * 0.10
+    //     height: parent.height * 0.10
+
+    //     color: ColorPalette.crimson
+
+    //     Text {
+    //         anchors.centerIn: parent
+
+    //         text: "-"
+
+    //         color: ColorPalette.black
+
+    //         font.pixelSize: 30
+    //     }
+
+    //     MouseArea {
+    //         anchors.fill: parent
+
+    //         onClicked: {
+    //             root.brightness = Math.max(
+    //                 0,
+    //                 root.brightness - 15
+    //             )
+    //         }
+    //     }
+    // }
+
+    // Rectangle {
+    //     x: parent.width * 0.70
+    //     y: parent.height * 0.20
+
+    //     width: parent.width * 0.10
+    //     height: parent.height * 0.10
+
+    //     color: ColorPalette.softGreen
+
+    //     Text {
+    //         anchors.centerIn: parent
+
+    //         text: "+"
+
+    //         color: ColorPalette.black
+
+    //         font.pixelSize: 30
+    //     }
+
+    //     MouseArea {
+    //         anchors.fill: parent
+
+    //         onClicked: {
+    //             root.brightness = Math.min(
+    //                 255,
+    //                 root.brightness + 15
+    //             )
+    //         }
+    //     }
+    // }
 
     // ===============================================================
     // Optimize
@@ -142,8 +169,8 @@ Item {
         height: parent.height * 0.10
 
         color: root.optimize
-               ? "#00d26a"
-               : "#ff3030"
+               ? ColorPalette.softGreen
+               : ColorPalette.crimson
 
         Text {
             anchors.centerIn: parent
@@ -152,7 +179,7 @@ Item {
                   ? "On"
                   : "Off"
 
-            color: "black"
+            color: ColorPalette.black
 
             font.pixelSize: 18
         }
@@ -189,8 +216,8 @@ Item {
         height: parent.height * 0.10
 
         color: root.delayedReadings
-               ? "#00d26a"
-               : "#ff3030"
+               ? ColorPalette.softGreen
+               : ColorPalette.crimson
 
         Text {
             anchors.centerIn: parent
@@ -199,7 +226,7 @@ Item {
                   ? "On"
                   : "Off"
 
-            color: "black"
+            color: ColorPalette.black
 
             font.pixelSize: 18
         }
@@ -236,14 +263,14 @@ Item {
         width: parent.width * 0.10
         height: parent.height * 0.10
 
-        color: "#00d26a"
+        color: ColorPalette.softGreen
 
         Text {
             anchors.centerIn: parent
 
             text: "Reset"
 
-            color: "black"
+            color: ColorPalette.black
 
             font.pixelSize: 18
         }
@@ -263,11 +290,6 @@ Item {
     // ===============================================================
 
     PageIndicator {
-        anchors.horizontalCenter: parent.horizontalCenter
-
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 8
-
         pageCount: root.pageCount
         currentPage: root.pageIndex
     }
