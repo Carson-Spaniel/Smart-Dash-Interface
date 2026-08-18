@@ -21,18 +21,8 @@ Item {
     // Title
     // ================================================================
 
-    Text {
-        anchors.top: parent.top
-        anchors.topMargin: parent.height * 0.05
-
-        anchors.horizontalCenter: parent.horizontalCenter
-
-        text: "RPM Settings"
-
-        color: Theme.font1
-
-        font.pixelSize: 28
-        font.bold: true
+    TitleItem {
+        title: "RPM Settings"
     }
 
     // ===============================================================
@@ -172,144 +162,76 @@ Item {
     // Maximum RPM +
     // ================================================================
 
-    Rectangle {
-        x: (maxRpmText.x) + (maxRpmText.width/2) - (width / 2)
-        y: parent.height * 0.25
-
-        width: parent.width * 0.10
-        height: parent.height * 0.10
-
+    ButtonItem {
+        buttonText: "+"
         color: ColorPalette.softGreen
-        radius: 10
-
-        Text {
-            anchors.centerIn: parent
-
-            text: "+"
-
-            color: ColorPalette.black
-
-            font.pixelSize: 32
-        }
-
-        MouseArea {
-            anchors.fill: parent
-
-            onClicked: {
+        onButtonClicked: {
                 settings.rpmMax = Math.min(
                     12000,
                     settings.rpmMax + 100
                 )
             }
-        }
+        x: (maxRpmText.x) + (maxRpmText.width/2) - (width / 2)
+        y: parent.height * 0.25
+
+        height: parent.height * .1
     }
 
     // ================================================================
     // Maximum RPM -
     // ================================================================
 
-    Rectangle {
-        x: (maxRpmText.x) + (maxRpmText.width/2) - (width / 2)
-        y: parent.height * 0.75 - height
-
-        width: parent.width * 0.10
-        height: parent.height * 0.10
-
+    ButtonItem {
+        buttonText: "-"
         color: ColorPalette.crimson
-        radius: 10
-
-        Text {
-            anchors.centerIn: parent
-
-            text: "-"
-
-            color: ColorPalette.black
-
-            font.pixelSize: 32
-        }
-
-        MouseArea {
-            anchors.fill: parent
-
-            onClicked: {
+        onButtonClicked: {
                 settings.rpmMax = Math.max(
                     1000,
                     settings.rpmMax - 100
                 )
             }
-        }
+        x: (maxRpmText.x) + (maxRpmText.width/2) - (width / 2)
+        y: parent.height * 0.75 - height
+
+        height: parent.height * .1
     }
 
     // ================================================================
     // Shift RPM +
     // ================================================================
 
-    Rectangle {
-        x: (shiftPointText.x) + (shiftPointText.width/2) - (width / 2)
-        y: parent.height * 0.25
-
-        width: parent.width * 0.10
-        height: parent.height * 0.10
-
+    ButtonItem {
+        buttonText: "+"
         color: ColorPalette.softGreen
-        radius: 10
-
-        Text {
-            anchors.centerIn: parent
-
-            text: "+"
-
-            color: ColorPalette.black
-
-            font.pixelSize: 32
-        }
-
-        MouseArea {
-            anchors.fill: parent
-
-            onClicked: {
+        onButtonClicked: {
                 settings.rpmShift = Math.min(
                     settings.rpmMax,
                     settings.rpmShift + 100
                 )
             }
-        }
+        x: (shiftPointText.x) + (shiftPointText.width/2) - (width / 2)
+        y: parent.height * 0.25
+
+        height: parent.height * .1
     }
 
     // ================================================================
     // Shift RPM -
     // ================================================================
 
-    Rectangle {
-        x: (shiftPointText.x) + (shiftPointText.width/2) - (width / 2)
-        y: parent.height * 0.75 - height
-
-        width: parent.width * 0.10
-        height: parent.height * 0.10
-
+    ButtonItem {
+        buttonText: "-"
         color: ColorPalette.crimson
-        radius: 10
-
-        Text {
-            anchors.centerIn: parent
-
-            text: "-"
-
-            color: ColorPalette.black
-
-            font.pixelSize: 32
-        }
-
-        MouseArea {
-            anchors.fill: parent
-
-            onClicked: {
+        onButtonClicked: {
                 settings.rpmShift = Math.max(
                     1000,
                     settings.rpmShift - 100
                 )
             }
-        }
+        x: (shiftPointText.x) + (shiftPointText.width/2) - (width / 2)
+        y: parent.height * 0.75 - height
+
+        height: parent.height * .1
     }
 
     // ===============================================================

@@ -1,15 +1,18 @@
 import QtQuick
 
-Text {
+Item {
+    property alias title: title.text
     anchors.top: parent.top
-    anchors.topMargin: parent.height * 0.05
+    width: parent.width
+    height: parent.height * .1
+    Text {
+        id: title
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
 
-    anchors.horizontalCenter: parent.horizontalCenter
+        color: Theme.font1
 
-    text: ""
-
-    color: Theme.font1
-
-    font.pixelSize: 28
-    font.bold: true
+        font.pixelSize: 50
+        font.bold: true
+    }
 }

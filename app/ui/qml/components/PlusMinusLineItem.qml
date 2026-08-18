@@ -16,31 +16,15 @@ Item {
         x: parent.width * 0.20
         anchors.verticalCenter: parent.verticalCenter
         color: Theme.font1
-        font.pixelSize: 22
+        font.pixelSize: 40
     }
 
-    Rectangle {
-        id: leftButton
-        x: parent.width * 0.50
-        anchors.verticalCenter: parent.verticalCenter
-
-        width: parent.width * .1
-        height: parent.height
-
+    ButtonItem {
+        buttonText: "-"
         color: ColorPalette.crimson
-        radius: 10
-
-        Text {
-            anchors.centerIn: parent
-            text: "-"
-            color: ColorPalette.black
-            font.pixelSize: 32
-        }
-
-        MouseArea {
-            anchors.fill: parent
-            onClicked: leftClicked()
-        }
+        onButtonClicked: leftClicked()
+        x: parent.width * .5
+        anchors.verticalCenter: parent.verticalCenter
     }
 
     Item {
@@ -49,37 +33,21 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
 
         width: parent.width * .1
-        height: parent.height
+        height: parent.height * .85
 
         Text {
             id: valueText
             anchors.centerIn: parent
             color: Theme.font1
-            font.pixelSize: 22
+            font.pixelSize: 32
         }
     }
 
-    Rectangle {
-        id: rightButton
-        x: parent.width * 0.70
-        anchors.verticalCenter: parent.verticalCenter
-
-        width: parent.width * .1
-        height: parent.height
-
+    ButtonItem {
+        buttonText: "+"
         color: ColorPalette.softGreen
-        radius: 10
-
-        Text {
-            anchors.centerIn: parent
-            text: "+"
-            color: ColorPalette.black
-            font.pixelSize: 32
-        }
-
-        MouseArea {
-            anchors.fill: parent
-            onClicked: rightClicked()
-        }
+        onButtonClicked: rightClicked()
+        x: parent.width * .7
+        anchors.verticalCenter: parent.verticalCenter
     }
 }
