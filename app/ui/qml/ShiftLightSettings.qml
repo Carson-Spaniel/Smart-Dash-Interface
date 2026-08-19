@@ -18,96 +18,41 @@ Item {
     // TITLE
     // ===============================================================
 
-    Text {
-        anchors.top: parent.top
-        anchors.topMargin: parent.height * 0.05
-
-        anchors.horizontalCenter: parent.horizontalCenter
-
-        text: "Shift Light Settings"
-
-        color: Theme.font1
-
-        font.pixelSize: 28
-        font.bold: true
+    TitleItem {
+        title: "Shift Light Settings"
     }
 
     // ===============================================================
     // ENABLED
     // ===============================================================
 
-    Text {
-        x: parent.width * 0.20
-        y: parent.height * 0.20
+    ToggleButtonLineItem {
+        y: parent.height * .1
+        label: "Shift Lights"
 
-        text: "Shift lights"
-
-        color: Theme.font1
-
-        font.pixelSize: 22
-    }
-
-    Rectangle {
-        x: parent.width * 0.60
-        y: parent.height * 0.16
-
-        width: parent.width * 0.10
-        height: parent.height * 0.10
-
-        color: settings.shiftLightsEnabled
-               ? ColorPalette.softGreen
-               : ColorPalette.crimson
-
-        radius: 4
-
-        Text {
-            anchors.centerIn: parent
-
-            text: settings.shiftLightsEnabled
+        valueText: settings.shiftLightsEnabled
                   ? "On"
                   : "Off"
 
-            color: ColorPalette.black
+        buttonColor: settings.shiftLightsEnabled
+               ? ColorPalette.softGreen
+               : ColorPalette.crimson
 
-            font.pixelSize: 18
-            font.bold: true
-        }
-
-        MouseArea {
-            anchors.fill: parent
-
-            onClicked: {
+        onToggleButtonClicked: {
                 settings.shiftLightsEnabled =
                     !settings.shiftLightsEnabled
             }
-        }
     }
 
     // ===============================================================
     // COLOR 1
     // ===============================================================
 
-    Text {
-        x: parent.width * 0.20
-        y: parent.height * 0.34
-
-        text: "Shift Light Color 1"
-
-        color: Theme.font1
-
-        font.pixelSize: 20
-    }
-
-    ColorSelector {
-        x: parent.width * 0.50
-        y: parent.height * 0.29
-
-        width: parent.width * 0.30
-        height: parent.height * 0.10
-
+    ColorPickerLineItem {
+        label: "Shift Light Color 1"
+        y: parent.height * .2
         colorIndex: Number(settings.shiftLightColor1)
-
-        onChanged: function(index) {
+        onColorChanged: function(index) {
             settings.shiftLightColor1 = index
         }
     }
@@ -116,27 +61,11 @@ Item {
     // COLOR 2
     // ===============================================================
 
-    Text {
-        x: parent.width * 0.20
-        y: parent.height * 0.46
-
-        text: "Shift Light Color 2"
-
-        color: Theme.font1
-
-        font.pixelSize: 20
-    }
-
-    ColorSelector {
-        x: parent.width * 0.50
-        y: parent.height * 0.41
-
-        width: parent.width * 0.30
-        height: parent.height * 0.10
-
+    ColorPickerLineItem {
+        label: "Shift Light Color 2"
+        y: parent.height * .3
         colorIndex: Number(settings.shiftLightColor2)
-
-        onChanged: function(index) {
+        onColorChanged: function(index) {
             settings.shiftLightColor2 = index
         }
     }
@@ -145,27 +74,11 @@ Item {
     // COLOR 3
     // ===============================================================
 
-    Text {
-        x: parent.width * 0.20
-        y: parent.height * 0.58
-
-        text: "Shift Light Color 3"
-
-        color: Theme.font1
-
-        font.pixelSize: 20
-    }
-
-    ColorSelector {
-        x: parent.width * 0.50
-        y: parent.height * 0.53
-
-        width: parent.width * 0.30
-        height: parent.height * 0.10
-
+    ColorPickerLineItem {
+        label: "Shift Light Color 3"
+        y: parent.height * .4
         colorIndex: Number(settings.shiftLightColor3)
-
-        onChanged: function(index) {
+        onColorChanged: function(index) {
             settings.shiftLightColor3 = index
         }
     }
@@ -174,27 +87,11 @@ Item {
     // COLOR 4
     // ===============================================================
 
-    Text {
-        x: parent.width * 0.20
-        y: parent.height * 0.70
-
-        text: "Shift Light Color 4"
-
-        color: Theme.font1
-
-        font.pixelSize: 20
-    }
-
-    ColorSelector {
-        x: parent.width * 0.50
-        y: parent.height * 0.65
-
-        width: parent.width * 0.30
-        height: parent.height * 0.10
-
+    ColorPickerLineItem {
+        label: "Shift Light Color 4"
+        y: parent.height * .5
         colorIndex: Number(settings.shiftLightColor4)
-
-        onChanged: function(index) {
+        onColorChanged: function(index) {
             settings.shiftLightColor4 = index
         }
     }
@@ -203,148 +100,28 @@ Item {
     // STARTING RPM
     // ===============================================================
 
-    Text {
-        x: parent.width * 0.20
-        y: parent.height * 0.84
-
-        text: "Shift Starting RPM"
-
-        color: Theme.font1
-
-        font.pixelSize: 20
-    }
-
-    Text {
-        x: parent.width * 0.50
-        y: parent.height * 0.84
-
-        width: parent.width * 0.30
-
-        horizontalAlignment: Text.AlignHCenter
-
-        text: Math.max(
+    PlusMinusLineItem {
+        label: "Shift Starting RPM"
+        y: parent.height * .6
+        valueText: Math.max(
             settings.rpmMin,
             settings.rpmShift
             - (14 * settings.shiftLightPadding)
         )
-
-        color: Theme.font1
-
-        font.pixelSize: 20
-        font.bold: true
-    }
-
-    // ===============================================================
-    // PADDING CONTROLS
-    // ===============================================================
-
-    Text {
-        x: parent.width * 0.20
-        y: parent.height * 0.90
-
-        text: "Light Spacing"
-
-        color: Theme.font2
-
-        font.pixelSize: 16
-    }
-
-    // ===============================================================
-    // DECREASE PADDING
-    // ===============================================================
-
-    Rectangle {
-        x: parent.width * 0.50
-        y: parent.height * 0.89
-
-        width: parent.width * 0.10
-        height: parent.height * 0.08
-
-        color: ColorPalette.crimson
-
-        radius: 4
-
-        Text {
-            anchors.centerIn: parent
-
-            text: "-"
-
-            color: ColorPalette.black
-
-            font.pixelSize: 28
-            font.bold: true
-        }
-
-        MouseArea {
-            anchors.fill: parent
-
-            onClicked: {
-                settings.shiftLightPadding =
-                    Math.max(
-                        10,
-                        settings.shiftLightPadding - 10
-                    )
-            }
-        }
-    }
-
-    // ===============================================================
-    // CURRENT PADDING
-    // ===============================================================
-
-    Text {
-        x: parent.width * 0.61
-        y: parent.height * 0.90
-
-        width: parent.width * 0.08
-
-        horizontalAlignment: Text.AlignHCenter
-
-        text: settings.shiftLightPadding
-
-        color: Theme.font1
-
-        font.pixelSize: 18
-        font.bold: true
-    }
-
-    // ===============================================================
-    // INCREASE PADDING
-    // ===============================================================
-
-    Rectangle {
-        x: parent.width * 0.70
-        y: parent.height * 0.89
-
-        width: parent.width * 0.10
-        height: parent.height * 0.08
-
-        color: ColorPalette.softGreen
-
-        radius: 4
-
-        Text {
-            anchors.centerIn: parent
-
-            text: "+"
-
-            color: ColorPalette.black
-
-            font.pixelSize: 28
-            font.bold: true
-        }
-
-        MouseArea {
-            anchors.fill: parent
-
-            onClicked: {
+        onLeftClicked: {
                 settings.shiftLightPadding =
                     Math.min(
                         1000,
                         settings.shiftLightPadding + 10
                     )
             }
-        }
+        onRightClicked: {
+                settings.shiftLightPadding =
+                    Math.max(
+                        10,
+                        settings.shiftLightPadding - 10
+                    )
+            }
     }
 
     // ===============================================================

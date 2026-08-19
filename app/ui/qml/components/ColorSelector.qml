@@ -42,7 +42,7 @@ Item {
 
             color: "#000000"
 
-            font.pixelSize: 20
+            font.pixelSize: 30
             font.bold: true
         }
     }
