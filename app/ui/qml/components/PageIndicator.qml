@@ -10,8 +10,8 @@ Item {
     anchors.bottom: parent.bottom
     anchors.bottomMargin: 8
 
-    width: (pageCount-1) * 16
-    height: 16
+    width: (pageCount-1) * 30
+    height: 30
 
     Row {
         anchors.fill: parent
@@ -22,10 +22,10 @@ Item {
             model: root.pageCount
 
             delegate: Rectangle {
-                width: 8
-                height: 8
+                width: 15
+                height: 15
 
-                radius: 4
+                radius: 7.5
 
                 color: index === root.currentPage
                        ? "#ffffff"

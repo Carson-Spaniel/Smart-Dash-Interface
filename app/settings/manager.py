@@ -39,6 +39,8 @@ class SettingsManager(QObject):
     """
 
     COLOR_PALETTE_SIZE = 53
+    BRIGHTNESS_MIN = 0
+    BRIGHTNESS_MAX = 255
 
     # ================================================================
     # Signals
@@ -47,6 +49,10 @@ class SettingsManager(QObject):
     rpmSettingsChanged = Signal()
     shiftLightSettingsChanged = Signal()
     settingsChanged = Signal()
+    generalSettingsChanged = Signal()
+    brightnessChanged = Signal()
+    optimizeReadingsChanged = Signal()
+    delayedReadingsChanged = Signal()
 
     def __init__(self) -> None:
         super().__init__()
@@ -98,6 +104,11 @@ class SettingsManager(QObject):
 
         # Background image selection.
         self._background_image_index = 0
+
+        # General settings
+        self._brightness = self.BRIGHTNESS_MAX
+        self._optimize_readings = False
+        self._delayed_readings = False
 
         self._load()
 
@@ -635,6 +646,96 @@ class SettingsManager(QObject):
     )
 
     # ================================================================
+    # Brightness
+    # ================================================================
+
+    def get_brightness(self) -> int:
+        return self._brightness
+
+    def set_brightness(self, value: int) -> None:
+        value = max(
+            self.BRIGHTNESS_MIN,
+            min(
+                self.BRIGHTNESS_MAX,
+                int(value),
+            ),
+        )
+
+        if self._brightness == value:
+            return
+
+        self._brightness = value
+
+        self.brightnessChanged.emit()
+        self.generalSettingsChanged.emit()
+        self.settingsChanged.emit()
+
+        self.save()
+
+    brightness = Property(
+        int,
+        get_brightness,
+        set_brightness,
+        notify=brightnessChanged,
+    )
+
+    # ================================================================
+    # Optimize Readings
+    # ================================================================
+
+    def get_optimize_readings(self) -> bool:
+        return self._optimize_readings
+
+    def set_optimize_readings(self, value: bool) -> None:
+        value = bool(value)
+
+        if self._optimize_readings == value:
+            return
+
+        self._optimize_readings = value
+
+        self.optimizeReadingsChanged.emit()
+        self.generalSettingsChanged.emit()
+        self.settingsChanged.emit()
+
+        self.save()
+
+    optimizeReadings = Property(
+        bool,
+        get_optimize_readings,
+        set_optimize_readings,
+        notify=optimizeReadingsChanged,
+    )
+
+    # ================================================================
+    # Delayed Readings
+    # ================================================================
+
+    def get_delayed_readings(self) -> bool:
+        return self._delayed_readings
+
+    def set_delayed_readings(self, value: bool) -> None:
+        value = bool(value)
+
+        if self._delayed_readings == value:
+            return
+
+        self._delayed_readings = value
+
+        self.delayedReadingsChanged.emit()
+        self.generalSettingsChanged.emit()
+        self.settingsChanged.emit()
+
+        self.save()
+
+    delayedReadings = Property(
+        bool,
+        get_delayed_readings,
+        set_delayed_readings,
+        notify=delayedReadingsChanged,
+    )
+
+    # ================================================================
     # Load
     # ================================================================
 
@@ -795,6 +896,36 @@ class SettingsManager(QObject):
             )
         )
 
+        # ============================================================
+        # General Settings
+        # ============================================================
+
+        general = data.get(
+            "general",
+            {},
+        )
+
+        self._brightness = int(
+            general.get(
+                "brightness",
+                self._brightness,
+            )
+        )
+
+        self._optimize_readings = bool(
+            general.get(
+                "optimize_readings",
+                self._optimize_readings,
+            )
+        )
+
+        self._delayed_readings = bool(
+            general.get(
+                "delayed_readings",
+                self._delayed_readings,
+            )
+        )
+
         self._validate()
 
         logger.info(
@@ -926,6 +1057,22 @@ class SettingsManager(QObject):
             self._background_image_index,
         )
 
+        # ------------------------------------------------------------
+        # General settings
+        # ------------------------------------------------------------
+
+        self._brightness = max(
+            self.BRIGHTNESS_MIN,
+            min(
+                self.BRIGHTNESS_MAX,
+                self._brightness,
+            ),
+        )
+
+        self._optimize_readings = bool(self._optimize_readings)
+
+        self._delayed_readings = bool(self._delayed_readings)
+
     # ================================================================
     # Save
     # ================================================================
@@ -960,6 +1107,11 @@ class SettingsManager(QObject):
                 "background1_color": self._background1_color_index,
                 "background2_color": self._background2_color_index,
                 "background_image": self._background_image_index,
+            },
+            "general": {
+                "brightness": self._brightness,
+                "optimize_readings": self._optimize_readings,
+                "delayed_readings": self._delayed_readings,
             },
         }
 

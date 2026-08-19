@@ -4,9 +4,6 @@ import "components"
 Item {
     id: root
 
-    property int brightness: 255
-    property bool optimize: false
-    property bool delayedReadings: false
     property int pageCount: 1
     property int pageIndex: 1
 
@@ -25,19 +22,21 @@ Item {
     PlusMinusLineItem {
         label: "Brightness"
         valueText: Math.round(
-            root.brightness / 255 * 100
+            settings.brightness / 255 * 100
         ) + "%"
         onLeftClicked: {
-            root.brightness = Math.max(
-                0,
-                root.brightness - 15
-            )
+            settings.brightness =
+                Math.max(
+                    0,
+                    settings.brightness - 15
+                )
         }
         onRightClicked: {
-            root.brightness = Math.min(
-                255,
-                root.brightness + 15
-            )
+            settings.brightness =
+                Math.min(
+                    255,
+                    settings.brightness + 15
+                )
         }
     }
 
@@ -48,15 +47,19 @@ Item {
     ToggleButtonLineItem {
         y: parent.height * .2
         label: "Optimize readings"
-        valueText: root.optimize
-                  ? "On"
-                  : "Off"
-        buttonColor: root.optimize
-               ? ColorPalette.softGreen
-               : ColorPalette.crimson
+
+        valueText: settings.optimizeReadings
+                ? "On"
+                : "Off"
+
+        buttonColor: settings.optimizeReadings
+                    ? ColorPalette.softGreen
+                    : ColorPalette.crimson
+
         onToggleButtonClicked: {
-                root.optimize = !root.optimize
-            }
+            settings.optimizeReadings =
+                !settings.optimizeReadings
+        }
     }
 
     // ===============================================================
@@ -66,16 +69,19 @@ Item {
     ToggleButtonLineItem {
         y: parent.height * .3
         label: "Delay readings"
-        valueText: root.delayedReadings
-                  ? "On"
-                  : "Off"
-        buttonColor: root.delayedReadings
-               ? ColorPalette.softGreen
-               : ColorPalette.crimson
+
+        valueText: settings.delayedReadings
+                ? "On"
+                : "Off"
+
+        buttonColor: settings.delayedReadings
+                    ? ColorPalette.softGreen
+                    : ColorPalette.crimson
+
         onToggleButtonClicked: {
-                root.delayedReadings =
-                    !root.delayedReadings
-            }
+            settings.delayedReadings =
+                !settings.delayedReadings
+        }
     }
 
     // ===============================================================

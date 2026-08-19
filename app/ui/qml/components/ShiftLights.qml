@@ -89,7 +89,7 @@ Item {
     Timer {
         id: blinkTimer
 
-        interval: 100
+        interval: 150
 
         repeat: true
 

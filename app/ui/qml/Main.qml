@@ -10,8 +10,8 @@ Window {
     // Window
     // ===============================================================
 
-    width: 1280
-    height: 720
+    width: 960
+    height: 544
 
     minimumWidth: 800
     minimumHeight: 480
