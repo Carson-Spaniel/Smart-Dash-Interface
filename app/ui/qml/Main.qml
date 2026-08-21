@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
-import "components"
 
 Window {
     id: root
@@ -319,7 +318,7 @@ Window {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
 
-        width: parent.width * 0.08
+        width: parent.width * 0.1
 
         z: 10000
 
@@ -339,7 +338,7 @@ Window {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
 
-        width: parent.width * 0.08
+        width: parent.width * 0.1
 
         z: 10000
 

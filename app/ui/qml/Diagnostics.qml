@@ -14,18 +14,8 @@ Item {
         color: Theme.background1
     }
 
-    Text {
-        anchors.top: parent.top
-        anchors.topMargin: parent.height * 0.05
-
-        anchors.horizontalCenter: parent.horizontalCenter
-
-        text: "Trouble Codes"
-
-        color: Theme.font1
-
-        font.pixelSize: 28
-        font.bold: true
+    TitleItem {
+        title: "Trouble Codes"
     }
 
     // ===============================================================

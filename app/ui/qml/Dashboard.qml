@@ -1,6 +1,7 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import "components"
-import QtQuick.Shapes
 import Qt5Compat.GraphicalEffects
 
 Item {
@@ -128,7 +129,7 @@ Item {
         anchors.right: parent.right
 
         anchors.leftMargin: parent.width * 0.18
-        anchors.rightMargin: edgePadding
+        anchors.rightMargin: root.edgePadding
 
         anchors.bottom: parent.bottom
 
