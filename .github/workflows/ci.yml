@@ -134,12 +134,11 @@ jobs:
       # Scans the actual ARM64 image that was just built.
       #
       # The build fails if HIGH or CRITICAL vulnerabilities are found.
-      # Unfixed vulnerabilities are ignored because there may not yet
-      # be an available upstream fix.
+      # Unfixed vulnerabilities are ignored.
       # --------------------------------------------------------------
 
       - name: Trivy vulnerability scan
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@master
         with:
           image-ref: smart-dash:ci-${{ github.sha }}
           format: table
