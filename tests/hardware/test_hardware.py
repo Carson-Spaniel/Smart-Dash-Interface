@@ -22,10 +22,7 @@ def settings_manager():
 
 @pytest.fixture
 def hardware_manager(settings_manager):
-    with patch.object(
-        HardwareManager,
-        "_apply_settings",
-    ):
+    with patch.object(HardwareManager, "_apply_settings"):
         manager = HardwareManager(settings_manager)
 
     return manager
@@ -37,44 +34,27 @@ def hardware_manager(settings_manager):
 
 
 def test_initializes_with_settings_manager(settings_manager):
-    with patch.object(
-        HardwareManager,
-        "_apply_settings",
-    ) as apply_settings:
+    with patch.object(HardwareManager, "_apply_settings") as apply_settings:
         manager = HardwareManager(settings_manager)
 
     assert manager._settings is settings_manager
 
-    settings_manager.brightnessChanged.connect.assert_called_once_with(
-        manager._on_brightness_changed
-    )
+    settings_manager.brightnessChanged.connect.assert_called_once_with(manager._on_brightness_changed)
 
     apply_settings.assert_called_once_with()
 
 
-def test_apply_settings_applies_current_brightness(
-    hardware_manager,
-    settings_manager,
-):
-    with patch.object(
-        hardware_manager,
-        "_apply_brightness",
-    ) as apply_brightness:
+def test_apply_settings_applies_current_brightness(hardware_manager, settings_manager):
+    with patch.object(hardware_manager, "_apply_brightness") as apply_brightness:
         hardware_manager._apply_settings()
 
     apply_brightness.assert_called_once_with(settings_manager.brightness)
 
 
-def test_brightness_changed_applies_current_brightness(
-    hardware_manager,
-    settings_manager,
-):
+def test_brightness_changed_applies_current_brightness(hardware_manager, settings_manager):
     settings_manager.brightness = 200
 
-    with patch.object(
-        hardware_manager,
-        "_apply_brightness",
-    ) as apply_brightness:
+    with patch.object(hardware_manager, "_apply_brightness") as apply_brightness:
         hardware_manager._on_brightness_changed()
 
     apply_brightness.assert_called_once_with(200)
@@ -87,93 +67,28 @@ def test_brightness_changed_applies_current_brightness(
 
 @pytest.mark.parametrize(
     ("value", "max_brightness", "expected"),
-    [
-        (0, 100, 0),
-        (255, 100, 100),
-        (128, 100, 50),
-        (64, 100, 25),
-        (255, 200, 200),
-        (128, 200, 100),
-        (128, 937, 470),
-        (255, 937, 937),
-    ],
+    [(0, 100, 0), (255, 100, 100), (128, 100, 50), (64, 100, 25), (255, 200, 200), (128, 200, 100), (128, 937, 470), (255, 937, 937)],
 )
-def test_convert_brightness(
-    value,
-    max_brightness,
-    expected,
-):
-    assert (
-        HardwareManager._convert_brightness(
-            value,
-            max_brightness,
-        )
-        == expected
-    )
+def test_convert_brightness(value, max_brightness, expected):
+    assert HardwareManager._convert_brightness(value, max_brightness) == expected
 
 
-@pytest.mark.parametrize(
-    "max_brightness",
-    [
-        0,
-        -1,
-        -100,
-    ],
-)
-def test_convert_brightness_returns_zero_for_invalid_max(
-    max_brightness,
-):
-    assert (
-        HardwareManager._convert_brightness(
-            128,
-            max_brightness,
-        )
-        == 0
-    )
+@pytest.mark.parametrize("max_brightness", [0, -1, -100])
+def test_convert_brightness_returns_zero_for_invalid_max(max_brightness):
+    assert HardwareManager._convert_brightness(128, max_brightness) == 0
 
 
-@pytest.mark.parametrize(
-    ("value", "expected"),
-    [
-        (-100, 0),
-        (-1, 0),
-        (0, 0),
-        (255, 255),
-        (256, 255),
-        (1000, 255),
-    ],
-)
-def test_convert_brightness_clamps_result(
-    value,
-    expected,
-):
-    assert (
-        HardwareManager._convert_brightness(
-            value,
-            255,
-        )
-        == expected
-    )
+@pytest.mark.parametrize(("value", "expected"), [(-100, 0), (-1, 0), (0, 0), (255, 255), (256, 255), (1000, 255)])
+def test_convert_brightness_clamps_result(value, expected):
+    assert HardwareManager._convert_brightness(value, 255) == expected
 
 
 def test_convert_brightness_rounds_to_nearest_integer():
     # 128 * 100 / 255 = 50.196...
-    assert (
-        HardwareManager._convert_brightness(
-            128,
-            100,
-        )
-        == 50
-    )
+    assert HardwareManager._convert_brightness(128, 100) == 50
 
     # 129 * 100 / 255 = 50.588...
-    assert (
-        HardwareManager._convert_brightness(
-            129,
-            100,
-        )
-        == 51
-    )
+    assert HardwareManager._convert_brightness(129, 100) == 51
 
 
 # ---------------------------------------------------------------------------
@@ -185,10 +100,7 @@ def test_find_brightness_device_returns_none_when_directory_missing():
     directory = MagicMock()
     directory.exists.return_value = False
 
-    with patch(
-        "app.hardware.hardware.Path",
-        return_value=directory,
-    ):
+    with patch("app.hardware.hardware.Path", return_value=directory):
         result = HardwareManager._find_brightness_device()
 
     assert result is None
@@ -200,10 +112,7 @@ def test_find_brightness_device_handles_directory_os_error():
     directory.exists.return_value = True
     directory.iterdir.side_effect = OSError("permission denied")
 
-    with patch(
-        "app.hardware.hardware.Path",
-        return_value=directory,
-    ):
+    with patch("app.hardware.hardware.Path", return_value=directory):
         result = HardwareManager._find_brightness_device()
 
     assert result is None
@@ -218,10 +127,7 @@ def test_find_brightness_device_skips_non_directories():
     directory.exists.return_value = True
     directory.iterdir.return_value = [non_directory]
 
-    with patch(
-        "app.hardware.hardware.Path",
-        return_value=directory,
-    ):
+    with patch("app.hardware.hardware.Path", return_value=directory):
         result = HardwareManager._find_brightness_device()
 
     assert result is None
@@ -254,10 +160,7 @@ def test_find_brightness_device_skips_device_without_brightness_file():
     directory.exists.return_value = True
     directory.iterdir.return_value = [device]
 
-    with patch(
-        "app.hardware.hardware.Path",
-        return_value=directory,
-    ):
+    with patch("app.hardware.hardware.Path", return_value=directory):
         result = HardwareManager._find_brightness_device()
 
     assert result is None
@@ -292,10 +195,7 @@ def test_find_brightness_device_skips_device_without_max_brightness_file():
     directory.exists.return_value = True
     directory.iterdir.return_value = [device]
 
-    with patch(
-        "app.hardware.hardware.Path",
-        return_value=directory,
-    ):
+    with patch("app.hardware.hardware.Path", return_value=directory):
         result = HardwareManager._find_brightness_device()
 
     assert result is None
@@ -330,10 +230,7 @@ def test_find_brightness_device_returns_first_usable_device():
     directory.exists.return_value = True
     directory.iterdir.return_value = [device]
 
-    with patch(
-        "app.hardware.hardware.Path",
-        return_value=directory,
-    ):
+    with patch("app.hardware.hardware.Path", return_value=directory):
         result = HardwareManager._find_brightness_device()
 
     assert result is brightness_path
@@ -356,16 +253,10 @@ def test_find_brightness_device_skips_invalid_devices_until_usable_one():
 
     # Deliberately put them in reverse order. The production code calls
     # sorted(), so the invalid device should still be inspected first.
-    directory.iterdir.return_value = [
-        valid_device,
-        invalid_device,
-    ]
+    directory.iterdir.return_value = [valid_device, invalid_device]
 
     def is_dir_side_effect(path):
-        return path in {
-            invalid_device,
-            valid_device,
-        }
+        return path in {invalid_device, valid_device}
 
     def exists_side_effect(path):
         if path == invalid_device / "brightness":
@@ -383,22 +274,9 @@ def test_find_brightness_device_skips_invalid_devices_until_usable_one():
         return False
 
     with (
-        patch(
-            "app.hardware.hardware.Path",
-            return_value=directory,
-        ),
-        patch.object(
-            Path,
-            "is_dir",
-            autospec=True,
-            side_effect=is_dir_side_effect,
-        ),
-        patch.object(
-            Path,
-            "exists",
-            autospec=True,
-            side_effect=exists_side_effect,
-        ),
+        patch("app.hardware.hardware.Path", return_value=directory),
+        patch.object(Path, "is_dir", autospec=True, side_effect=is_dir_side_effect),
+        patch.object(Path, "exists", autospec=True, side_effect=exists_side_effect),
     ):
         result = HardwareManager._find_brightness_device()
 
@@ -413,10 +291,7 @@ def test_find_brightness_device_skips_invalid_devices_until_usable_one():
 def test_read_max_brightness_returns_integer(tmp_path):
     path = tmp_path / "max_brightness"
 
-    path.write_text(
-        "937\n",
-        encoding="utf-8",
-    )
+    path.write_text("937\n", encoding="utf-8")
 
     assert HardwareManager._read_max_brightness(path) == 937
 
@@ -424,55 +299,25 @@ def test_read_max_brightness_returns_integer(tmp_path):
 def test_read_max_brightness_strips_whitespace(tmp_path):
     path = tmp_path / "max_brightness"
 
-    path.write_text(
-        "  200  \n",
-        encoding="utf-8",
-    )
+    path.write_text("  200  \n", encoding="utf-8")
 
     assert HardwareManager._read_max_brightness(path) == 200
 
 
-@pytest.mark.parametrize(
-    "contents",
-    [
-        "",
-        "not-a-number",
-        "12.5",
-        "abc123",
-    ],
-)
-def test_read_max_brightness_returns_none_for_invalid_content(
-    tmp_path,
-    contents,
-):
+@pytest.mark.parametrize("contents", ["", "not-a-number", "12.5", "abc123"])
+def test_read_max_brightness_returns_none_for_invalid_content(tmp_path, contents):
     path = tmp_path / "max_brightness"
 
-    path.write_text(
-        contents,
-        encoding="utf-8",
-    )
+    path.write_text(contents, encoding="utf-8")
 
     assert HardwareManager._read_max_brightness(path) is None
 
 
-@pytest.mark.parametrize(
-    "contents",
-    [
-        "0",
-        "-1",
-        "-100",
-    ],
-)
-def test_read_max_brightness_returns_none_for_non_positive_value(
-    tmp_path,
-    contents,
-):
+@pytest.mark.parametrize("contents", ["0", "-1", "-100"])
+def test_read_max_brightness_returns_none_for_non_positive_value(tmp_path, contents):
     path = tmp_path / "max_brightness"
 
-    path.write_text(
-        contents,
-        encoding="utf-8",
-    )
+    path.write_text(contents, encoding="utf-8")
 
     assert HardwareManager._read_max_brightness(path) is None
 
@@ -480,11 +325,7 @@ def test_read_max_brightness_returns_none_for_non_positive_value(
 def test_read_max_brightness_returns_none_on_os_error(tmp_path):
     path = tmp_path / "max_brightness"
 
-    with patch.object(
-        Path,
-        "read_text",
-        side_effect=OSError("permission denied"),
-    ):
+    with patch.object(Path, "read_text", side_effect=OSError("permission denied")):
         result = HardwareManager._read_max_brightness(path)
 
     assert result is None
@@ -498,10 +339,7 @@ def test_read_max_brightness_returns_none_on_os_error(tmp_path):
 def test_write_brightness_writes_value(tmp_path):
     path = tmp_path / "brightness"
 
-    result = HardwareManager._write_brightness(
-        path,
-        127,
-    )
+    result = HardwareManager._write_brightness(path, 127)
 
     assert result is True
 
@@ -511,30 +349,18 @@ def test_write_brightness_writes_value(tmp_path):
 def test_write_brightness_writes_zero(tmp_path):
     path = tmp_path / "brightness"
 
-    result = HardwareManager._write_brightness(
-        path,
-        0,
-    )
+    result = HardwareManager._write_brightness(path, 0)
 
     assert result is True
 
     assert path.read_text(encoding="utf-8") == "0"
 
 
-def test_write_brightness_returns_false_on_os_error(
-    tmp_path,
-):
+def test_write_brightness_returns_false_on_os_error(tmp_path):
     path = tmp_path / "brightness"
 
-    with patch.object(
-        Path,
-        "write_text",
-        side_effect=OSError("permission denied"),
-    ):
-        result = HardwareManager._write_brightness(
-            path,
-            100,
-        )
+    with patch.object(Path, "write_text", side_effect=OSError("permission denied")):
+        result = HardwareManager._write_brightness(path, 100)
 
     assert result is False
 
@@ -544,23 +370,11 @@ def test_write_brightness_returns_false_on_os_error(
 # ---------------------------------------------------------------------------
 
 
-def test_apply_brightness_does_nothing_when_no_device(
-    hardware_manager,
-):
+def test_apply_brightness_does_nothing_when_no_device(hardware_manager):
     with (
-        patch.object(
-            HardwareManager,
-            "_find_brightness_device",
-            return_value=None,
-        ),
-        patch.object(
-            HardwareManager,
-            "_read_max_brightness",
-        ) as read_max,
-        patch.object(
-            HardwareManager,
-            "_write_brightness",
-        ) as write_brightness,
+        patch.object(HardwareManager, "_find_brightness_device", return_value=None),
+        patch.object(HardwareManager, "_read_max_brightness") as read_max,
+        patch.object(HardwareManager, "_write_brightness") as write_brightness,
     ):
         hardware_manager._apply_brightness(128)
 
@@ -568,173 +382,80 @@ def test_apply_brightness_does_nothing_when_no_device(
     write_brightness.assert_not_called()
 
 
-def test_apply_brightness_clamps_value_before_hardware_application(
-    hardware_manager,
-):
+def test_apply_brightness_clamps_value_before_hardware_application(hardware_manager):
     brightness_path = Path("/sys/class/backlight/test/brightness")
 
     with (
-        patch.object(
-            HardwareManager,
-            "_find_brightness_device",
-            return_value=brightness_path,
-        ),
-        patch.object(
-            HardwareManager,
-            "_read_max_brightness",
-            return_value=100,
-        ),
-        patch.object(
-            HardwareManager,
-            "_write_brightness",
-            return_value=True,
-        ) as write_brightness,
+        patch.object(HardwareManager, "_find_brightness_device", return_value=brightness_path),
+        patch.object(HardwareManager, "_read_max_brightness", return_value=100),
+        patch.object(HardwareManager, "_write_brightness", return_value=True) as write_brightness,
     ):
         hardware_manager._apply_brightness(999)
 
-    write_brightness.assert_called_once_with(
-        brightness_path,
-        100,
-    )
+    write_brightness.assert_called_once_with(brightness_path, 100)
 
 
-def test_apply_brightness_clamps_negative_value(
-    hardware_manager,
-):
+def test_apply_brightness_clamps_negative_value(hardware_manager):
     brightness_path = Path("/sys/class/backlight/test/brightness")
 
     with (
-        patch.object(
-            HardwareManager,
-            "_find_brightness_device",
-            return_value=brightness_path,
-        ),
-        patch.object(
-            HardwareManager,
-            "_read_max_brightness",
-            return_value=100,
-        ),
-        patch.object(
-            HardwareManager,
-            "_write_brightness",
-            return_value=True,
-        ) as write_brightness,
+        patch.object(HardwareManager, "_find_brightness_device", return_value=brightness_path),
+        patch.object(HardwareManager, "_read_max_brightness", return_value=100),
+        patch.object(HardwareManager, "_write_brightness", return_value=True) as write_brightness,
     ):
         hardware_manager._apply_brightness(-50)
 
-    write_brightness.assert_called_once_with(
-        brightness_path,
-        0,
-    )
+    write_brightness.assert_called_once_with(brightness_path, 0)
 
 
-def test_apply_brightness_reads_max_brightness_from_sibling_file(
-    hardware_manager,
-):
+def test_apply_brightness_reads_max_brightness_from_sibling_file(hardware_manager):
     brightness_path = Path("/sys/class/backlight/test/brightness")
 
     max_brightness_path = Path("/sys/class/backlight/test/max_brightness")
 
     with (
-        patch.object(
-            HardwareManager,
-            "_find_brightness_device",
-            return_value=brightness_path,
-        ),
-        patch.object(
-            HardwareManager,
-            "_read_max_brightness",
-            return_value=200,
-        ) as read_max,
-        patch.object(
-            HardwareManager,
-            "_write_brightness",
-            return_value=True,
-        ),
+        patch.object(HardwareManager, "_find_brightness_device", return_value=brightness_path),
+        patch.object(HardwareManager, "_read_max_brightness", return_value=200) as read_max,
+        patch.object(HardwareManager, "_write_brightness", return_value=True),
     ):
         hardware_manager._apply_brightness(128)
 
     read_max.assert_called_once_with(max_brightness_path)
 
 
-def test_apply_brightness_converts_and_writes_value(
-    hardware_manager,
-):
+def test_apply_brightness_converts_and_writes_value(hardware_manager):
     brightness_path = Path("/sys/class/backlight/test/brightness")
 
     with (
-        patch.object(
-            HardwareManager,
-            "_find_brightness_device",
-            return_value=brightness_path,
-        ),
-        patch.object(
-            HardwareManager,
-            "_read_max_brightness",
-            return_value=100,
-        ),
-        patch.object(
-            HardwareManager,
-            "_write_brightness",
-            return_value=True,
-        ) as write_brightness,
+        patch.object(HardwareManager, "_find_brightness_device", return_value=brightness_path),
+        patch.object(HardwareManager, "_read_max_brightness", return_value=100),
+        patch.object(HardwareManager, "_write_brightness", return_value=True) as write_brightness,
     ):
         hardware_manager._apply_brightness(128)
 
-    write_brightness.assert_called_once_with(
-        brightness_path,
-        50,
-    )
+    write_brightness.assert_called_once_with(brightness_path, 50)
 
 
-def test_apply_brightness_does_not_write_when_max_brightness_is_invalid(
-    hardware_manager,
-):
+def test_apply_brightness_does_not_write_when_max_brightness_is_invalid(hardware_manager):
     brightness_path = Path("/sys/class/backlight/test/brightness")
 
     with (
-        patch.object(
-            HardwareManager,
-            "_find_brightness_device",
-            return_value=brightness_path,
-        ),
-        patch.object(
-            HardwareManager,
-            "_read_max_brightness",
-            return_value=None,
-        ),
-        patch.object(
-            HardwareManager,
-            "_write_brightness",
-        ) as write_brightness,
+        patch.object(HardwareManager, "_find_brightness_device", return_value=brightness_path),
+        patch.object(HardwareManager, "_read_max_brightness", return_value=None),
+        patch.object(HardwareManager, "_write_brightness") as write_brightness,
     ):
         hardware_manager._apply_brightness(128)
 
     write_brightness.assert_not_called()
 
 
-def test_apply_brightness_does_not_log_success_when_write_fails(
-    hardware_manager,
-    caplog,
-):
+def test_apply_brightness_does_not_log_success_when_write_fails(hardware_manager, caplog):
     brightness_path = Path("/sys/class/backlight/test/brightness")
 
     with (
-        patch.object(
-            HardwareManager,
-            "_find_brightness_device",
-            return_value=brightness_path,
-        ),
-        patch.object(
-            HardwareManager,
-            "_read_max_brightness",
-            return_value=100,
-        ),
-        patch.object(
-            HardwareManager,
-            "_write_brightness",
-            return_value=False,
-        ),
+        patch.object(HardwareManager, "_find_brightness_device", return_value=brightness_path),
+        patch.object(HardwareManager, "_read_max_brightness", return_value=100),
+        patch.object(HardwareManager, "_write_brightness", return_value=False),
     ):
         hardware_manager._apply_brightness(128)
 
@@ -746,29 +467,15 @@ def test_apply_brightness_does_not_log_success_when_write_fails(
 # ---------------------------------------------------------------------------
 
 
-def test_brightness_change_signal_results_in_hardware_write(
-    settings_manager,
-):
+def test_brightness_change_signal_results_in_hardware_write(settings_manager):
     settings_manager.brightness = 128
 
     brightness_path = Path("/sys/class/backlight/test/brightness")
 
     with (
-        patch.object(
-            HardwareManager,
-            "_find_brightness_device",
-            return_value=brightness_path,
-        ),
-        patch.object(
-            HardwareManager,
-            "_read_max_brightness",
-            return_value=100,
-        ),
-        patch.object(
-            HardwareManager,
-            "_write_brightness",
-            return_value=True,
-        ) as write_brightness,
+        patch.object(HardwareManager, "_find_brightness_device", return_value=brightness_path),
+        patch.object(HardwareManager, "_read_max_brightness", return_value=100),
+        patch.object(HardwareManager, "_write_brightness", return_value=True) as write_brightness,
     ):
         HardwareManager(settings_manager)
 
@@ -783,7 +490,4 @@ def test_brightness_change_signal_results_in_hardware_write(
 
         callback()
 
-    write_brightness.assert_called_once_with(
-        brightness_path,
-        78,
-    )
+    write_brightness.assert_called_once_with(brightness_path, 78)

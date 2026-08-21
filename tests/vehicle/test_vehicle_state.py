@@ -36,16 +36,7 @@ def test_setters(state, setter, getter, value, expected):
     assert getattr(state, getter) == expected
 
 
-@pytest.mark.parametrize(
-    ("setter", "getter"),
-    [
-        ("set_rpm", "rpm"),
-        ("set_speed", "speed"),
-        ("set_maf", "maf"),
-        ("set_mpg", "mpg"),
-        ("set_voltage", "voltage"),
-    ],
-)
+@pytest.mark.parametrize(("setter", "getter"), [("set_rpm", "rpm"), ("set_speed", "speed"), ("set_maf", "maf"), ("set_mpg", "mpg"), ("set_voltage", "voltage")])
 def test_non_negative_values_are_clamped(state, setter, getter):
     getattr(state, setter)(-10)
     assert getattr(state, getter) == 0.0

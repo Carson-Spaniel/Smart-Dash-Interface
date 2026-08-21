@@ -8,9 +8,7 @@ from app.settings.manager import SettingsManager
 @pytest.fixture
 def manager(tmp_path, monkeypatch):
     path = tmp_path / "settings.json"
-    monkeypatch.setattr(
-        SettingsManager, "_get_settings_path", staticmethod(lambda: path)
-    )
+    monkeypatch.setattr(SettingsManager, "_get_settings_path", staticmethod(lambda: path))
     return SettingsManager()
 
 
@@ -43,10 +41,7 @@ def test_setters_clamp_values(manager, attr, value, expected):
 
 
 def test_shift_rpm_emits_rpm_and_shift_light_signals(manager, qtbot):
-    with qtbot.waitSignals(
-        [manager.rpmSettingsChanged, manager.shiftLightSettingsChanged],
-        timeout=1000,
-    ):
+    with qtbot.waitSignals([manager.rpmSettingsChanged, manager.shiftLightSettingsChanged], timeout=1000):
         manager.rpmShift = 5000
 
 
@@ -62,9 +57,7 @@ def test_shift_light_start_rpm(manager):
 
 def test_save_and_load(tmp_path, monkeypatch):
     path = tmp_path / "settings.json"
-    monkeypatch.setattr(
-        SettingsManager, "_get_settings_path", staticmethod(lambda: path)
-    )
+    monkeypatch.setattr(SettingsManager, "_get_settings_path", staticmethod(lambda: path))
 
     manager = SettingsManager()
     manager.rpmMin = 1000
@@ -83,9 +76,7 @@ def test_save_and_load(tmp_path, monkeypatch):
 def test_invalid_json_uses_defaults(tmp_path, monkeypatch):
     path = tmp_path / "settings.json"
     path.write_text("{invalid", encoding="utf-8")
-    monkeypatch.setattr(
-        SettingsManager, "_get_settings_path", staticmethod(lambda: path)
-    )
+    monkeypatch.setattr(SettingsManager, "_get_settings_path", staticmethod(lambda: path))
 
     manager = SettingsManager()
 
@@ -96,17 +87,9 @@ def test_invalid_json_uses_defaults(tmp_path, monkeypatch):
 def test_loaded_values_are_validated(tmp_path, monkeypatch):
     path = tmp_path / "settings.json"
     path.write_text(
-        json.dumps(
-            {
-                "rpm": {"min": 5000, "max": 1000, "redline": 99999, "shift": -1},
-                "shift_lights": {"color1": 999, "padding": 9999},
-            }
-        ),
-        encoding="utf-8",
+        json.dumps({"rpm": {"min": 5000, "max": 1000, "redline": 99999, "shift": -1}, "shift_lights": {"color1": 999, "padding": 9999}}), encoding="utf-8"
     )
-    monkeypatch.setattr(
-        SettingsManager, "_get_settings_path", staticmethod(lambda: path)
-    )
+    monkeypatch.setattr(SettingsManager, "_get_settings_path", staticmethod(lambda: path))
 
     manager = SettingsManager()
 

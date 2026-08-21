@@ -62,25 +62,16 @@ def test_disconnect(sut, vehicle):
 
 def test_discover_supported_commands(sut):
     sut.connection = MagicMock()
-    sut.connection.supported_commands = {
-        obd.commands.RPM,
-        obd.commands.SPEED,
-    }
+    sut.connection.supported_commands = {obd.commands.RPM, obd.commands.SPEED}
 
     sut._discover_supported_commands()
 
-    assert sut.supported_commands == {
-        obd.commands.RPM,
-        obd.commands.SPEED,
-    }
+    assert sut.supported_commands == {obd.commands.RPM, obd.commands.SPEED}
 
 
 def test_poll_fast(sut, vehicle):
     sut.connection = MagicMock()
-    sut.supported_commands = {
-        obd.commands.RPM,
-        obd.commands.SPEED,
-    }
+    sut.supported_commands = {obd.commands.RPM, obd.commands.SPEED}
 
     rpm = MagicMock()
     rpm.is_null.return_value = False
@@ -100,10 +91,7 @@ def test_poll_fast(sut, vehicle):
 
 def test_poll_medium(sut, vehicle):
     sut.connection = MagicMock()
-    sut.supported_commands = {
-        obd.commands.MAF,
-        obd.commands.FUEL_LEVEL,
-    }
+    sut.supported_commands = {obd.commands.MAF, obd.commands.FUEL_LEVEL}
 
     maf = MagicMock()
     maf.is_null.return_value = False
@@ -125,10 +113,7 @@ def test_poll_medium(sut, vehicle):
 
 def test_poll_slow(sut, vehicle):
     sut.connection = MagicMock()
-    sut.supported_commands = {
-        obd.commands.CONTROL_MODULE_VOLTAGE,
-        obd.commands.AMBIANT_AIR_TEMP,
-    }
+    sut.supported_commands = {obd.commands.CONTROL_MODULE_VOLTAGE, obd.commands.AMBIANT_AIR_TEMP}
 
     voltage = MagicMock()
     voltage.is_null.return_value = False
@@ -146,16 +131,7 @@ def test_poll_slow(sut, vehicle):
     vehicle.set_air_temperature.assert_called_once_with(25.0)
 
 
-@pytest.mark.parametrize(
-    ("speed", "maf", "expected"),
-    [
-        (60, 10, 200.0),
-        (0, 10, 0.0),
-        (60, 0, None),
-        (None, 10, None),
-        (60, None, None),
-    ],
-)
+@pytest.mark.parametrize(("speed", "maf", "expected"), [(60, 10, 200.0), (0, 10, 0.0), (60, 0, None), (None, 10, None), (60, None, None)])
 def test_update_mpg(sut, vehicle, speed, maf, expected):
     vehicle.speed = speed
     vehicle.maf = maf

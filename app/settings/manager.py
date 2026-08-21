@@ -127,10 +127,7 @@ class SettingsManager(QObject):
 
         config_dir = Path.home() / ".config" / "smart-dash"
 
-        config_dir.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
+        config_dir.mkdir(parents=True, exist_ok=True)
 
         return config_dir / "settings.json"
 
@@ -156,12 +153,7 @@ class SettingsManager(QObject):
 
         self.save()
 
-    rpmMin = Property(
-        int,
-        get_rpm_min,
-        set_rpm_min,
-        notify=rpmSettingsChanged,
-    )
+    rpmMin = Property(int, get_rpm_min, set_rpm_min, notify=rpmSettingsChanged)
 
     # ================================================================
     # RPM Maximum
@@ -171,10 +163,7 @@ class SettingsManager(QObject):
         return self._rpm_max
 
     def set_rpm_max(self, value: int) -> None:
-        value = max(
-            self._rpm_min,
-            int(value),
-        )
+        value = max(self._rpm_min, int(value))
 
         if self._rpm_max == value:
             return
@@ -188,12 +177,7 @@ class SettingsManager(QObject):
 
         self.save()
 
-    rpmMax = Property(
-        int,
-        get_rpm_max,
-        set_rpm_max,
-        notify=rpmSettingsChanged,
-    )
+    rpmMax = Property(int, get_rpm_max, set_rpm_max, notify=rpmSettingsChanged)
 
     # ================================================================
     # RPM Redline
@@ -203,13 +187,7 @@ class SettingsManager(QObject):
         return self._rpm_redline
 
     def set_rpm_redline(self, value: int) -> None:
-        value = max(
-            self._rpm_min,
-            min(
-                self._rpm_max,
-                int(value),
-            ),
-        )
+        value = max(self._rpm_min, min(self._rpm_max, int(value)))
 
         if self._rpm_redline == value:
             return
@@ -221,12 +199,7 @@ class SettingsManager(QObject):
 
         self.save()
 
-    rpmRedline = Property(
-        int,
-        get_rpm_redline,
-        set_rpm_redline,
-        notify=rpmSettingsChanged,
-    )
+    rpmRedline = Property(int, get_rpm_redline, set_rpm_redline, notify=rpmSettingsChanged)
 
     # ================================================================
     # RPM Shift Point
@@ -236,13 +209,7 @@ class SettingsManager(QObject):
         return self._rpm_shift
 
     def set_rpm_shift(self, value: int) -> None:
-        value = max(
-            self._rpm_min,
-            min(
-                self._rpm_max,
-                int(value),
-            ),
-        )
+        value = max(self._rpm_min, min(self._rpm_max, int(value)))
 
         if self._rpm_shift == value:
             return
@@ -261,12 +228,7 @@ class SettingsManager(QObject):
 
         self.save()
 
-    rpmShift = Property(
-        int,
-        get_rpm_shift,
-        set_rpm_shift,
-        notify=rpmSettingsChanged,
-    )
+    rpmShift = Property(int, get_rpm_shift, set_rpm_shift, notify=rpmSettingsChanged)
 
     # ================================================================
     # Shift Light Enabled
@@ -288,12 +250,7 @@ class SettingsManager(QObject):
 
         self.save()
 
-    shiftLightsEnabled = Property(
-        bool,
-        get_shift_lights_enabled,
-        set_shift_lights_enabled,
-        notify=shiftLightSettingsChanged,
-    )
+    shiftLightsEnabled = Property(bool, get_shift_lights_enabled, set_shift_lights_enabled, notify=shiftLightSettingsChanged)
 
     # ================================================================
     # Shift Light Color 1
@@ -303,13 +260,7 @@ class SettingsManager(QObject):
         return self._shift_light_color_1
 
     def set_shift_light_color_1(self, value: int) -> None:
-        value = max(
-            0,
-            min(
-                self.COLOR_PALETTE_SIZE - 1,
-                int(value),
-            ),
-        )
+        value = max(0, min(self.COLOR_PALETTE_SIZE - 1, int(value)))
 
         if self._shift_light_color_1 == value:
             return
@@ -321,12 +272,7 @@ class SettingsManager(QObject):
 
         self.save()
 
-    shiftLightColor1 = Property(
-        int,
-        get_shift_light_color_1,
-        set_shift_light_color_1,
-        notify=shiftLightSettingsChanged,
-    )
+    shiftLightColor1 = Property(int, get_shift_light_color_1, set_shift_light_color_1, notify=shiftLightSettingsChanged)
 
     # ================================================================
     # Shift Light Color 2
@@ -336,13 +282,7 @@ class SettingsManager(QObject):
         return self._shift_light_color_2
 
     def set_shift_light_color_2(self, value: int) -> None:
-        value = max(
-            0,
-            min(
-                self.COLOR_PALETTE_SIZE - 1,
-                int(value),
-            ),
-        )
+        value = max(0, min(self.COLOR_PALETTE_SIZE - 1, int(value)))
 
         if self._shift_light_color_2 == value:
             return
@@ -354,12 +294,7 @@ class SettingsManager(QObject):
 
         self.save()
 
-    shiftLightColor2 = Property(
-        int,
-        get_shift_light_color_2,
-        set_shift_light_color_2,
-        notify=shiftLightSettingsChanged,
-    )
+    shiftLightColor2 = Property(int, get_shift_light_color_2, set_shift_light_color_2, notify=shiftLightSettingsChanged)
 
     # ================================================================
     # Shift Light Color 3
@@ -369,13 +304,7 @@ class SettingsManager(QObject):
         return self._shift_light_color_3
 
     def set_shift_light_color_3(self, value: int) -> None:
-        value = max(
-            0,
-            min(
-                self.COLOR_PALETTE_SIZE - 1,
-                int(value),
-            ),
-        )
+        value = max(0, min(self.COLOR_PALETTE_SIZE - 1, int(value)))
 
         if self._shift_light_color_3 == value:
             return
@@ -387,12 +316,7 @@ class SettingsManager(QObject):
 
         self.save()
 
-    shiftLightColor3 = Property(
-        int,
-        get_shift_light_color_3,
-        set_shift_light_color_3,
-        notify=shiftLightSettingsChanged,
-    )
+    shiftLightColor3 = Property(int, get_shift_light_color_3, set_shift_light_color_3, notify=shiftLightSettingsChanged)
 
     # ================================================================
     # Shift Light Color 4
@@ -402,13 +326,7 @@ class SettingsManager(QObject):
         return self._shift_light_color_4
 
     def set_shift_light_color_4(self, value: int) -> None:
-        value = max(
-            0,
-            min(
-                self.COLOR_PALETTE_SIZE - 1,
-                int(value),
-            ),
-        )
+        value = max(0, min(self.COLOR_PALETTE_SIZE - 1, int(value)))
 
         if self._shift_light_color_4 == value:
             return
@@ -420,12 +338,7 @@ class SettingsManager(QObject):
 
         self.save()
 
-    shiftLightColor4 = Property(
-        int,
-        get_shift_light_color_4,
-        set_shift_light_color_4,
-        notify=shiftLightSettingsChanged,
-    )
+    shiftLightColor4 = Property(int, get_shift_light_color_4, set_shift_light_color_4, notify=shiftLightSettingsChanged)
 
     # ================================================================
     # Shift Light Padding
@@ -435,13 +348,7 @@ class SettingsManager(QObject):
         return self._shift_light_padding
 
     def set_shift_light_padding(self, value: int) -> None:
-        value = max(
-            10,
-            min(
-                1000,
-                int(value),
-            ),
-        )
+        value = max(10, min(1000, int(value)))
 
         if self._shift_light_padding == value:
             return
@@ -453,12 +360,7 @@ class SettingsManager(QObject):
 
         self.save()
 
-    shiftLightPadding = Property(
-        int,
-        get_shift_light_padding,
-        set_shift_light_padding,
-        notify=shiftLightSettingsChanged,
-    )
+    shiftLightPadding = Property(int, get_shift_light_padding, set_shift_light_padding, notify=shiftLightSettingsChanged)
 
     # ================================================================
     # Shift Light Starting RPM
@@ -477,16 +379,9 @@ class SettingsManager(QObject):
 
         start_rpm = self._rpm_shift - (14 * self._shift_light_padding)
 
-        return max(
-            self._rpm_min,
-            start_rpm,
-        )
+        return max(self._rpm_min, start_rpm)
 
-    shiftLightStartRpm = Property(
-        int,
-        get_shift_light_start_rpm,
-        notify=shiftLightSettingsChanged,
-    )
+    shiftLightStartRpm = Property(int, get_shift_light_start_rpm, notify=shiftLightSettingsChanged)
 
     # ================================================================
     # Font1 Color
@@ -496,13 +391,7 @@ class SettingsManager(QObject):
         return self._font1_color_index
 
     def set_font1_color_index(self, value: int) -> None:
-        value = max(
-            0,
-            min(
-                self.COLOR_PALETTE_SIZE - 1,
-                int(value),
-            ),
-        )
+        value = max(0, min(self.COLOR_PALETTE_SIZE - 1, int(value)))
 
         if self._font1_color_index == value:
             return
@@ -513,12 +402,7 @@ class SettingsManager(QObject):
 
         self.save()
 
-    font1ColorIndex = Property(
-        int,
-        get_font1_color_index,
-        set_font1_color_index,
-        notify=settingsChanged,
-    )
+    font1ColorIndex = Property(int, get_font1_color_index, set_font1_color_index, notify=settingsChanged)
 
     # ================================================================
     # Font2 Color
@@ -528,13 +412,7 @@ class SettingsManager(QObject):
         return self._font2_color_index
 
     def set_font2_color_index(self, value: int) -> None:
-        value = max(
-            0,
-            min(
-                self.COLOR_PALETTE_SIZE - 1,
-                int(value),
-            ),
-        )
+        value = max(0, min(self.COLOR_PALETTE_SIZE - 1, int(value)))
 
         if self._font2_color_index == value:
             return
@@ -545,12 +423,7 @@ class SettingsManager(QObject):
 
         self.save()
 
-    font2ColorIndex = Property(
-        int,
-        get_font2_color_index,
-        set_font2_color_index,
-        notify=settingsChanged,
-    )
+    font2ColorIndex = Property(int, get_font2_color_index, set_font2_color_index, notify=settingsChanged)
 
     # ================================================================
     # Background Color 1
@@ -560,13 +433,7 @@ class SettingsManager(QObject):
         return self._background1_color_index
 
     def set_background1_color_index(self, value: int) -> None:
-        value = max(
-            0,
-            min(
-                self.COLOR_PALETTE_SIZE - 1,
-                int(value),
-            ),
-        )
+        value = max(0, min(self.COLOR_PALETTE_SIZE - 1, int(value)))
 
         if self._background1_color_index == value:
             return
@@ -577,12 +444,7 @@ class SettingsManager(QObject):
 
         self.save()
 
-    background1ColorIndex = Property(
-        int,
-        get_background1_color_index,
-        set_background1_color_index,
-        notify=settingsChanged,
-    )
+    background1ColorIndex = Property(int, get_background1_color_index, set_background1_color_index, notify=settingsChanged)
 
     # ================================================================
     # Background Color 2
@@ -592,13 +454,7 @@ class SettingsManager(QObject):
         return self._background2_color_index
 
     def set_background2_color_index(self, value: int) -> None:
-        value = max(
-            0,
-            min(
-                self.COLOR_PALETTE_SIZE - 1,
-                int(value),
-            ),
-        )
+        value = max(0, min(self.COLOR_PALETTE_SIZE - 1, int(value)))
 
         if self._background2_color_index == value:
             return
@@ -609,12 +465,7 @@ class SettingsManager(QObject):
 
         self.save()
 
-    background2ColorIndex = Property(
-        int,
-        get_background2_color_index,
-        set_background2_color_index,
-        notify=settingsChanged,
-    )
+    background2ColorIndex = Property(int, get_background2_color_index, set_background2_color_index, notify=settingsChanged)
 
     # ================================================================
     # Background Image
@@ -624,10 +475,7 @@ class SettingsManager(QObject):
         return self._background_image_index
 
     def set_background_image_index(self, value: int) -> None:
-        value = max(
-            0,
-            int(value),
-        )
+        value = max(0, int(value))
 
         if self._background_image_index == value:
             return
@@ -638,12 +486,7 @@ class SettingsManager(QObject):
 
         self.save()
 
-    backgroundImageIndex = Property(
-        int,
-        get_background_image_index,
-        set_background_image_index,
-        notify=settingsChanged,
-    )
+    backgroundImageIndex = Property(int, get_background_image_index, set_background_image_index, notify=settingsChanged)
 
     # ================================================================
     # Brightness
@@ -653,13 +496,7 @@ class SettingsManager(QObject):
         return self._brightness
 
     def set_brightness(self, value: int) -> None:
-        value = max(
-            self.BRIGHTNESS_MIN,
-            min(
-                self.BRIGHTNESS_MAX,
-                int(value),
-            ),
-        )
+        value = max(self.BRIGHTNESS_MIN, min(self.BRIGHTNESS_MAX, int(value)))
 
         if self._brightness == value:
             return
@@ -672,12 +509,7 @@ class SettingsManager(QObject):
 
         self.save()
 
-    brightness = Property(
-        int,
-        get_brightness,
-        set_brightness,
-        notify=brightnessChanged,
-    )
+    brightness = Property(int, get_brightness, set_brightness, notify=brightnessChanged)
 
     # ================================================================
     # Optimize Readings
@@ -700,12 +532,7 @@ class SettingsManager(QObject):
 
         self.save()
 
-    optimizeReadings = Property(
-        bool,
-        get_optimize_readings,
-        set_optimize_readings,
-        notify=optimizeReadingsChanged,
-    )
+    optimizeReadings = Property(bool, get_optimize_readings, set_optimize_readings, notify=optimizeReadingsChanged)
 
     # ================================================================
     # Delayed Readings
@@ -728,12 +555,7 @@ class SettingsManager(QObject):
 
         self.save()
 
-    delayedReadings = Property(
-        bool,
-        get_delayed_readings,
-        set_delayed_readings,
-        notify=delayedReadingsChanged,
-    )
+    delayedReadings = Property(bool, get_delayed_readings, set_delayed_readings, notify=delayedReadingsChanged)
 
     # ================================================================
     # Load
@@ -751,187 +573,76 @@ class SettingsManager(QObject):
             return
 
         try:
-            with self._settings_path.open(
-                "r",
-                encoding="utf-8",
-            ) as file:
+            with self._settings_path.open("r", encoding="utf-8") as file:
                 data = json.load(file)
 
         except (OSError, json.JSONDecodeError) as exc:
-            logger.warning(
-                "Failed to load settings: %s",
-                exc,
-            )
+            logger.warning("Failed to load settings: %s", exc)
             return
 
-        rpm = data.get(
-            "rpm",
-            {},
-        )
+        rpm = data.get("rpm", {})
 
-        shift_lights = data.get(
-            "shift_lights",
-            {},
-        )
+        shift_lights = data.get("shift_lights", {})
 
         # ============================================================
         # RPM
         # ============================================================
 
-        self._rpm_min = int(
-            rpm.get(
-                "min",
-                self._rpm_min,
-            )
-        )
+        self._rpm_min = int(rpm.get("min", self._rpm_min))
 
-        self._rpm_max = int(
-            rpm.get(
-                "max",
-                self._rpm_max,
-            )
-        )
+        self._rpm_max = int(rpm.get("max", self._rpm_max))
 
-        self._rpm_redline = int(
-            rpm.get(
-                "redline",
-                self._rpm_redline,
-            )
-        )
+        self._rpm_redline = int(rpm.get("redline", self._rpm_redline))
 
-        self._rpm_shift = int(
-            rpm.get(
-                "shift",
-                self._rpm_shift,
-            )
-        )
+        self._rpm_shift = int(rpm.get("shift", self._rpm_shift))
 
         # ============================================================
         # Shift Lights
         # ============================================================
 
-        self._shift_lights_enabled = bool(
-            shift_lights.get(
-                "enabled",
-                self._shift_lights_enabled,
-            )
-        )
+        self._shift_lights_enabled = bool(shift_lights.get("enabled", self._shift_lights_enabled))
 
-        self._shift_light_color_1 = int(
-            shift_lights.get(
-                "color1",
-                self._shift_light_color_1,
-            )
-        )
+        self._shift_light_color_1 = int(shift_lights.get("color1", self._shift_light_color_1))
 
-        self._shift_light_color_2 = int(
-            shift_lights.get(
-                "color2",
-                self._shift_light_color_2,
-            )
-        )
+        self._shift_light_color_2 = int(shift_lights.get("color2", self._shift_light_color_2))
 
-        self._shift_light_color_3 = int(
-            shift_lights.get(
-                "color3",
-                self._shift_light_color_3,
-            )
-        )
+        self._shift_light_color_3 = int(shift_lights.get("color3", self._shift_light_color_3))
 
-        self._shift_light_color_4 = int(
-            shift_lights.get(
-                "color4",
-                self._shift_light_color_4,
-            )
-        )
+        self._shift_light_color_4 = int(shift_lights.get("color4", self._shift_light_color_4))
 
-        self._shift_light_padding = int(
-            shift_lights.get(
-                "padding",
-                self._shift_light_padding,
-            )
-        )
+        self._shift_light_padding = int(shift_lights.get("padding", self._shift_light_padding))
 
         # ============================================================
         # Customization
         # ============================================================
 
-        customization = data.get(
-            "customization",
-            {},
-        )
+        customization = data.get("customization", {})
 
-        self._font1_color_index = int(
-            customization.get(
-                "font1_color",
-                self._font1_color_index,
-            )
-        )
+        self._font1_color_index = int(customization.get("font1_color", self._font1_color_index))
 
-        self._font2_color_index = int(
-            customization.get(
-                "font2_color",
-                self._font2_color_index,
-            )
-        )
+        self._font2_color_index = int(customization.get("font2_color", self._font2_color_index))
 
-        self._background1_color_index = int(
-            customization.get(
-                "background1_color",
-                self._background1_color_index,
-            )
-        )
+        self._background1_color_index = int(customization.get("background1_color", self._background1_color_index))
 
-        self._background2_color_index = int(
-            customization.get(
-                "background2_color",
-                self._background2_color_index,
-            )
-        )
+        self._background2_color_index = int(customization.get("background2_color", self._background2_color_index))
 
-        self._background_image_index = int(
-            customization.get(
-                "background_image",
-                self._background_image_index,
-            )
-        )
+        self._background_image_index = int(customization.get("background_image", self._background_image_index))
 
         # ============================================================
         # General Settings
         # ============================================================
 
-        general = data.get(
-            "general",
-            {},
-        )
+        general = data.get("general", {})
 
-        self._brightness = int(
-            general.get(
-                "brightness",
-                self._brightness,
-            )
-        )
+        self._brightness = int(general.get("brightness", self._brightness))
 
-        self._optimize_readings = bool(
-            general.get(
-                "optimize_readings",
-                self._optimize_readings,
-            )
-        )
+        self._optimize_readings = bool(general.get("optimize_readings", self._optimize_readings))
 
-        self._delayed_readings = bool(
-            general.get(
-                "delayed_readings",
-                self._delayed_readings,
-            )
-        )
+        self._delayed_readings = bool(general.get("delayed_readings", self._delayed_readings))
 
         self._validate()
 
-        logger.info(
-            "Loaded settings from %s",
-            self._settings_path,
-        )
+        logger.info("Loaded settings from %s", self._settings_path)
 
     # ================================================================
     # Validation
@@ -942,132 +653,51 @@ class SettingsManager(QObject):
         # RPM
         # ------------------------------------------------------------
 
-        self._rpm_min = max(
-            0,
-            self._rpm_min,
-        )
+        self._rpm_min = max(0, self._rpm_min)
 
-        self._rpm_max = max(
-            self._rpm_min,
-            self._rpm_max,
-        )
+        self._rpm_max = max(self._rpm_min, self._rpm_max)
 
-        self._rpm_redline = max(
-            self._rpm_min,
-            min(
-                self._rpm_max,
-                self._rpm_redline,
-            ),
-        )
+        self._rpm_redline = max(self._rpm_min, min(self._rpm_max, self._rpm_redline))
 
-        self._rpm_shift = max(
-            self._rpm_min,
-            min(
-                self._rpm_max,
-                self._rpm_shift,
-            ),
-        )
+        self._rpm_shift = max(self._rpm_min, min(self._rpm_max, self._rpm_shift))
 
         # ------------------------------------------------------------
         # Shift light colors
         # ------------------------------------------------------------
 
-        self._shift_light_color_1 = max(
-            0,
-            min(
-                self.COLOR_PALETTE_SIZE - 1,
-                self._shift_light_color_1,
-            ),
-        )
+        self._shift_light_color_1 = max(0, min(self.COLOR_PALETTE_SIZE - 1, self._shift_light_color_1))
 
-        self._shift_light_color_2 = max(
-            0,
-            min(
-                self.COLOR_PALETTE_SIZE - 1,
-                self._shift_light_color_2,
-            ),
-        )
+        self._shift_light_color_2 = max(0, min(self.COLOR_PALETTE_SIZE - 1, self._shift_light_color_2))
 
-        self._shift_light_color_3 = max(
-            0,
-            min(
-                self.COLOR_PALETTE_SIZE - 1,
-                self._shift_light_color_3,
-            ),
-        )
+        self._shift_light_color_3 = max(0, min(self.COLOR_PALETTE_SIZE - 1, self._shift_light_color_3))
 
-        self._shift_light_color_4 = max(
-            0,
-            min(
-                self.COLOR_PALETTE_SIZE - 1,
-                self._shift_light_color_4,
-            ),
-        )
+        self._shift_light_color_4 = max(0, min(self.COLOR_PALETTE_SIZE - 1, self._shift_light_color_4))
 
         # ------------------------------------------------------------
         # Shift light padding
         # ------------------------------------------------------------
 
-        self._shift_light_padding = max(
-            10,
-            min(
-                1000,
-                self._shift_light_padding,
-            ),
-        )
+        self._shift_light_padding = max(10, min(1000, self._shift_light_padding))
 
         # ------------------------------------------------------------
         # Customization colors
         # ------------------------------------------------------------
 
-        self._font1_color_index = max(
-            0,
-            min(
-                self.COLOR_PALETTE_SIZE - 1,
-                self._font1_color_index,
-            ),
-        )
+        self._font1_color_index = max(0, min(self.COLOR_PALETTE_SIZE - 1, self._font1_color_index))
 
-        self._font2_color_index = max(
-            0,
-            min(
-                self.COLOR_PALETTE_SIZE - 1,
-                self._font2_color_index,
-            ),
-        )
+        self._font2_color_index = max(0, min(self.COLOR_PALETTE_SIZE - 1, self._font2_color_index))
 
-        self._background1_color_index = max(
-            0,
-            min(
-                self.COLOR_PALETTE_SIZE - 1,
-                self._background1_color_index,
-            ),
-        )
+        self._background1_color_index = max(0, min(self.COLOR_PALETTE_SIZE - 1, self._background1_color_index))
 
-        self._background2_color_index = max(
-            0,
-            min(
-                self.COLOR_PALETTE_SIZE - 1,
-                self._background2_color_index,
-            ),
-        )
+        self._background2_color_index = max(0, min(self.COLOR_PALETTE_SIZE - 1, self._background2_color_index))
 
-        self._background_image_index = max(
-            0,
-            self._background_image_index,
-        )
+        self._background_image_index = max(0, self._background_image_index)
 
         # ------------------------------------------------------------
         # General settings
         # ------------------------------------------------------------
 
-        self._brightness = max(
-            self.BRIGHTNESS_MIN,
-            min(
-                self.BRIGHTNESS_MAX,
-                self._brightness,
-            ),
-        )
+        self._brightness = max(self.BRIGHTNESS_MIN, min(self.BRIGHTNESS_MAX, self._brightness))
 
         self._optimize_readings = bool(self._optimize_readings)
 
@@ -1087,12 +717,7 @@ class SettingsManager(QObject):
         """
 
         data: dict[str, Any] = {
-            "rpm": {
-                "min": self._rpm_min,
-                "max": self._rpm_max,
-                "redline": self._rpm_redline,
-                "shift": self._rpm_shift,
-            },
+            "rpm": {"min": self._rpm_min, "max": self._rpm_max, "redline": self._rpm_redline, "shift": self._rpm_shift},
             "shift_lights": {
                 "enabled": self._shift_lights_enabled,
                 "color1": self._shift_light_color_1,
@@ -1108,42 +733,22 @@ class SettingsManager(QObject):
                 "background2_color": self._background2_color_index,
                 "background_image": self._background_image_index,
             },
-            "general": {
-                "brightness": self._brightness,
-                "optimize_readings": self._optimize_readings,
-                "delayed_readings": self._delayed_readings,
-            },
+            "general": {"brightness": self._brightness, "optimize_readings": self._optimize_readings, "delayed_readings": self._delayed_readings},
         }
 
         try:
-            self._settings_path.parent.mkdir(
-                parents=True,
-                exist_ok=True,
-            )
+            self._settings_path.parent.mkdir(parents=True, exist_ok=True)
 
             temporary_path = self._settings_path.with_suffix(".tmp")
 
-            with temporary_path.open(
-                "w",
-                encoding="utf-8",
-            ) as file:
-                json.dump(
-                    data,
-                    file,
-                    indent=4,
-                )
+            with temporary_path.open("w", encoding="utf-8") as file:
+                json.dump(data, file, indent=4)
 
                 file.write("\n")
 
             temporary_path.replace(self._settings_path)
 
-            logger.debug(
-                "Saved settings to %s",
-                self._settings_path,
-            )
+            logger.debug("Saved settings to %s", self._settings_path)
 
         except OSError as exc:
-            logger.error(
-                "Failed to save settings: %s",
-                exc,
-            )
+            logger.error("Failed to save settings: %s", exc)

@@ -34,10 +34,7 @@ class HardwareManager(QObject):
     range before being written.
     """
 
-    def __init__(
-        self,
-        settings_manager: SettingsManager,
-    ) -> None:
+    def __init__(self, settings_manager: SettingsManager) -> None:
         super().__init__()
 
         self._settings = settings_manager
@@ -79,10 +76,7 @@ class HardwareManager(QObject):
 
         self._apply_brightness(self._settings.brightness)
 
-    def _apply_brightness(
-        self,
-        value: int,
-    ) -> None:
+    def _apply_brightness(self, value: int) -> None:
         """
         Apply brightness to the physical display.
 
@@ -101,21 +95,12 @@ class HardwareManager(QObject):
         max_brightness.
         """
 
-        value = max(
-            SettingsManager.BRIGHTNESS_MIN,
-            min(
-                SettingsManager.BRIGHTNESS_MAX,
-                int(value),
-            ),
-        )
+        value = max(SettingsManager.BRIGHTNESS_MIN, min(SettingsManager.BRIGHTNESS_MAX, int(value)))
 
         brightness_path = self._find_brightness_device()
 
         if brightness_path is None:
-            logger.warning(
-                "No Linux backlight device found. Brightness %d was not applied.",
-                value,
-            )
+            logger.warning("No Linux backlight device found. Brightness %d was not applied.", value)
             return
 
         max_brightness_path = brightness_path.parent / "max_brightness"
@@ -125,33 +110,19 @@ class HardwareManager(QObject):
         if max_brightness is None:
             return
 
-        hardware_value = self._convert_brightness(
-            value,
-            max_brightness,
-        )
+        hardware_value = self._convert_brightness(value, max_brightness)
 
-        if not self._write_brightness(
-            brightness_path,
-            hardware_value,
-        ):
+        if not self._write_brightness(brightness_path, hardware_value):
             return
 
-        logger.debug(
-            "Brightness applied: %d/255 -> %d/%d",
-            value,
-            hardware_value,
-            max_brightness,
-        )
+        logger.debug("Brightness applied: %d/255 -> %d/%d", value, hardware_value, max_brightness)
 
     # ==================================================================
     # Brightness Conversion
     # ==================================================================
 
     @staticmethod
-    def _convert_brightness(
-        value: int,
-        max_brightness: int,
-    ) -> int:
+    def _convert_brightness(value: int, max_brightness: int) -> int:
         """
         Convert application brightness from 0-255 to the hardware's
         native brightness range.
@@ -162,13 +133,7 @@ class HardwareManager(QObject):
 
         hardware_value = round(value * max_brightness / SettingsManager.BRIGHTNESS_MAX)
 
-        return max(
-            0,
-            min(
-                max_brightness,
-                hardware_value,
-            ),
-        )
+        return max(0, min(max_brightness, hardware_value))
 
     # ==================================================================
     # Linux Backlight
@@ -199,21 +164,14 @@ class HardwareManager(QObject):
         backlight_directory = Path("/sys/class/backlight")
 
         if not backlight_directory.exists():
-            logger.debug(
-                "Linux backlight directory does not exist: %s",
-                backlight_directory,
-            )
+            logger.debug("Linux backlight directory does not exist: %s", backlight_directory)
             return None
 
         try:
             devices = sorted(backlight_directory.iterdir())
 
         except OSError as exc:
-            logger.error(
-                "Failed to inspect Linux backlight directory %s: %s",
-                backlight_directory,
-                exc,
-            )
+            logger.error("Failed to inspect Linux backlight directory %s: %s", backlight_directory, exc)
             return None
 
         for device in devices:
@@ -230,10 +188,7 @@ class HardwareManager(QObject):
             if not max_brightness_path.exists():
                 continue
 
-            logger.debug(
-                "Using Linux backlight device: %s",
-                device,
-            )
+            logger.debug("Using Linux backlight device: %s", device)
 
             return brightness_path
 
@@ -242,9 +197,7 @@ class HardwareManager(QObject):
         return None
 
     @staticmethod
-    def _read_max_brightness(
-        path: Path,
-    ) -> int | None:
+    def _read_max_brightness(path: Path) -> int | None:
         """
         Read the maximum brightness supported by a Linux backlight
         device.
@@ -254,45 +207,26 @@ class HardwareManager(QObject):
             value = int(path.read_text(encoding="utf-8").strip())
 
         except (OSError, ValueError) as exc:
-            logger.error(
-                "Failed to read max brightness from %s: %s",
-                path,
-                exc,
-            )
+            logger.error("Failed to read max brightness from %s: %s", path, exc)
             return None
 
         if value <= 0:
-            logger.error(
-                "Invalid max brightness value from %s: %d",
-                path,
-                value,
-            )
+            logger.error("Invalid max brightness value from %s: %d", path, value)
             return None
 
         return value
 
     @staticmethod
-    def _write_brightness(
-        path: Path,
-        value: int,
-    ) -> bool:
+    def _write_brightness(path: Path, value: int) -> bool:
         """
         Write a brightness value to the Linux backlight device.
         """
 
         try:
-            path.write_text(
-                str(value),
-                encoding="utf-8",
-            )
+            path.write_text(str(value), encoding="utf-8")
 
         except OSError as exc:
-            logger.error(
-                "Failed to write brightness value %d to %s: %s",
-                value,
-                path,
-                exc,
-            )
+            logger.error("Failed to write brightness value %d to %s: %s", value, path, exc)
             return False
 
         return True

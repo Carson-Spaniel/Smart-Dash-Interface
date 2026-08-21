@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import sys
 from pathlib import Path
 
@@ -11,19 +12,70 @@ from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
 from app.settings.manager import SettingsManager
-from app.vehicle.simulator import VehicleSimulator
 from app.vehicle.vehicle_state import VehicleState
 
 # =====================================================================
 # Logging
 # =====================================================================
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
-)
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s | %(levelname)s | %(name)s | %(message)s")
 
 logger = logging.getLogger(__name__)
+
+
+# =====================================================================
+# Vehicle Backend
+# =====================================================================
+
+
+def create_vehicle_backend(vehicle: VehicleState):
+    """
+    Create the vehicle backend selected by VEHICLE_MODE.
+
+    Supported modes:
+
+        simulator
+            Uses VehicleSimulator and generates simulated vehicle data.
+
+        obd
+            Uses OBDVehicle and attempts to communicate with a real
+            OBD-II adapter.
+
+    Returns:
+        The selected vehicle backend.
+    """
+
+    vehicle_mode = os.getenv("VEHICLE_MODE", "simulator").strip().lower()
+
+    logger.info("Vehicle mode: %s", vehicle_mode)
+
+    # ---------------------------------------------------------------
+    # Simulator
+    # ---------------------------------------------------------------
+
+    if vehicle_mode == "simulator":
+        from app.vehicle.simulator import VehicleSimulator
+
+        logger.info("Using vehicle simulator.")
+
+        return VehicleSimulator(vehicle)
+
+    # ---------------------------------------------------------------
+    # Real OBD-II Vehicle
+    # ---------------------------------------------------------------
+
+    if vehicle_mode == "obd":
+        from app.vehicle.obd import OBDVehicle
+
+        logger.info("Using real OBD vehicle backend.")
+
+        return OBDVehicle(vehicle)
+
+    # ---------------------------------------------------------------
+    # Invalid Mode
+    # ---------------------------------------------------------------
+
+    raise ValueError(f"Unknown VEHICLE_MODE: {vehicle_mode!r}. Expected 'simulator' or 'obd'.")
 
 
 # =====================================================================
@@ -32,9 +84,11 @@ logger = logging.getLogger(__name__)
 
 
 def main() -> int:
-    """Start the Smart Dash application."""
+    """
+    Start the Smart Dash application.
+    """
 
-    logger.info("Starting Smart Dash")
+    logger.info("Starting Smart Dash.")
 
     # ---------------------------------------------------------------
     # Qt Application
@@ -46,9 +100,11 @@ def main() -> int:
     # Vehicle State
     # ---------------------------------------------------------------
     #
-    # VehicleState contains the current vehicle measurements.
+    # VehicleState is shared between the vehicle backend and QML.
     #
-    # QML observes this object through Qt properties/signals.
+    # The backend writes values into VehicleState.
+    #
+    # QML observes VehicleState through Qt properties and signals.
     #
 
     vehicle = VehicleState()
@@ -60,30 +116,44 @@ def main() -> int:
     # SettingsManager:
     #
     # - Loads settings from:
+    #
     #       ~/.config/smart-dash/settings.json
     #
     # - Exposes settings to QML.
     #
     # - Automatically saves changes.
     #
-    # - Keeps settings available for the entire application lifetime.
-    #
 
     settings_manager = SettingsManager()
 
     # ---------------------------------------------------------------
-    # Vehicle Simulator
+    # Vehicle Backend
     # ---------------------------------------------------------------
     #
-    # The simulator writes simulated vehicle data into VehicleState.
+    # The backend is selected using:
     #
-    # When the real OBD implementation is ready, this can be replaced
-    # with the real vehicle data source.
+    #     VEHICLE_MODE=simulator
     #
+    # or:
+    #
+    #     VEHICLE_MODE=obd
+    #
+    # QML does not need to know which mode is active.
+    #
+    # It interacts with:
+    #
+    #     vehicle
+    #     vehicleBackend
+    #
+    # ---------------------------------------------------------------
 
-    simulator = VehicleSimulator(vehicle)
+    try:
+        vehicle_backend = create_vehicle_backend(vehicle)
 
-    logger.info("Using vehicle simulator.")
+    except ValueError as exc:
+        logger.error("%s", exc)
+
+        return 1
 
     # ---------------------------------------------------------------
     # QML Engine
@@ -95,43 +165,58 @@ def main() -> int:
     # Expose Python Objects to QML
     # ---------------------------------------------------------------
     #
-    # IMPORTANT:
+    # vehicle:
     #
-    # The QML UI expects:
+    #     Current vehicle state.
     #
-    #     vehicle
-    #     settingsManager
+    # vehicleBackend:
     #
-    # We expose both "settingsManager" and the older "settings" name.
+    #     Active vehicle implementation.
     #
-    # "settingsManager" is the preferred name going forward.
+    #     This can be either:
     #
+    #         VehicleSimulator
+    #
+    #     or:
+    #
+    #         OBDVehicle
+    #
+    # settingsManager:
+    #
+    #     Application settings.
+    #
+    # ---------------------------------------------------------------
 
-    engine.rootContext().setContextProperty(
-        "vehicle",
-        vehicle,
-    )
+    engine.rootContext().setContextProperty("vehicle", vehicle)
 
-    engine.rootContext().setContextProperty(
-        "settingsManager",
-        settings_manager,
-    )
+    engine.rootContext().setContextProperty("vehicleBackend", vehicle_backend)
 
-    # Backwards compatibility for older QML files that use "settings".
-    engine.rootContext().setContextProperty(
-        "settings",
-        settings_manager,
-    )
+    engine.rootContext().setContextProperty("settingsManager", settings_manager)
 
     # ---------------------------------------------------------------
-    # Start Vehicle Source
+    # Backwards Compatibility
     # ---------------------------------------------------------------
     #
-    # Start the simulator before loading QML so the dashboard has a
-    # live VehicleState immediately.
+    # Some existing QML files may still use "settings".
+    #
+    # Keep this alias while the application is being migrated.
     #
 
-    simulator.start()
+    engine.rootContext().setContextProperty("settings", settings_manager)
+
+    # ---------------------------------------------------------------
+    # Start Vehicle Backend
+    # ---------------------------------------------------------------
+
+    try:
+        vehicle_backend.start()
+
+    except Exception as exc:
+        logger.exception("Failed to start vehicle backend.")
+
+        logger.error("Vehicle backend error: %s", exc)
+
+        return 1
 
     # ---------------------------------------------------------------
     # QML File
@@ -139,18 +224,15 @@ def main() -> int:
 
     qml_file = Path(__file__).resolve().parent / "ui" / "qml" / "Main.qml"
 
-    logger.debug(
-        "Loading QML: %s",
-        qml_file,
-    )
+    logger.debug("Loading QML: %s", qml_file)
 
     if not qml_file.exists():
-        logger.error(
-            "Main.qml not found: %s",
-            qml_file,
-        )
+        logger.error("Main.qml not found: %s", qml_file)
 
-        simulator.stop()
+        try:
+            vehicle_backend.stop()
+        except Exception:
+            logger.exception("Error while stopping vehicle backend.")
 
         return 1
 
@@ -167,7 +249,10 @@ def main() -> int:
     if not engine.rootObjects():
         logger.error("Failed to load QML application.")
 
-        simulator.stop()
+        try:
+            vehicle_backend.stop()
+        except Exception:
+            logger.exception("Error while stopping vehicle backend.")
 
         return 1
 
@@ -177,15 +262,23 @@ def main() -> int:
     # Run Application
     # ---------------------------------------------------------------
 
-    exit_code = app.exec()
+    try:
+        exit_code = app.exec()
 
-    # ---------------------------------------------------------------
-    # Cleanup
-    # ---------------------------------------------------------------
+    finally:
+        # -----------------------------------------------------------
+        # Cleanup
+        # -----------------------------------------------------------
 
-    simulator.stop()
+        logger.info("Stopping vehicle backend.")
 
-    logger.info("Smart Dash stopped.")
+        try:
+            vehicle_backend.stop()
+
+        except Exception:
+            logger.exception("Error while stopping vehicle backend.")
+
+        logger.info("Smart Dash stopped.")
 
     return exit_code
 
