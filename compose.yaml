@@ -3,6 +3,10 @@ services:
     build: .
 
     environment:
-      VEHICLE_MODE: simulator
+      VEHICLE_MODE: obd
+      OBD_PORT: /dev/ttyUSB0
+
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
 
     restart: unless-stopped

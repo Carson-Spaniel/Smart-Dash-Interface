@@ -67,9 +67,11 @@ def create_vehicle_backend(vehicle: VehicleState):
     if vehicle_mode == "obd":
         from app.vehicle.obd import OBDVehicle
 
-        logger.info("Using real OBD vehicle backend.")
+        obd_port = os.getenv("OBD_PORT", "/dev/ttyUSB0").strip()
 
-        return OBDVehicle(vehicle)
+        logger.info("Using real OBD vehicle backend on %s.", obd_port)
+
+        return OBDVehicle(vehicle, port=obd_port)
 
     # ---------------------------------------------------------------
     # Invalid Mode
