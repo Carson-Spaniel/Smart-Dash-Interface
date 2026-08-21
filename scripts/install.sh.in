@@ -1,0 +1,887 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# ============================================================
+# Smart Dash Installer
+#
+# This file is a template.
+# GitHub Actions will generate install.sh from this file.
+#
+# The installer is intentionally interactive and choice-based.
+# ============================================================
+
+# ============================================================
+# Generated configuration
+# ============================================================
+
+REPO_OWNER="@REPO_OWNER@"
+REPO_NAME="@REPO_NAME@"
+REPO_BRANCH="@REPO_BRANCH@"
+
+INSTALL_DIR="/opt/smart-dash"
+COMPOSE_FILE="${INSTALL_DIR}/docker-compose.yml"
+ENV_FILE="${INSTALL_DIR}/.env"
+
+COMPOSE_URL="https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}/docker-compose.yml"
+
+TOTAL_STEPS=8
+CURRENT_STEP=0
+
+# ============================================================
+# Colors
+# ============================================================
+
+if [[ -t 1 ]]; then
+    BOLD='\033[1m'
+    DIM='\033[2m'
+    RESET='\033[0m'
+    GREEN='\033[32m'
+    YELLOW='\033[33m'
+    RED='\033[31m'
+    CYAN='\033[36m'
+else
+    BOLD=''
+    DIM=''
+    RESET=''
+    GREEN=''
+    YELLOW=''
+    RED=''
+    CYAN=''
+fi
+
+# ============================================================
+# State
+# ============================================================
+
+ENABLE_BLUETOOTH="false"
+ENABLE_WIRED="false"
+
+OBD_CONNECTION_TYPE="simulator"
+OBD_BLUETOOTH_MAC=""
+OBD_BLUETOOTH_NAME=""
+
+# ============================================================
+# Helpers
+# ============================================================
+
+die() {
+    echo
+    echo -e "${RED}${BOLD}ERROR:${RESET} $1"
+    echo
+    exit 1
+}
+
+pause() {
+    echo
+    read -r -p "Press ENTER to continue..."
+}
+
+step() {
+    CURRENT_STEP=$((CURRENT_STEP + 1))
+
+    echo
+    echo "============================================================"
+    echo -e "${CYAN}${BOLD}STEP ${CURRENT_STEP}/${TOTAL_STEPS}: $1${RESET}"
+    echo "============================================================"
+    echo
+}
+
+info() {
+    echo -e "${DIM}$1${RESET}"
+}
+
+success() {
+    echo -e "${GREEN}${RESET} $1"
+}
+
+warning() {
+    echo -e "${YELLOW}!${RESET} $1"
+}
+
+choice() {
+    local prompt="$1"
+    shift
+
+    echo
+    echo "$prompt"
+    echo
+
+    local i=1
+
+    for option in "$@"; do
+        echo "  ${i}) ${option}"
+        i=$((i + 1))
+    done
+
+    echo
+
+    while true; do
+        read -r -p "Select an option [1-${#}]: " selection
+
+        if [[ "$selection" =~ ^[0-9]+$ ]] &&
+           (( selection >= 1 && selection <= $# )); then
+            CHOICE="${selection}"
+            return 0
+        fi
+
+        echo "Please select one of the numbered options."
+    done
+}
+
+require_root() {
+    if [[ "${EUID}" -ne 0 ]]; then
+        die "This installer must be run with sudo.
+
+Example:
+
+    sudo ./install.sh"
+    fi
+}
+
+# ============================================================
+# Header
+# ============================================================
+
+clear || true
+
+echo
+echo "============================================================"
+echo -e "${BOLD}                 SMART DASH INSTALLER${RESET}"
+echo "============================================================"
+echo
+echo "This installer will configure your Raspberry Pi for"
+echo "the Smart Dash application."
+echo
+echo "You will be guided through each step."
+echo
+echo "Nothing needs to be typed except when the installer"
+echo "specifically tells you to do so."
+echo
+
+require_root
+
+pause
+
+# ============================================================
+# STEP 1
+# System check
+# ============================================================
+
+step "Checking your Raspberry Pi"
+
+if [[ ! -f /etc/os-release ]]; then
+    die "Unable to determine the operating system."
+fi
+
+source /etc/os-release
+
+echo "Operating system:"
+echo "  ${PRETTY_NAME}"
+echo
+
+ARCH="$(dpkg --print-architecture)"
+
+echo "Architecture:"
+echo "  ${ARCH}"
+echo
+
+case "${ARCH}" in
+    arm64|armhf)
+        success "Raspberry Pi architecture detected."
+        ;;
+    *)
+        warning "This does not appear to be a normal Raspberry Pi architecture."
+        ;;
+esac
+
+if [[ "${ID}" == "raspios" ||
+      "${ID_LIKE:-}" == *"debian"* ]]; then
+    success "Debian/Raspberry Pi OS detected."
+else
+    warning "This installer is designed for Raspberry Pi OS."
+fi
+
+pause
+
+# ============================================================
+# STEP 2
+# Install prerequisites
+# ============================================================
+
+step "Installing required system software"
+
+echo "The installer will make sure these are available:"
+echo
+echo "  " Docker"
+echo "  " Docker Compose"
+echo "  " curl"
+echo "  " Bluetooth utilities"
+echo "  " Network utilities"
+echo
+
+apt-get update
+
+apt-get install -y \
+    ca-certificates \
+    curl \
+    network-manager \
+    usbutils
+
+success "Base packages installed."
+
+# ------------------------------------------------------------
+# Docker
+# ------------------------------------------------------------
+
+if command -v docker >/dev/null 2>&1; then
+
+    success "Docker is already installed."
+
+else
+
+    echo
+    echo "Docker is not installed."
+    echo
+    echo "Installing Docker..."
+    echo
+
+    curl -fsSL https://get.docker.com | sh
+
+    success "Docker installed."
+
+fi
+
+# ------------------------------------------------------------
+# Docker Compose
+# ------------------------------------------------------------
+
+if docker compose version >/dev/null 2>&1; then
+
+    success "Docker Compose is available."
+
+else
+
+    die "Docker Compose is not available after Docker installation."
+
+fi
+
+echo
+echo "Docker version:"
+docker --version
+
+echo
+echo "Docker Compose version:"
+docker compose version
+
+# ------------------------------------------------------------
+# Docker group
+# ------------------------------------------------------------
+
+if [[ -n "${SUDO_USER:-}" ]] &&
+   id "${SUDO_USER}" >/dev/null 2>&1; then
+
+    if ! id -nG "${SUDO_USER}" | grep -qw docker; then
+
+        usermod -aG docker "${SUDO_USER}"
+
+        success "Added ${SUDO_USER} to the docker group."
+
+        warning "Docker group changes take effect after logging in again."
+
+    else
+
+        success "${SUDO_USER} is already in the docker group."
+
+    fi
+fi
+
+pause
+
+# ============================================================
+# STEP 3
+# Connection selection
+# ============================================================
+
+step "Choosing your OBD-II connection"
+
+echo "How will your Raspberry Pi communicate with the"
+echo "OBD-II adapter?"
+echo
+
+choice \
+    "Choose a connection type:" \
+    "Bluetooth OBD-II adapter" \
+    "Wired USB OBD-II adapter" \
+    "Simulator / no OBD-II adapter"
+
+case "${CHOICE}" in
+
+    1)
+        ENABLE_BLUETOOTH="true"
+        ENABLE_WIRED="false"
+        OBD_CONNECTION_TYPE="bluetooth"
+        ;;
+
+    2)
+        ENABLE_BLUETOOTH="false"
+        ENABLE_WIRED="true"
+        OBD_CONNECTION_TYPE="wired"
+        ;;
+
+    3)
+        ENABLE_BLUETOOTH="false"
+        ENABLE_WIRED="false"
+        OBD_CONNECTION_TYPE="simulator"
+        ;;
+
+esac
+
+case "${OBD_CONNECTION_TYPE}" in
+
+    bluetooth)
+        success "Bluetooth OBD-II selected."
+        ;;
+
+    wired)
+        success "Wired USB OBD-II selected."
+        ;;
+
+    simulator)
+        success "Simulator mode selected."
+        ;;
+
+esac
+
+pause
+
+# ============================================================
+# STEP 4
+# Bluetooth setup
+# ============================================================
+
+step "Bluetooth setup"
+
+if [[ "${ENABLE_BLUETOOTH}" == "true" ]]; then
+
+    echo "Bluetooth OBD-II setup will now be configured."
+    echo
+
+    # --------------------------------------------------------
+    # Install Bluetooth packages
+    # --------------------------------------------------------
+
+    apt-get install -y \
+        bluetooth \
+        bluez \
+        bluez-tools \
+        rfkill
+
+    success "Bluetooth software installed."
+
+    # --------------------------------------------------------
+    # Enable services
+    # --------------------------------------------------------
+
+    systemctl enable bluetooth
+    systemctl restart bluetooth
+
+    success "Bluetooth service enabled."
+
+    # --------------------------------------------------------
+    # Unblock Bluetooth
+    # --------------------------------------------------------
+
+    rfkill unblock bluetooth || true
+
+    success "Bluetooth radio unblocked."
+
+    # --------------------------------------------------------
+    # Check controller
+    # --------------------------------------------------------
+
+    echo
+    echo "Checking for a Bluetooth controller..."
+
+    if bluetoothctl list | grep -q "Controller"; then
+
+        success "Bluetooth controller detected."
+
+    else
+
+        warning "No Bluetooth controller was detected."
+
+        echo
+        echo "Make sure Bluetooth is enabled in Raspberry Pi OS."
+        echo
+        echo "If you have just enabled Bluetooth, choose:"
+        echo
+
+        choice \
+            "How would you like to continue?" \
+            "Check Bluetooth again" \
+            "Continue and try pairing anyway" \
+            "Return to connection selection"
+
+        case "${CHOICE}" in
+
+            1)
+                if bluetoothctl list | grep -q "Controller"; then
+                    success "Bluetooth controller detected."
+                else
+                    die "No Bluetooth controller was detected."
+                fi
+                ;;
+
+            2)
+                warning "Continuing without detecting a controller."
+                ;;
+
+            3)
+                echo
+                echo "Please restart the installer to choose another connection."
+                exit 0
+                ;;
+
+        esac
+
+    fi
+
+    # --------------------------------------------------------
+    # Bluetooth power
+    # --------------------------------------------------------
+
+    bluetoothctl power on >/dev/null 2>&1 || true
+
+    # --------------------------------------------------------
+    # Put OBD adapter in vehicle
+    # --------------------------------------------------------
+
+    echo
+    echo "============================================================"
+    echo "             PREPARE YOUR OBD-II ADAPTER"
+    echo "============================================================"
+    echo
+    echo "1. Turn the vehicle ignition ON."
+    echo
+    echo "2. Plug the Bluetooth OBD-II adapter into the vehicle."
+    echo
+    echo "3. Wait for the adapter's indicator light to turn on."
+    echo
+
+    pause
+
+    # --------------------------------------------------------
+    # Scan
+    # --------------------------------------------------------
+
+    echo
+    echo "Scanning for nearby Bluetooth devices..."
+    echo
+    echo "This may take about 10 seconds."
+    echo
+
+    bluetoothctl scan on >/dev/null 2>&1 || true
+
+    sleep 10
+
+    bluetoothctl scan off >/dev/null 2>&1 || true
+
+    # --------------------------------------------------------
+    # Find devices
+    # --------------------------------------------------------
+
+    mapfile -t BLUETOOTH_DEVICES < <(
+        bluetoothctl devices 2>/dev/null || true
+    )
+
+    if [[ "${#BLUETOOTH_DEVICES[@]}" -eq 0 ]]; then
+
+        warning "No Bluetooth devices were discovered."
+
+        choice \
+            "What would you like to do?" \
+            "Scan again" \
+            "Continue without pairing" \
+            "Exit installer"
+
+        case "${CHOICE}" in
+
+            1)
+                bluetoothctl scan on >/dev/null 2>&1 || true
+                sleep 15
+                bluetoothctl scan off >/dev/null 2>&1 || true
+
+                mapfile -t BLUETOOTH_DEVICES < <(
+                    bluetoothctl devices 2>/dev/null || true
+                )
+                ;;
+
+            2)
+                warning "Continuing without Bluetooth pairing."
+                ;;
+
+            3)
+                exit 0
+                ;;
+
+        esac
+
+    fi
+
+    # --------------------------------------------------------
+    # Display discovered devices
+    # --------------------------------------------------------
+
+    if [[ "${#BLUETOOTH_DEVICES[@]}" -gt 0 ]]; then
+
+        echo
+        echo "Bluetooth devices discovered:"
+        echo
+
+        DEVICE_NAMES=()
+
+        for device in "${BLUETOOTH_DEVICES[@]}"; do
+
+            mac="$(echo "${device}" | awk '{print $2}')"
+            name="$(echo "${device}" | cut -d' ' -f3-)"
+
+            DEVICE_NAMES+=("${name} (${mac})")
+
+        done
+
+        choice \
+            "Select your OBD-II adapter:" \
+            "${DEVICE_NAMES[@]}" \
+            "None of these are my adapter"
+
+        if (( CHOICE <= ${#BLUETOOTH_DEVICES[@]} )); then
+
+            SELECTED_DEVICE="${BLUETOOTH_DEVICES[$((CHOICE - 1))]}"
+
+            OBD_BLUETOOTH_MAC="$(echo "${SELECTED_DEVICE}" | awk '{print $2}')"
+            OBD_BLUETOOTH_NAME="$(echo "${SELECTED_DEVICE}" | cut -d' ' -f3-)"
+
+            success "Selected ${OBD_BLUETOOTH_NAME}."
+            echo "MAC address: ${OBD_BLUETOOTH_MAC}"
+
+            # ------------------------------------------------
+            # Pair
+            # ------------------------------------------------
+
+            echo
+            echo "Pairing with the adapter..."
+            echo
+
+            bluetoothctl pair "${OBD_BLUETOOTH_MAC}" || true
+
+            # ------------------------------------------------
+            # Trust
+            # ------------------------------------------------
+
+            echo
+            echo "Configuring the adapter to reconnect automatically..."
+
+            bluetoothctl trust "${OBD_BLUETOOTH_MAC}" || true
+
+            success "Bluetooth adapter configured."
+
+            # ------------------------------------------------
+            # Connect
+            # ------------------------------------------------
+
+            echo
+            echo "Connecting to the adapter..."
+
+            bluetoothctl connect "${OBD_BLUETOOTH_MAC}" || true
+
+            echo
+            echo "Bluetooth device information:"
+            bluetoothctl info "${OBD_BLUETOOTH_MAC}" || true
+
+        else
+
+            warning "No Bluetooth adapter was selected."
+
+        fi
+
+    fi
+
+else
+
+    echo "Bluetooth configuration is not required."
+    echo
+    success "Bluetooth setup skipped."
+
+fi
+
+pause
+
+# ============================================================
+# STEP 5
+# Wired setup
+# ============================================================
+
+step "Wired OBD-II setup"
+
+if [[ "${ENABLE_WIRED}" == "true" ]]; then
+
+    echo "The installer will detect your USB OBD-II adapter."
+    echo
+    echo "Connect the adapter to the Raspberry Pi now."
+    echo
+
+    pause
+
+    echo
+    echo "Searching for USB serial devices..."
+    echo
+
+    mapfile -t SERIAL_DEVICES < <(
+        find /dev -maxdepth 1 \
+            \( -name 'ttyUSB*' -o -name 'ttyACM*' \) \
+            -print 2>/dev/null | sort
+    )
+
+    if [[ "${#SERIAL_DEVICES[@]}" -eq 0 ]]; then
+
+        warning "No USB serial devices were detected."
+
+        echo
+        echo "Make sure your OBD-II adapter is connected."
+        echo
+
+        choice \
+            "What would you like to do?" \
+            "Scan again" \
+            "Continue without detecting it"
+
+        case "${CHOICE}" in
+
+            1)
+                mapfile -t SERIAL_DEVICES < <(
+                    find /dev -maxdepth 1 \
+                        \( -name 'ttyUSB*' -o -name 'ttyACM*' \) \
+                        -print 2>/dev/null | sort
+                )
+                ;;
+
+            2)
+                warning "Continuing without detecting a USB adapter."
+                ;;
+
+        esac
+
+    fi
+
+    if [[ "${#SERIAL_DEVICES[@]}" -gt 0 ]]; then
+
+        echo
+        echo "Detected USB serial devices:"
+        echo
+
+        for device in "${SERIAL_DEVICES[@]}"; do
+            echo "  " ${device}"
+        done
+
+        success "USB OBD-II device detected."
+
+    fi
+
+else
+
+    echo "Wired OBD-II configuration is not required."
+    echo
+    success "Wired setup skipped."
+
+fi
+
+pause
+
+# ============================================================
+# STEP 6
+# Download configuration
+# ============================================================
+
+step "Downloading Smart Dash configuration"
+
+mkdir -p "${INSTALL_DIR}"
+
+echo "Downloading Docker Compose configuration..."
+echo
+
+curl \
+    --fail \
+    --show-error \
+    --location \
+    --retry 3 \
+    "${COMPOSE_URL}" \
+    --output "${COMPOSE_FILE}"
+
+if [[ ! -s "${COMPOSE_FILE}" ]]; then
+    die "The Docker Compose file could not be downloaded."
+fi
+
+success "Docker Compose configuration downloaded."
+
+echo
+echo "Configuration source:"
+echo "  ${COMPOSE_URL}"
+
+pause
+
+# ============================================================
+# STEP 7
+# Configure and start Smart Dash
+# ============================================================
+
+step "Configuring Smart Dash"
+
+cat > "${ENV_FILE}" <<EOF
+# ============================================================
+# Smart Dash configuration
+# Generated by install.sh
+# ============================================================
+
+ENABLE_BLUETOOTH=${ENABLE_BLUETOOTH}
+ENABLE_WIRED=${ENABLE_WIRED}
+
+OBD_CONNECTION_TYPE=${OBD_CONNECTION_TYPE}
+
+OBD_BLUETOOTH_MAC=${OBD_BLUETOOTH_MAC}
+OBD_BLUETOOTH_NAME=${OBD_BLUETOOTH_NAME}
+EOF
+
+chmod 600 "${ENV_FILE}"
+
+success "Smart Dash configuration saved."
+
+echo
+echo "Validating Docker Compose configuration..."
+
+docker compose \
+    --env-file "${ENV_FILE}" \
+    -f "${COMPOSE_FILE}" \
+    config >/dev/null
+
+success "Docker Compose configuration is valid."
+
+echo
+echo "Pulling the Smart Dash Docker image..."
+echo
+
+docker compose \
+    --env-file "${ENV_FILE}" \
+    -f "${COMPOSE_FILE}" \
+    pull
+
+success "Docker image downloaded."
+
+echo
+echo "Starting Smart Dash..."
+echo
+
+docker compose \
+    --env-file "${ENV_FILE}" \
+    -f "${COMPOSE_FILE}" \
+    up -d
+
+success "Smart Dash started."
+
+pause
+
+# ============================================================
+# STEP 8
+# Verify
+# ============================================================
+
+step "Verifying Smart Dash"
+
+echo "Checking container status..."
+echo
+
+docker compose \
+    --env-file "${ENV_FILE}" \
+    -f "${COMPOSE_FILE}" \
+    ps
+
+echo
+
+if docker compose \
+    --env-file "${ENV_FILE}" \
+    -f "${COMPOSE_FILE}" \
+    ps --status running | grep -q .; then
+
+    success "Smart Dash container is running."
+
+else
+
+    warning "Smart Dash does not appear to be running."
+
+    echo
+    echo "Recent logs:"
+    echo
+
+    docker compose \
+        --env-file "${ENV_FILE}" \
+        -f "${COMPOSE_FILE}" \
+        logs --tail=50
+
+fi
+
+# ============================================================
+# Complete
+# ============================================================
+
+echo
+echo "============================================================"
+echo -e "${GREEN}${BOLD}                 INSTALLATION COMPLETE${RESET}"
+echo "============================================================"
+echo
+
+echo "Smart Dash has been installed to:"
+echo
+echo "  ${INSTALL_DIR}"
+echo
+
+echo "Connection mode:"
+echo
+echo "  ${OBD_CONNECTION_TYPE}"
+echo
+
+if [[ "${ENABLE_BLUETOOTH}" == "true" &&
+      -n "${OBD_BLUETOOTH_MAC}" ]]; then
+
+    echo "Bluetooth adapter:"
+    echo
+    echo "  ${OBD_BLUETOOTH_NAME}"
+    echo "  ${OBD_BLUETOOTH_MAC}"
+    echo
+
+fi
+
+echo "The Docker container is configured by docker-compose.yml"
+echo "to restart automatically after a reboot."
+echo
+
+echo "Useful commands:"
+echo
+echo "  View status:"
+echo "    cd ${INSTALL_DIR}"
+echo "    sudo docker compose ps"
+echo
+echo "  View logs:"
+echo "    cd ${INSTALL_DIR}"
+echo "    sudo docker compose logs -f"
+echo
+echo "  Restart:"
+echo "    cd ${INSTALL_DIR}"
+echo "    sudo docker compose restart"
+echo
+echo "  Stop:"
+echo "    cd ${INSTALL_DIR}"
+echo "    sudo docker compose down"
+echo
+
+echo "============================================================"
+echo
