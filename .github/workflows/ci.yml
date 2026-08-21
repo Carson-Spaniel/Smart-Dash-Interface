@@ -85,6 +85,58 @@ jobs:
 
 
   # ==================================================================
+  # Installer
+  #
+  # Validates the installer template on every push and pull request.
+  #
+  # This does NOT generate or commit install.sh.
+  # Generation happens separately in build-installer.yml.
+  # ==================================================================
+
+  installer:
+    name: Installer
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      # --------------------------------------------------------------
+      # ShellCheck
+      # --------------------------------------------------------------
+
+      - name: Install ShellCheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      # --------------------------------------------------------------
+      # Bash syntax
+      # --------------------------------------------------------------
+
+      - name: Validate installer syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          bash -n scripts/install.sh.in
+
+      # --------------------------------------------------------------
+      # ShellCheck
+      # --------------------------------------------------------------
+
+      - name: ShellCheck installer
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          shellcheck \
+            --exclude=SC1091 \
+            --exclude=SC2034 \
+            scripts/install.sh.in
+
+
+  # ==================================================================
   # Docker Build + Security Scan
   #
   # This intentionally does NOT push anything to GHCR.
@@ -133,8 +185,7 @@ jobs:
       #
       # Scans the actual ARM64 image that was just built.
       #
-      # The build fails if HIGH or CRITICAL vulnerabilities are found.
-      # Unfixed vulnerabilities are ignored.
+      # The build currently does NOT fail on vulnerabilities.
       # --------------------------------------------------------------
 
       - name: Trivy vulnerability scan
