@@ -111,7 +111,7 @@ jobs:
       # --------------------------------------------------------------
       # Build ARM64 image into the local Docker image store.
       #
-      # We need load: true so Docker Scout can inspect it locally.
+      # load: true makes the image available locally for Trivy.
       # --------------------------------------------------------------
 
       - name: Build ARM64 Docker image
@@ -131,13 +131,18 @@ jobs:
       # --------------------------------------------------------------
       # Vulnerability scan
       #
-      # This scans the actual image we just built.
+      # Scans the actual ARM64 image that was just built.
+      #
+      # The build fails if HIGH or CRITICAL vulnerabilities are found.
+      # Unfixed vulnerabilities are ignored because there may not yet
+      # be an available upstream fix.
       # --------------------------------------------------------------
 
-      - name: Docker Scout vulnerability scan
-        uses: docker/scout-action@v1
+      - name: Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@0.33.1
         with:
-          command: cves
-          image: smart-dash:ci-${{ github.sha }}
-          only-severities: critical,high
-          exit-code: true
+          image-ref: smart-dash:ci-${{ github.sha }}
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
