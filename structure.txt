@@ -1,0 +1,226 @@
+Smart-Dash-Interface/
+│
+├── app/
+│   ├── __init__.py
+│   ├── main.py
+│   │
+│   ├── vehicle/
+│   │   ├── __init__.py
+│   │   ├── obd.py
+│   │   ├── simulator.py
+│   │   └── vehicle_state.py
+│   │
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── diagnostics.py
+│   │   └── trip.py
+│   │
+│   └── ui/
+│       ├── __init__.py
+│       └── qml/
+│           ├── Main.qml
+│           ├── Dashboard.qml
+│           ├── Settings.qml
+│           ├── Diagnostics.qml
+│           └── components/
+│               ├── Tachometer.qml
+│               ├── Speedometer.qml
+│               ├── FuelGauge.qml
+│               └── ShiftLights.qml
+│
+├── tests/
+│   ├── __init__.py
+│   └── test_vehicle_state.py
+│
+├── Dockerfile
+├── compose.yaml
+├── pyproject.toml
+├── README.md
+└── .gitignore
+
+
+
+
+
+
+
+app/
+│
+├── vehicle/
+│   │
+│   ├── obd.py
+│   │      └── Talks to car
+│   │
+│   ├── simulator.py
+│   │      └── Pretends to be car
+│   │
+│   └── vehicle_state.py
+│          └── Current vehicle data
+│
+├── services/
+│   │
+│   ├── diagnostics.py
+│   │      └── DTCs / CEL
+│   │
+│   └── trip.py
+│          └── MPG / distance / performance
+│
+└── ui/
+    └── qml/
+           └── Dashboard
+
+
+
+app/ui/qml/
+├── Main.qml
+├── Dashboard.qml
+├── Settings.qml
+├── Diagnostics.qml
+├── RpmSettings.qml
+├── Customization.qml
+├── ShiftLightSettings.qml
+├── DevelopmentSettings.qml
+├── SystemInformation.qml
+│
+└── components/
+    ├── Tachometer.qml
+    ├── Speedometer.qml
+    ├── FuelGauge.qml
+    ├── RpmBar.qml
+    ├── ShiftLights.qml
+    ├── SettingRow.qml
+    ├── SettingButton.qml
+    └── PageIndicator.qml
+
+
+
+                         Main.qml
+                            │
+                  ┌─────────┴─────────┐
+                  │                   │
+              StackView          Navigation
+                  │
+      ┌───────────┼────────────────────────┐
+      │           │                        │
+      ▼           ▼                        ▼
+ Dashboard    RpmSettings              Settings
+      │
+      ├── RpmBar
+      ├── ShiftLights
+      ├── FuelGauge
+      ├── Speedometer
+      └── Tachometer
+
+
+
+
+                 VehicleState
+                     │
+        ┌────────────┼─────────────┐
+        │            │             │
+        ▼            ▼             ▼
+       RPM         Speed          Fuel
+        │            │             │
+        └────────────┼─────────────┘
+                     │
+                     ▼
+                   QML
+
+
+
+
+GitHub
+   │
+   │ merge PR → main
+   ▼
+GitHub Actions
+   │
+   ├── tests
+   ├── build ARM64
+   ├── Trivy scan
+   └── push :unstable
+             │
+             ▼
+          GHCR
+             │
+             │ manual release
+             ▼
+          :latest
+             │
+             ▼
+      ┌───────────────┐
+      │ Raspberry Pi  │
+      │               │
+      │ install.sh    │
+      │      ↓        │
+      │ Docker        │
+      │ Bluetooth     │
+      │ Compose       │
+      │ systemd       │
+      └───────┬───────┘
+              │
+              ▼
+       Smart Dash starts
+       automatically on boot
+
+
+
+
+
+
+============================================================
+                 SMART DASH INSTALLER
+============================================================
+
+STEP 1/8: Checking your Raspberry Pi
+✓ Raspberry Pi OS detected
+
+STEP 2/8: Installing required system software
+✓ Docker installed
+✓ Docker Compose available
+
+STEP 3/8: Choosing your OBD-II connection
+
+  1) Bluetooth OBD-II adapter
+  2) USB/Wired OBD-II adapter
+  3) Simulator
+
+Select an option [1-3]: 1
+
+STEP 4/8: Bluetooth setup
+
+✓ Bluetooth controller detected
+
+Put your OBD-II adapter in the vehicle.
+
+Scanning...
+
+  1) VEEPEAK OBDCheck (XX:XX:XX:XX:XX:XX)
+  2) Other Bluetooth device
+  3) None of these
+
+Select an option [1-3]: 1
+
+✓ Paired
+✓ Trusted
+✓ Connected
+✓ RFCOMM channel detected: 1
+✓ /dev/rfcomm0 created
+✓ Automatic reconnect configured
+
+STEP 5/8: Testing OBD-II connection
+✓ OBD-II adapter responding
+
+STEP 6/8: Downloading Smart Dash configuration
+✓ docker-compose.yml downloaded
+
+STEP 7/8: Starting Smart Dash
+✓ Docker image downloaded
+✓ Container started
+
+STEP 8/8: Verifying Smart Dash
+✓ Container running
+
+============================================================
+                 INSTALLATION COMPLETE
+============================================================
