@@ -1,8 +1,8 @@
-pragma ComponentBehavior: Bound
+// pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Shapes
 import "components"
-import Qt5Compat.GraphicalEffects
 
 Item {
     id: root
@@ -25,8 +25,8 @@ Item {
         color: Theme.background2
     }
 
-    property real panelCutoutGap: 30
-    property real edgePadding: 30
+    property real panelCutoutGap: 50
+    property real edgePadding: 0
 
 
 
@@ -492,115 +492,149 @@ Item {
     // ===============================================================
     // INVERSE MAIN PANEL CUTOUT
     // ===============================================================
-
-    Item {
+    Shape {
         id: inversePanel
 
         anchors.fill: parent
 
+        ShapePath {
+            fillColor: Theme.background1
+            strokeWidth: 0
+            fillRule: ShapePath.OddEvenFill
 
-        // -----------------------------------------------------------
-        // TOP
-        // -----------------------------------------------------------
+            // ===========================================================
+            // Outer rectangle
+            // ===========================================================
 
-        Rectangle {
-            anchors.top: parent.top
-            anchors.left: parent.left
-            anchors.right: parent.right
+            PathMove {
+                x: root.edgePadding
+                y: root.edgePadding
+            }
 
-            height: root.edgePadding
+            PathLine {
+                x: inversePanel.width - root.edgePadding
+                y: root.edgePadding
+            }
 
-            color: Theme.background1
-        }
+            PathLine {
+                x: inversePanel.width - root.edgePadding
+                y: inversePanel.height - root.edgePadding
+            }
 
+            PathLine {
+                x: root.edgePadding
+                y: inversePanel.height - root.edgePadding
+            }
 
-        // -----------------------------------------------------------
-        // BOTTOM
-        // -----------------------------------------------------------
+            PathLine {
+                x: root.edgePadding
+                y: root.edgePadding
+            }
 
-        Rectangle {
-            anchors.bottom: parent.bottom
-            anchors.left: parent.left
-            anchors.right: parent.right
+            // ===========================================================
+            // Rounded cutout
+            // ===========================================================
 
-            height: root.edgePadding
+            PathMove {
+                x: mainPanel.x - root.panelCutoutGap
+                y: mainPanel.y + mainPanel.radius
+            }
 
-            color: Theme.background1
-        }
+            // Top-left corner
+            PathArc {
+                x: mainPanel.x + mainPanel.radius
+                    - root.panelCutoutGap
+                y: mainPanel.y - root.panelCutoutGap
 
+                radiusX: mainPanel.radius + root.panelCutoutGap
+                radiusY: mainPanel.radius + root.panelCutoutGap
 
-        // -----------------------------------------------------------
-        // LEFT
-        // -----------------------------------------------------------
+                direction: PathArc.Clockwise
+            }
 
-        Rectangle {
-            anchors.left: parent.left
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-
-            width: root.edgePadding
-
-            color: Theme.background1
-        }
-
-
-        // -----------------------------------------------------------
-        // RIGHT
-        // -----------------------------------------------------------
-
-        Rectangle {
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-
-            width: root.edgePadding
-
-            color: Theme.background1
-        }
-
-
-        // -----------------------------------------------------------
-        // CUTOUT MASK
-        // -----------------------------------------------------------
-
-        Rectangle {
-            id: mainPanelCutout
-
-            anchors.centerIn: parent
-
-            width: mainPanel.width
-                   + (root.panelCutoutGap * 2)
-
-            height: mainPanel.height
-                    + (root.panelCutoutGap * 2)
-
-            radius: mainPanel.radius
+            // Top edge
+            PathLine {
+                x: mainPanel.x
+                    + mainPanel.width
+                    - mainPanel.radius
                     + root.panelCutoutGap
 
-            color: "white"
+                y: mainPanel.y - root.panelCutoutGap
+            }
 
-            visible: false
-        }
+            // Top-right corner
+            PathArc {
+                x: mainPanel.x
+                    + mainPanel.width
+                    + root.panelCutoutGap
 
+                y: mainPanel.y + mainPanel.radius
 
-        // -----------------------------------------------------------
-        // INVERSE OVERLAY
-        // -----------------------------------------------------------
+                radiusX: mainPanel.radius + root.panelCutoutGap
+                radiusY: mainPanel.radius + root.panelCutoutGap
 
-        Rectangle {
-            id: inverseOverlay
+                direction: PathArc.Clockwise
+            }
 
-            anchors.fill: parent
+            // Right edge
+            PathLine {
+                x: mainPanel.x
+                    + mainPanel.width
+                    + root.panelCutoutGap
 
-            anchors.margins: root.edgePadding
+                y: mainPanel.y
+                    + mainPanel.height
+                    - mainPanel.radius
+                    + root.panelCutoutGap
+            }
 
-            color: Theme.background1
+            // Bottom-right corner
+            PathArc {
+                x: mainPanel.x
+                    + mainPanel.width
+                    - mainPanel.radius
+                    + root.panelCutoutGap
 
-            layer.enabled: true
+                y: mainPanel.y
+                    + mainPanel.height
+                    + root.panelCutoutGap
 
-            layer.effect: OpacityMask {
-                maskSource: mainPanelCutout
-                invert: true
+                radiusX: mainPanel.radius + root.panelCutoutGap
+                radiusY: mainPanel.radius + root.panelCutoutGap
+
+                direction: PathArc.Clockwise
+            }
+
+            // Bottom edge
+            PathLine {
+                x: mainPanel.x
+                    + mainPanel.radius
+                    - root.panelCutoutGap
+
+                y: mainPanel.y
+                    + mainPanel.height
+                    + root.panelCutoutGap
+            }
+
+            // Bottom-left corner
+            PathArc {
+                x: mainPanel.x - root.panelCutoutGap
+
+                y: mainPanel.y
+                    + mainPanel.height
+                    - mainPanel.radius
+                    + root.panelCutoutGap
+
+                radiusX: mainPanel.radius + root.panelCutoutGap
+                radiusY: mainPanel.radius + root.panelCutoutGap
+
+                direction: PathArc.Clockwise
+            }
+
+            // Left edge — returns to starting point
+            PathLine {
+                x: mainPanel.x - root.panelCutoutGap
+                y: mainPanel.y + mainPanel.radius
             }
         }
     }
